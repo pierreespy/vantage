@@ -11,10 +11,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.vantage.app"
+      "bundleIdentifier": "com.vantagechronicle.app"
     },
     "android": {
-      "package": "com.vantage.app",
+      "package": "com.vantagechronicle.app",
       "adaptiveIcon": {
         "backgroundColor": "#F9EFE3",
         "foregroundImage": "./assets/android-icon-foreground.png",
