@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Brief Santé VC — Édition N° 142</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,500;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #F9EFE3;
+  --accent: #0B4F6C;
+  --ink: #22201D;
+  --claret: #8A2B2B;
+  --muted: #6b6257;
+  --up: #1f7a4d;
+  --down: #b3382e;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: #ece0cf;
+  font-family: 'Source Serif 4', Georgia, serif;
+  color: var(--ink);
+}
+
+a { color: inherit; }
+
+::selection { background: #0b4f6c; color: #f9efe3; }
+
+@keyframes brief-ticker {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ticker-track { animation: none; }
+}
+
+.page {
+  background: var(--paper);
+  min-height: 100vh;
+  padding: 28px 20px 56px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===================== MASTHEAD ===================== */
+
+.masthead-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 8px;
+}
+
+.masthead-title {
+  border-top: 2px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  padding: 14px 0 10px;
+}
+
+.masthead-title h1 {
+  margin: 0;
+  text-align: center;
+  font-weight: 700;
+  font-size: clamp(34px, 7vw, 76px);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+}
+
+.masthead-title h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+
+.masthead-strap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  padding: 9px 0 11px;
+  font-family: 'Archivo', sans-serif;
+  font-size: 12.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid var(--ink);
+}
+
+.masthead-strap .rule {
+  flex: 1;
+  height: 1px;
+  background: rgba(34, 32, 29, 0.28);
+}
+
+.masthead-strap .label {
+  white-space: nowrap;
+}
+
+/* ===================== MÉTÉO DU MARCHÉ ===================== */
+
+.weather {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 28px;
+  padding: 11px 2px;
+  border-bottom: 1px solid rgba(34, 32, 29, 0.22);
+}
+
+.weather-label {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--claret);
+}
+
+.weather-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  letter-spacing: 0.03em;
+  font-weight: 600;
+}
+
+.weather-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--weather-dot-color, #C9982B);
+}
+
+.weather-note {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 14.5px;
+  color: #4a443c;
+  flex: 1;
+  min-width: 220px;
+}
+
+/* ===================== TICKER ===================== */
+
+.ticker {
+  background: var(--ink);
+  color: var(--paper);
+  overflow: hidden;
+  border-bottom: 2px solid var(--ink);
+}
+
+.ticker-inner {
+  display: flex;
+  align-items: stretch;
+}
+
+.ticker-label {
+  flex: none;
+  background: var(--accent);
+  color: var(--paper);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+
+.ticker-track-wrap {
+  overflow: hidden;
+  flex: 1;
+  position: relative;
+}
+
+.ticker-track {
+  display: flex;
+  width: max-content;
+  animation: brief-ticker 46s linear infinite;
+  will-change: transform;
+}
+
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 20px;
+  border-right: 1px solid rgba(249, 239, 227, 0.16);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12.5px;
+  white-space: nowrap;
+}
+
+.ticker-item .company { font-weight: 600; letter-spacing: 0.02em; }
+.ticker-item .type {
+  color: rgba(249, 239, 227, 0.55);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ticker-item .amount { font-weight: 600; }
+.ticker-item .delta { font-weight: 600; }
+.ticker-item .delta.up { color: var(--up); }
+.ticker-item .delta.down { color: var(--down); }
+.ticker-item .delta.flat { color: rgba(249, 239, 227, 0.6); }
+
+/* ===================== CORPS — 3 COLONNES ===================== */
+
+.body-grid {
+  display: grid;
+  grid-template-columns: 1fr 2.05fr 1.25fr;
+  grid-template-areas: "left center right";
+  gap: 0;
+  margin-top: 4px;
+}
+
+.col-left {
+  grid-area: left;
+  padding: 20px 22px 20px 0;
+  border-right: 1px solid rgba(34, 32, 29, 0.2);
+}
+
+.col-center {
+  grid-area: center;
+  padding: 20px 26px;
+}
+
+.col-right {
+  grid-area: right;
+  padding: 20px 0 20px 22px;
+  border-left: 1px solid rgba(34, 32, 29, 0.2);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.section-head.secondary { margin: 22px 0 12px; }
+
+.section-head .label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--claret);
+}
+
+.section-head .label.muted { color: var(--muted); }
+.section-head .label.ink { color: var(--ink); }
+
+.section-head .rule { flex: 1; height: 2px; background: var(--ink); }
+.section-head .rule.thin { height: 1px; background: rgba(34, 32, 29, 0.3); }
+
+/* Brèves */
+
+.brief {
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(34, 32, 29, 0.14);
+}
+
+.brief.brief-monde { padding: 10px 0; }
+
+.brief-kicker {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+
+.brief-kicker.muted { color: var(--muted); }
+
+.brief-title {
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.24;
+  margin-bottom: 3px;
+}
+
+.brief.brief-monde .brief-title { font-size: 14.5px; line-height: 1.26; }
+
+.brief-title a {
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.brief-title a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.brief-summary {
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: #4a443c;
+}
+
+.brief.brief-monde .brief-summary { font-size: 13px; }
+
+/* Réglementation */
+
+.reg-item {
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(34, 32, 29, 0.14);
+  display: flex;
+  gap: 10px;
+}
+
+.reg-tag {
+  flex: none;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--paper);
+  background: var(--claret);
+  padding: 3px 6px;
+  height: fit-content;
+  border-radius: 2px;
+}
+
+.reg-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.26;
+  margin-bottom: 3px;
+}
+
+.reg-title a {
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.reg-title a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.reg-body {
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #4a443c;
+}
+
+/* Une / lead */
+
+.lead-kicker {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.lead-headline {
+  margin: 0 0 12px;
+  font-weight: 700;
+  font-size: clamp(28px, 3.6vw, 46px);
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+}
+
+.lead-headline a {
+  text-decoration: none;
+  border-bottom: 2px solid rgba(11, 79, 108, 0.28);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.lead-headline a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.lead-deck {
+  margin: 0 0 14px;
+  font-size: 18.5px;
+  line-height: 1.42;
+  color: #3a352e;
+  font-weight: 500;
+}
+
+.lead-byline {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-top: 1px solid rgba(34, 32, 29, 0.2);
+  border-bottom: 1px solid rgba(34, 32, 29, 0.2);
+  padding: 8px 0;
+  margin-bottom: 16px;
+}
+
+.lead-body {
+  column-count: 2;
+  column-gap: 26px;
+  column-rule: 1px solid rgba(34, 32, 29, 0.14);
+}
+
+.lead-body p {
+  margin: 0 0 12px;
+  font-size: 15px;
+  line-height: 1.56;
+  color: #2a2620;
+}
+
+.lead-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 8px;
+}
+
+.lead-tags .tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid rgba(11, 79, 108, 0.4);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+/* Deal du jour */
+
+.deal-card {
+  margin-top: 24px;
+  border: 2px solid var(--ink);
+  background: rgba(34, 32, 29, 0.03);
+}
+
+.deal-header {
+  background: var(--ink);
+  color: var(--paper);
+  padding: 9px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.deal-header .sector {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(249, 239, 227, 0.7);
+  text-transform: none;
+}
+
+.deal-body { padding: 16px 18px; }
+
+.deal-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px 14px;
+  margin-bottom: 12px;
+}
+
+.deal-company {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-decoration: none;
+  border-bottom: 2px solid rgba(11, 79, 108, 0.28);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.deal-company:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.deal-amount {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.deal-round {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--paper);
+  background: var(--accent);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.deal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.deal-label {
+  font-family: 'Archivo', sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.deal-label.claret { color: var(--claret); }
+
+.deal-investors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.deal-investors .chip {
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(34, 32, 29, 0.07);
+  padding: 3px 8px;
+  border-radius: 2px;
+}
+
+.deal-thesis-label { margin: 14px 0 5px; }
+
+.deal-thesis, .deal-why {
+  font-size: 13.5px;
+  color: #2a2620;
+}
+
+.deal-thesis { line-height: 1.45; }
+.deal-why { line-height: 1.5; }
+
+.deal-why-col {
+  border-left: 2px solid var(--claret);
+  padding-left: 14px;
+}
+
+/* ---------- COLONNE DROITE ---------- */
+
+.stat-box {
+  background: var(--accent);
+  color: var(--paper);
+  padding: 18px 18px 20px;
+  margin-bottom: 20px;
+}
+
+.stat-label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.8;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-family: 'Source Serif 4', serif;
+  font-weight: 700;
+  font-size: 52px;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+}
+
+.stat-text {
+  font-size: 14.5px;
+  line-height: 1.4;
+  margin-top: 8px;
+  font-weight: 500;
+}
+
+.stat-context {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  margin-top: 8px;
+  opacity: 0.82;
+}
+
+.word-box {
+  border: 1px solid rgba(34, 32, 29, 0.28);
+  padding: 15px 16px;
+  margin-bottom: 20px;
+}
+
+.word-label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--claret);
+  margin-bottom: 8px;
+}
+
+.word-term {
+  font-size: 26px;
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.word-full {
+  font-family: 'Archivo', sans-serif;
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+  color: var(--muted);
+  margin-bottom: 9px;
+}
+
+.word-definition {
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: #2a2620;
+  margin-bottom: 10px;
+}
+
+.word-example {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #4a443c;
+  border-top: 1px solid rgba(34, 32, 29, 0.16);
+  padding-top: 8px;
+  margin-bottom: 12px;
+}
+
+.word-example .ex-label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.word-btn {
+  width: 100%;
+  border: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.word-btn:hover { background: var(--accent); }
+.word-btn .arrow { font-size: 13px; }
+
+/* Agenda */
+
+.agenda-item {
+  display: flex;
+  gap: 11px;
+  padding: 9px 0;
+  border-bottom: 1px solid rgba(34, 32, 29, 0.14);
+}
+
+.agenda-date {
+  flex: none;
+  width: 52px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1.3;
+}
+
+.agenda-event {
+  font-size: 13.5px;
+  font-weight: 600;
+  line-height: 1.28;
+}
+
+.agenda-place {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Entretien */
+
+.interview-box {
+  margin-top: 20px;
+  background: rgba(138, 43, 43, 0.06);
+  border-top: 3px solid var(--claret);
+  padding: 15px 16px;
+}
+
+.interview-label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--claret);
+  margin-bottom: 4px;
+}
+
+.interview-subtitle {
+  font-size: 13px;
+  font-style: italic;
+  color: var(--muted);
+  margin-bottom: 11px;
+}
+
+.interview-point {
+  display: flex;
+  gap: 9px;
+  padding: 7px 0;
+  border-top: 1px solid rgba(138, 43, 43, 0.18);
+}
+
+.interview-point .n {
+  flex: none;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--claret);
+}
+
+.interview-point .text {
+  font-size: 13.5px;
+  line-height: 1.42;
+  color: #2a2620;
+}
+
+/* ===================== SOURCES ===================== */
+
+.sources {
+  border-top: 2px solid var(--ink);
+  margin-top: 20px;
+  padding-top: 14px;
+}
+
+.sources-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.sources-head .label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--claret);
+}
+
+.sources-head .note {
+  font-family: 'Source Serif 4', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.sources-list {
+  column-count: 3;
+  column-gap: 26px;
+}
+
+.source-item {
+  break-inside: avoid;
+  display: flex;
+  gap: 9px;
+  padding: 6px 0;
+  border-top: 1px solid rgba(34, 32, 29, 0.12);
+}
+
+.source-item .dot {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  margin-top: 6px;
+  background: var(--accent);
+}
+
+.source-item a {
+  text-decoration: none;
+  color: #2a2620;
+}
+
+.source-item a:hover { color: var(--accent); }
+
+.source-item .src-name {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.source-item .src-title {
+  font-size: 12.5px;
+  line-height: 1.35;
+}
+
+/* ===================== PIED ===================== */
+
+.footer {
+  border-top: 2px solid var(--ink);
+  margin-top: 8px;
+  padding-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ===================== MODALE ===================== */
+
+.modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 22, 20, 0.55);
+  backdrop-filter: blur(2px);
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 20px;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+.modal-backdrop.open { display: flex; }
+
+.modal {
+  background: var(--paper);
+  max-width: 720px;
+  width: 100%;
+  border: 2px solid var(--ink);
+  box-shadow: 0 24px 60px rgba(24, 22, 20, 0.35);
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(34, 32, 29, 0.3);
+  background: transparent;
+  color: var(--ink);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-close:hover { background: var(--ink); color: var(--paper); }
+
+.modal-header {
+  padding: 30px 34px 20px;
+  border-bottom: 2px solid var(--ink);
+}
+
+.modal-eyebrow {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--claret);
+  margin-bottom: 10px;
+}
+
+.modal-header h2 {
+  margin: 0 0 4px;
+  font-size: clamp(30px, 6vw, 42px);
+  font-weight: 700;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.modal-header .subtitle {
+  font-family: 'Archivo', sans-serif;
+  font-size: 14px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+}
+
+.modal-body { padding: 24px 34px 34px; }
+
+.modal-intro {
+  margin: 0 0 24px;
+  font-size: 17px;
+  line-height: 1.55;
+  color: #2a2620;
+}
+
+.modal-section-label {
+  font-family: 'Archivo', sans-serif;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 12px;
+}
+
+.modal-section-label.muted { color: var(--muted); }
+
+.how-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 26px;
+}
+
+.how-step {
+  border-top: 3px solid var(--ink);
+  padding-top: 10px;
+}
+
+.how-step .n {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--accent);
+  line-height: 1;
+}
+
+.how-step .h {
+  font-weight: 700;
+  font-size: 15px;
+  margin: 6px 0 4px;
+}
+
+.how-step .t {
+  font-size: 13px;
+  line-height: 1.45;
+  color: #4a443c;
+}
+
+.why-deals-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+
+.why-text {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: #2a2620;
+}
+
+.deal-line {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  line-height: 1.35;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(34, 32, 29, 0.14);
+  color: #2a2620;
+}
+
+.modal-interview {
+  background: rgba(138, 43, 43, 0.07);
+  border-left: 3px solid var(--claret);
+  padding: 14px 16px;
+}
+
+.modal-interview p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2a2620;
+}
+
+/* ===================== RESPONSIVE ===================== */
+
+@media (max-width: 860px) {
+  .body-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "center"
+      "right"
+      "left";
+  }
+
+  .col-left, .col-right {
+    border: none;
+    padding: 20px 0 0;
+    margin-top: 12px;
+    border-top: 1px solid rgba(34, 32, 29, 0.2);
+  }
+
+  .col-center { padding: 20px 0; }
+
+  .lead-body { column-count: 1; column-rule: none; }
+
+  .deal-grid { grid-template-columns: 1fr; }
+
+  .sources-list { column-count: 1; }
+
+  .how-grid { grid-template-columns: 1fr; gap: 18px; }
+
+  .why-deals-grid { grid-template-columns: 1fr; }
+
+  .masthead-strap .label { text-align: center; }
+}
+
+@media (max-width: 480px) {
+  .page { padding: 20px 14px 40px; }
+  .masthead-meta { justify-content: center; text-align: center; gap: 2px 12px; font-size: 9.5px; }
+  .deal-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .ticker-label { font-size: 10px; padding: 0 10px; }
+  .ticker-item { padding: 9px 14px; font-size: 11.5px; }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+<div class="container">
+
+  <!-- ===================== MASTHEAD ===================== -->
+  <div class="masthead-meta">
+    <span>Édition N° 142</span>
+    <span>Paris · France</span>
+    <span>Mercredi 8 juillet 2026</span>
+  </div>
+  <div class="masthead-title">
+    <h1>Le Brief Santé <em>VC</em></h1>
+  </div>
+  <div class="masthead-strap">
+    <span class="rule"></span>
+    <span class="label">Veille quotidienne · Capital-risque en santé · Priorité Europe</span>
+    <span class="rule"></span>
+  </div>
+
+  <!-- ===================== MÉTÉO DU MARCHÉ ===================== -->
+  <div class="weather">
+    <span class="weather-label">Météo du marché</span>
+    <span class="weather-status"><span class="weather-dot" style="--weather-dot-color: #8A2B2B;"></span>Frénésie M&amp;A</span>
+    <span class="weather-note">Ipsen rachète deux biotechs en une semaine, Novartis met 1,5&nbsp;Md$ sur la table pour Myricx Bio&nbsp;: l'appétit des grands laboratoires pour les actifs cliniques européens ne faiblit pas.</span>
+  </div>
+
+  <!-- ===================== TICKER ===================== -->
+  <div class="ticker">
+    <div class="ticker-inner">
+      <div class="ticker-label">Levées &amp; M&amp;A du jour</div>
+      <div class="ticker-track-wrap">
+        <div class="ticker-track" id="tickerTrack">
+          <span class="ticker-item"><span class="company">IPSEN → KARTOS</span><span class="type">M&amp;A</span><span class="amount">1,75 Md$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">IPSEN → MEMO THERAPEUTICS</span><span class="type">M&amp;A</span><span class="amount">700 M€+</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">NOVARTIS → MYRICX BIO</span><span class="type">M&amp;A</span><span class="amount">1,5 Md$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">ABBVIE → APOGEE</span><span class="type">M&amp;A</span><span class="amount">10,9 Md$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">CELEA THERAPEUTICS</span><span class="type">Série A</span><span class="amount">180 M$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">CURIFYLABS</span><span class="type">Série A</span><span class="amount">12 M€</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">AZALEA VISION</span><span class="type">EIC Accelerator</span><span class="amount">7,5 M€</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">DOCTOLIB</span><span class="type">Secondaire</span><span class="amount">3,6 Md€</span><span class="delta down">▼</span></span><span class="ticker-item"><span class="company">ASSURANCE SANTÉ</span><span class="type">Série G</span><span class="amount">480 M€</span><span class="delta flat">=</span></span>
+          <!-- duplicated for seamless loop -->
+          <span class="ticker-item"><span class="company">IPSEN → KARTOS</span><span class="type">M&amp;A</span><span class="amount">1,75 Md$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">IPSEN → MEMO THERAPEUTICS</span><span class="type">M&amp;A</span><span class="amount">700 M€+</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">NOVARTIS → MYRICX BIO</span><span class="type">M&amp;A</span><span class="amount">1,5 Md$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">ABBVIE → APOGEE</span><span class="type">M&amp;A</span><span class="amount">10,9 Md$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">CELEA THERAPEUTICS</span><span class="type">Série A</span><span class="amount">180 M$</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">CURIFYLABS</span><span class="type">Série A</span><span class="amount">12 M€</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">AZALEA VISION</span><span class="type">EIC Accelerator</span><span class="amount">7,5 M€</span><span class="delta up">▲</span></span><span class="ticker-item"><span class="company">DOCTOLIB</span><span class="type">Secondaire</span><span class="amount">3,6 Md€</span><span class="delta down">▼</span></span><span class="ticker-item"><span class="company">ASSURANCE SANTÉ</span><span class="type">Série G</span><span class="amount">480 M€</span><span class="delta flat">=</span></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== CORPS — 3 COLONNES ===================== -->
+  <div class="body-grid">
+
+    <!-- ---------- COLONNE GAUCHE ---------- -->
+    <div class="col-left">
+
+      <div class="section-head">
+        <span class="label">Brèves · Europe</span>
+        <span class="rule"></span>
+      </div>
+
+      <div class="brief">
+        <div class="brief-kicker">Londres (UK) · Maladies respiratoires rares</div>
+        <div class="brief-title"><a href="https://www.morningstar.com/news/business-wire/20260701866873/celea-therapeutics-announces-180-million-financing-to-advance-deupirfenidone-as-a-potential-new-standard-of-care-to-treat-idiopathic-pulmonary-fibrosis-ipf" target="_blank" rel="noopener" title="Lire — Business Wire via Morningstar">Celea Therapeutics lève 180 M$ pour défier le traitement de référence de la fibrose pulmonaire</a></div>
+        <div class="brief-summary">Cette biotech soutenue par PureTech Health, RA Capital et Leaps by Bayer va comparer en Phase III sa molécule à la pirfénidone, le traitement actuel de cette maladie rare qui cicatrise progressivement les poumons.</div>
+      </div>
+      <div class="brief">
+        <div class="brief-kicker">Helsinki (Finlande) · Digital health / pharma</div>
+        <div class="brief-title"><a href="https://tech.eu/2026/07/06/curifylabs-bags-eur12m-to-automate-personalised-medicine/" target="_blank" rel="noopener" title="Lire — Tech.eu">CurifyLabs lève 12 M€ pour automatiser la fabrication de médicaments sur-mesure</a></div>
+        <div class="brief-summary">Sandwater et HealthCap mènent ce tour, qui doit financer l'expansion aux Etats-Unis d'une imprimante 3D capable de préparer des doses personnalisées directement en pharmacie.</div>
+      </div>
+      <div class="brief">
+        <div class="brief-kicker">Gand (Belgique) · Medtech / diagnostic</div>
+        <div class="brief-title"><a href="https://www.businesswire.com/news/home/20260701144267/en/Azalea-Vision-Awarded-Prestigious-EIC-Accelerator-Funding-to-Advance-Smart-Contact-Lens-into-Clinical-Development" target="_blank" rel="noopener" title="Lire — Business Wire">Azalea Vision décroche 7,5 M€ pour sa lentille de contact « intelligente »</a></div>
+        <div class="brief-summary">Cette spin-off d'imec et de l'université de Gand veut faire entrer en clinique une lentille truffée de capteurs, capable de corriger des troubles visuels complexes et de surveiller certains marqueurs de santé via les larmes.</div>
+      </div>
+      <div class="brief">
+        <div class="brief-kicker">Paris (France) · Digital health</div>
+        <div class="brief-title"><a href="https://nelsonadvisors.co.uk/blog/this-week-in-european-medtech-and-healthtech--3rd-july-2026" target="_blank" rel="noopener" title="Lire — Nelson Advisors">Doctolib aurait perdu 40 % de sa valeur sur le marché secondaire depuis son pic de 2022</a></div>
+        <div class="brief-summary">La licorne française de la prise de rendez-vous médical, valorisée 5,8 Md€ en 2022, retomberait autour de 3,6 Md€&nbsp;: un signal que les investisseurs ne récompensent plus la croissance seule, mais la rentabilité.</div>
+      </div>
+
+      <div class="section-head secondary">
+        <span class="label muted">Brèves · Monde</span>
+        <span class="rule thin"></span>
+      </div>
+
+      <div class="brief brief-monde">
+        <div class="brief-kicker muted">Etats-Unis · Immuno-inflammation</div>
+        <div class="brief-title"><a href="https://news.abbvie.com/2026-06-22-AbbVie-to-Acquire-Apogee-Therapeutics,-Deepening-Immunology-Portfolio" target="_blank" rel="noopener" title="Lire — AbbVie Newsroom">AbbVie rachète Apogee Therapeutics pour 10,9 Md$</a></div>
+        <div class="brief-summary">Objectif&nbsp;: un anticorps qui bloque une protéine inflammatoire (l'IL-13) impliquée dans l'eczéma sévère et l'asthme, un marché où plusieurs poids lourds pharma se disputent déjà les parts.</div>
+      </div>
+      <div class="brief brief-monde">
+        <div class="brief-kicker muted">Mondial · Tendance M&amp;A</div>
+        <div class="brief-title"><a href="https://www.biobucks.co/biotech-ma-tracker-2026" target="_blank" rel="noopener" title="Lire — BioBucks">51 rachats biotech déjà recensés en 2026, un rythme jamais vu depuis 2019</a></div>
+        <div class="brief-summary">Le baromètre BioBucks confirme la tendance observée cette semaine avec Ipsen et Novartis&nbsp;: les grands laboratoires préfèrent racheter des actifs cliniques déjà validés plutôt que de tout développer en interne.</div>
+      </div>
+
+      <div class="section-head secondary">
+        <span class="label">Réglementation</span>
+        <span class="rule"></span>
+      </div>
+
+      <div class="reg-item">
+        <span class="reg-tag">UE</span>
+        <div>
+          <div class="reg-title"><a href="https://nelsonadvisors.co.uk/blog/this-week-in-european-medtech-and-healthtech--3rd-july-2026" target="_blank" rel="noopener" title="Lire — Nelson Advisors">L'AI Act européen entre en application le 2 août pour l'IA « à haut risque »</a></div>
+          <div class="reg-body">Les dispositifs médicaux qui embarquent de l'IA (imagerie, diagnostic assisté) ont un an de sursis supplémentaire, jusqu'à août 2027, pour se mettre en conformité — un répit bienvenu pour les medtechs IA que ciblent Sofinnova ou Kurma.</div>
+        </div>
+      </div>
+      <div class="reg-item">
+        <span class="reg-tag">EMA</span>
+        <div>
+          <div class="reg-title"><a href="https://www.ema.europa.eu/en/news/meeting-highlights-committee-medicinal-products-human-use-chmp-22-25-june-2026" target="_blank" rel="noopener" title="Lire — EMA">Le comité scientifique européen recommande 6 nouveaux médicaments</a></div>
+          <div class="reg-body">Parmi eux, un vaccin grippe pour les plus de 50 ans et un biosimilaire du denosumab (contre les fragilités osseuses liées au cancer) — la dernière étape avant l'autorisation de mise sur le marché dans toute l'UE.</div>
+        </div>
+      </div>
+      <div class="reg-item">
+        <span class="reg-tag">FDA</span>
+        <div>
+          <div class="reg-title"><a href="https://news.vrtx.com/news-releases/news-release-details/vertex-announces-us-fda-approval-expanded-use-casgevyr-treatment" target="_blank" rel="noopener" title="Lire — Vertex Pharmaceuticals">Casgevy, la thérapie génique CRISPR, autorisée dès 2 ans aux Etats-Unis</a></div>
+          <div class="reg-body">Ce traitement à dose unique contre la drépanocytose (maladie génétique du sang) n'était accessible qu'à partir de 12 ans&nbsp;; environ 5 500 enfants supplémentaires y ont désormais accès.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- COLONNE CENTRE ---------- -->
+    <div class="col-center">
+      <div class="lead-kicker">M&amp;A · France</div>
+      <h2 class="lead-headline"><a href="https://www.ipsen.com/press-release/ipsen-to-acquire-kartos-therapeutics-expanding-hemato-oncology-late-stage-pipeline-3318643/" target="_blank" rel="noopener" title="Lire l'article original — Ipsen (communiqué officiel)">Ipsen frappe deux fois&nbsp;: jusqu'à 2,5 milliards de dollars pour muscler oncologie et maladies rares</a></h2>
+      <p class="lead-deck">En l'espace d'une semaine, le laboratoire français rachète Kartos Therapeutics puis Memo Therapeutics. Un signal fort pour tous les VC biotech européens qui misent sur la sortie par le rachat pharma.</p>
+      <div class="lead-byline">La rédaction — Paris</div>
+
+      <div class="lead-body">
+        <p>Ipsen, le laboratoire pharmaceutique français coté à Paris, vient de signer deux acquisitions coup sur coup. Fin juin, il annonce le rachat de l'américaine Kartos Therapeutics pour 450 M$ immédiats (jusqu'à 1,75 Md$ avec les paiements liés aux résultats cliniques et commerciaux). Une semaine plus tard, rebelote avec la biotech suisse Memo Therapeutics&nbsp;: 200 M€ immédiats, plus de 700 M€ potentiels au total.</p>
+        <p>Le premier actif, navtemadlin, cible la myélofibrose, un cancer rare de la moelle osseuse qui empêche la production normale de cellules sanguines. Le médicament est déjà en Phase III (l'étude POIESIS, plus de 600 patients) et vise à compléter le traitement de référence chez les patients qui n'y répondent pas assez bien. Les résultats définitifs sont attendus en 2027.</p>
+        <p>Le second actif, potravitug, est un anticorps dirigé contre un virus rare (le polyomavirus BK) qui peut endommager le greffon chez des patients transplantés du rein. Un exemple typique de « maladie rare » où très peu de laboratoires investissent, faute de marché suffisamment large — sauf quand, comme ici, l'actif est déjà validé cliniquement.</p>
+        <p>Pour un futur VC biotech, la leçon est simple&nbsp;: les grands laboratoires paient cher pour des actifs qui ont déjà passé les étapes cliniques les plus risquées. C'est exactement la stratégie de sortie que visent des fonds comme Sofinnova ou Kurma quand ils financent une biotech dès la Série A — construire une preuve clinique solide, puis vendre à un acteur qui a la force de frappe commerciale pour aller jusqu'au marché.</p>
+      </div>
+
+      <div class="lead-tags">
+        <span class="tag">Oncologie</span><span class="tag">Maladies rares</span><span class="tag">M&amp;A</span><span class="tag">France</span><span class="tag">Pipeline pharma</span>
+      </div>
+
+      <!-- DEAL DU JOUR DÉCRYPTÉ -->
+      <div class="deal-card">
+        <div class="deal-header">
+          <span>Le deal du jour, décrypté</span>
+          <span class="sector">Oncologie · ADC</span>
+        </div>
+        <div class="deal-body">
+          <div class="deal-top">
+            <a class="deal-company" href="https://www.businesswire.com/news/home/20260705848939/en/Sofinnova-Partners-Announces-Myricx-Bio-Agrees-to-Be-Acquired-by-Novartis" target="_blank" rel="noopener" title="Lire l'article original — Sofinnova Partners (communiqué)">Myricx Bio</a>
+            <span class="deal-amount">jusqu'à 1,5 Md$</span>
+            <span class="deal-round">Rachat</span>
+          </div>
+          <div class="deal-grid">
+            <div>
+              <div class="deal-label">Structure du paiement</div>
+              <div class="deal-investors">
+                <span class="chip">Sofinnova Partners</span><span class="chip">Brandon Capital</span><span class="chip">Novo Holdings</span><span class="chip">Abingworth</span><span class="chip">Eli Lilly</span><span class="chip">British Business Bank</span><span class="chip">Cancer Research Horizons</span>
+              </div>
+              <div class="deal-label deal-thesis-label">La thèse</div>
+              <div class="deal-thesis">Myricx, spin-off de l'Imperial College de Londres et du Francis Crick Institute, développe une nouvelle génération de « charge utile » pour les ADC (voir le mot du jour)&nbsp;: au lieu d'attacher à l'anticorps une chimiothérapie classique, elle attache un inhibiteur d'une enzyme (NMT) qui semble mieux toléré et efficace sur plusieurs types de tumeurs solides. Sofinnova a co-mené le tour de seed en 2019 et est resté investisseur jusqu'à la sortie.</div>
+            </div>
+            <div class="deal-why-col">
+              <div class="deal-label claret">Pourquoi ça compte</div>
+              <div class="deal-why">C'est la 7e sortie de Sofinnova en trois ans&nbsp;: la preuve qu'un fonds européen peut accompagner une biotech depuis une preuve de concept académique jusqu'au rachat par un géant pharma comme Novartis, sans jamais lâcher le dossier. Un cas d'école pour comprendre ce que recherchent réellement des fonds comme Sofinnova ou Kurma quand ils investissent au stade seed.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ---------- COLONNE DROITE (ENCADRÉ) ---------- -->
+    <div class="col-right">
+
+      <!-- CHIFFRE DU JOUR -->
+      <div class="stat-box">
+        <div class="stat-label">Le chiffre du jour</div>
+        <div class="stat-value">7</div>
+        <div class="stat-text">sorties (exits) réalisées par Sofinnova Partners en trois ans — la dernière en date étant Myricx Bio, rachetée cette semaine par Novartis.</div>
+        <div class="stat-context">Source : Sofinnova Partners, communiqué du 5 juillet 2026.</div>
+      </div>
+
+      <!-- MOT DU JOUR -->
+      <div class="word-box">
+        <div class="word-label">Le mot du jour</div>
+        <div class="word-term">NMTi</div>
+        <div class="word-full">N-myristoyltransferase inhibitor (inhibiteur de N-myristoyltransférase)</div>
+        <div class="word-definition">Dans un ADC (anticorps-médicament conjugué), la « charge utile » est la molécule toxique livrée directement dans la cellule cancéreuse par l'anticorps. Les NMTi bloquent une enzyme (la NMT) dont certaines cellules tumorales ont besoin pour survivre — une charge utile alternative aux chimiothérapies classiques, censée être mieux tolérée et efficace même quand les payloads historiques ne marchent plus.</div>
+        <div class="word-example"><span class="ex-label">Ex. </span>Myricx Bio, rachetée par Novartis cette semaine, développe des ADC à charge NMTi ciblant les protéines B7-H3 et HER2, présentes dans de nombreuses tumeurs solides.</div>
+        <button class="word-btn" id="openWordBtn" type="button">Décryptage complet <span class="arrow">→</span></button>
+      </div>
+
+      <!-- AGENDA -->
+      <div class="section-head">
+        <span class="label ink">Agenda</span>
+        <span class="rule"></span>
+      </div>
+      <div class="agenda-item"><span class="agenda-date">15 JUIL</span><div><div class="agenda-event">Ouverture des candidatures EIT Health</div><div class="agenda-place">Financement non-dilutif biotech/medtech/IA · Europe</div></div></div>
+      <div class="agenda-item"><span class="agenda-date">31 JUIL</span><div><div class="agenda-event">Deadline Future of Health Grant</div><div class="agenda-place">Jusqu'à 90 000 CHF · Suisse / Europe</div></div></div>
+      <div class="agenda-item"><span class="agenda-date">02 AOÛT</span><div><div class="agenda-event">Entrée en application de l'AI Act (IA « haut risque »)</div><div class="agenda-place">Union européenne</div></div></div>
+      <div class="agenda-item"><span class="agenda-date">09-11 NOV</span><div><div class="agenda-event">BIO-Europe 2026</div><div class="agenda-place">Cologne, Allemagne</div></div></div>
+
+      <!-- À RETENIR POUR UN ENTRETIEN -->
+      <div class="interview-box">
+        <div class="interview-label">À retenir pour un entretien</div>
+        <div class="interview-subtitle">L'angle carrière du jour, pour Pierre.</div>
+        <div class="interview-point"><span class="n">01</span><span class="text">Sache raconter un « exit » de bout en bout&nbsp;: Sofinnova a co-mené le tour de seed de Myricx en 2019 et est resté au capital jusqu'au rachat par Novartis en 2026 — c'est exactement le modèle à savoir décrire en entretien.</span></div>
+        <div class="interview-point"><span class="n">02</span><span class="text">Comprends pourquoi le M&amp;A pharma paie pour du « dérisqué »&nbsp;: navtemadlin (Kartos/Ipsen) est déjà en Phase III avec des données publiées — le prix reflète surtout la probabilité de succès, pas juste le potentiel de marché.</span></div>
+        <div class="interview-point"><span class="n">03</span><span class="text">Ne confonds pas toutes les « healthtechs »&nbsp;: la correction de valorisation de Doctolib montre que le marché distingue désormais nettement l'automatisation IA réelle (bien valorisée) d'une appli simplement bien financée (repricée à la baisse).</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== SOURCES ===================== -->
+  <div class="sources">
+    <div class="sources-head">
+      <span class="label">Sources</span>
+      <span class="note">Cliquez un titre pour ouvrir l'article original.</span>
+    </div>
+    <div class="sources-list">
+      <div class="source-item"><span class="dot"></span><a href="https://www.ipsen.com/press-release/ipsen-to-acquire-kartos-therapeutics-expanding-hemato-oncology-late-stage-pipeline-3318643/" target="_blank" rel="noopener"><span class="src-name">Ipsen — </span><span class="src-title">Ipsen to acquire Kartos Therapeutics</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.ipsen.com/press-release/ipsen-to-acquire-memo-therapeutics-ag-adding-first-in-class-bk-polyomavirus-antibody-expanding-rare-disease-portfolio-3320317/" target="_blank" rel="noopener"><span class="src-name">Ipsen — </span><span class="src-title">Ipsen to acquire Memo Therapeutics AG</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.businesswire.com/news/home/20260705848939/en/Sofinnova-Partners-Announces-Myricx-Bio-Agrees-to-Be-Acquired-by-Novartis" target="_blank" rel="noopener"><span class="src-name">Business Wire — </span><span class="src-title">Sofinnova Partners announces Myricx Bio acquired by Novartis</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.fiercebiotech.com/biotech/novartis-pay-11b-upfront-myricx-expand-adc-pipeline" target="_blank" rel="noopener"><span class="src-name">Fierce Biotech — </span><span class="src-title">Novartis to pay $1.1B upfront for Myricx</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.morningstar.com/news/business-wire/20260701866873/celea-therapeutics-announces-180-million-financing-to-advance-deupirfenidone-as-a-potential-new-standard-of-care-to-treat-idiopathic-pulmonary-fibrosis-ipf" target="_blank" rel="noopener"><span class="src-name">Business Wire — </span><span class="src-title">Celea Therapeutics : financement de 180 M$</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://tech.eu/2026/07/06/curifylabs-bags-eur12m-to-automate-personalised-medicine/" target="_blank" rel="noopener"><span class="src-name">Tech.eu — </span><span class="src-title">CurifyLabs bags €12M</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.businesswire.com/news/home/20260701144267/en/Azalea-Vision-Awarded-Prestigious-EIC-Accelerator-Funding-to-Advance-Smart-Contact-Lens-into-Clinical-Development" target="_blank" rel="noopener"><span class="src-name">Business Wire — </span><span class="src-title">Azalea Vision : financement EIC Accelerator</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://nelsonadvisors.co.uk/blog/this-week-in-european-medtech-and-healthtech--3rd-july-2026" target="_blank" rel="noopener"><span class="src-name">Nelson Advisors — </span><span class="src-title">This Week in European MedTech and HealthTech</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://news.abbvie.com/2026-06-22-AbbVie-to-Acquire-Apogee-Therapeutics,-Deepening-Immunology-Portfolio" target="_blank" rel="noopener"><span class="src-name">AbbVie Newsroom — </span><span class="src-title">AbbVie to acquire Apogee Therapeutics</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.biobucks.co/biotech-ma-tracker-2026" target="_blank" rel="noopener"><span class="src-name">BioBucks — </span><span class="src-title">Biotech M&amp;A Tracker 2026</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://www.ema.europa.eu/en/news/meeting-highlights-committee-medicinal-products-human-use-chmp-22-25-june-2026" target="_blank" rel="noopener"><span class="src-name">EMA — </span><span class="src-title">Meeting highlights CHMP 22-25 juin 2026</span></a></div>
+      <div class="source-item"><span class="dot"></span><a href="https://news.vrtx.com/news-releases/news-release-details/vertex-announces-us-fda-approval-expanded-use-casgevyr-treatment" target="_blank" rel="noopener"><span class="src-name">Vertex Pharmaceuticals — </span><span class="src-title">FDA approval : extension de Casgevy</span></a></div>
+    </div>
+  </div>
+
+  <!-- ===================== PIED ===================== -->
+  <div class="footer">
+    <span>Le Brief Santé VC · édition privée pour Pierre</span>
+    <span>Généré automatiquement chaque matin · 08.07.2026</span>
+    <span>Sources à article complet gratuit · à vérifier avant tout usage professionnel</span>
+  </div>
+
+</div>
+</div>
+
+<!-- ===================== MODALE — DÉCRYPTAGE DU MOT ===================== -->
+<div class="modal-backdrop" id="wordModal">
+  <div class="modal" id="wordModalContent">
+    <button class="modal-close" id="closeWordBtn" aria-label="Fermer" type="button">×</button>
+
+    <div class="modal-header">
+      <div class="modal-eyebrow">Le mot du jour · décrypté</div>
+      <h2>NMTi</h2>
+      <div class="subtitle">Le décryptage complet du mot du jour, pour comprendre le deal Novartis-Myricx</div>
+    </div>
+
+    <div class="modal-body">
+      <p class="modal-intro">Un ADC (antibody-drug conjugate, ou anticorps-médicament conjugué) est un anticorps qui sert de GPS pour livrer une substance toxique directement dans une cellule cancéreuse, en épargnant les cellules saines. Le NMTi est une nouvelle famille de « charge utile » toxique — c'est la pièce que Novartis vient de racheter avec Myricx Bio pour 1,5 Md$.</p>
+
+      <div class="modal-section-label">Comment ça marche</div>
+      <div class="how-grid">
+        <div class="how-step"><div class="n">1</div><div class="h">L'anticorps cible</div><div class="t">Un anticorps reconnaît une protéine spécifique à la surface des cellules cancéreuses (ici B7-H3 ou HER2) et s'y fixe sélectivement.</div></div>
+        <div class="how-step"><div class="n">2</div><div class="h">Le NMTi entre dans la cellule</div><div class="t">Une fois à l'intérieur, l'anticorps libère l'inhibiteur de NMT, une enzyme dont les cellules tumorales ont besoin pour survivre et se multiplier.</div></div>
+        <div class="how-step"><div class="n">3</div><div class="h">La cellule cancéreuse meurt</div><div class="t">Sans NMT fonctionnelle, la cellule cancéreuse ne peut plus assurer certaines fonctions vitales et meurt — idéalement sans toucher les tissus sains autour.</div></div>
+      </div>
+
+      <div class="why-deals-grid">
+        <div>
+          <div class="modal-section-label">Pourquoi c'est incontournable en ce moment</div>
+          <p class="why-text">Les ADC existants (comme Enhertu, plus de 2,8 Md$ de ventes en 2025) utilisent des charges chimiothérapiques classiques, efficaces mais parfois mal tolérées ou inopérantes une fois que la tumeur développe une résistance. Le pari de Novartis est que les NMTi offrent un mécanisme différent, actif sur des tumeurs qui ne répondent plus aux payloads historiques — une manière d'élargir le marché des ADC plutôt que de se contenter de rivaliser sur les mêmes cibles.</p>
+        </div>
+        <div>
+          <div class="modal-section-label muted">Autres deals ADC récents</div>
+          <div class="deal-line">AstraZeneca / Daiichi Sankyo — Enhertu (TOPO-1) — 2,8 Md$+ de ventes en 2025</div>
+          <div class="deal-line">Daiichi Sankyo / Merck — ifinatamab deruxtecan (B7-H3) — priorité FDA en cours</div>
+          <div class="deal-line">Novartis / Myricx Bio — NMTi — jusqu'à 1,5 Md$, juillet 2026</div>
+        </div>
+      </div>
+
+      <div class="modal-interview">
+        <div class="interview-label">À retenir pour un entretien</div>
+        <p>En entretien, sache expliquer que la valeur d'un ADC ne vient pas que de l'anticorps ni que de la charge&nbsp;: c'est la combinaison des deux, plus la capacité à cibler les bonnes tumeurs, qui fait la différence — et c'est précisément ce que les VC biotech évaluent avant d'investir dans une plateforme comme celle de Myricx.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const modal = document.getElementById('wordModal');
+  const modalContent = document.getElementById('wordModalContent');
+  const openBtn = document.getElementById('openWordBtn');
+  const closeBtn = document.getElementById('closeWordBtn');
+
+  const openModal = () => modal.classList.add('open');
+  const closeModal = () => modal.classList.remove('open');
+
+  openBtn.addEventListener('click', openModal);
+  closeBtn.addEventListener('click', closeModal);
+  modal.addEventListener('click', closeModal);
+  modalContent.addEventListener('click', (e) => e.stopPropagation());
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+})();
+</script>
+</body>
+</html>
