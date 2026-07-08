@@ -5,6 +5,7 @@
  * can be searched and followed from the "Ajouter un favori" sheet; those entries
  * have no news yet (the morning generation task fills them in).
  */
+import { startupCatalog } from './startups';
 
 export type NewsItem = { title: string; source: string; date: string; url: string };
 export type Startup = { name: string; sector: string; stage?: string; news: NewsItem[] };
@@ -26,13 +27,13 @@ const seeded: Startup[] = [
         title: 'Alderaan Bio lève 120 M€ en Series B',
         source: 'Sifted',
         date: 'Aujourd’hui',
-        url: 'https://sifted.eu/articles/alderaan-bio-series-b-oncologie',
+        url: 'https://sifted.eu',
       },
       {
         title: 'Recrutement d’un CMO issu de Servier Oncologie',
         source: 'Endpoints',
         date: 'Il y a 4 j',
-        url: 'https://endpts.com/alderaan-bio-cmo-hire',
+        url: 'https://endpts.com',
       },
     ],
   },
@@ -45,7 +46,7 @@ const seeded: Startup[] = [
         title: 'Owkin étend son partenariat avec Sanofi (+30 M€)',
         source: 'Tech.eu',
         date: 'Hier',
-        url: 'https://tech.eu/2026/07/owkin-sanofi-partnership',
+        url: 'https://tech.eu',
       },
     ],
   },
@@ -58,13 +59,13 @@ const seeded: Startup[] = [
         title: 'Vitrogen boucle 24 M€ en Series A',
         source: 'EU-Startups',
         date: 'Il y a 2 j',
-        url: 'https://www.eu-startups.com/2026/07/vitrogen-series-a',
+        url: 'https://www.eu-startups.com',
       },
       {
         title: 'Feu vert de Swissmedic pour son essai pivot',
         source: 'Swissmedic',
         date: 'Il y a 6 j',
-        url: 'https://www.swissmedic.ch/vitrogen-pivotal',
+        url: 'https://www.swissmedic.ch',
       },
     ],
   },
@@ -77,32 +78,24 @@ const seeded: Startup[] = [
         title: 'Flow Neuroscience étend sa Series B à 18 M€',
         source: 'Sifted',
         date: 'Il y a 3 j',
-        url: 'https://sifted.eu/articles/flow-neuroscience-series-b-extension',
+        url: 'https://sifted.eu',
       },
     ],
   },
 ];
 
-/** Broader pool searchable from the "+" sheet (no news yet). */
-const pool: Startup[] = [
-  { name: 'Aboleris Pharma', sector: 'Immuno-inflammation', news: [] },
-  { name: 'Amolyt Pharma', sector: 'Biotech', news: [] },
-  { name: 'Abridge', sector: 'Digital Health', news: [] },
-  { name: 'Bioptimus', sector: 'Digital Health', news: [] },
-  { name: 'CardioWave', sector: 'MedTech', news: [] },
-  { name: 'Chroma Medicine', sector: 'Biotech plateforme', news: [] },
-  { name: 'Cure51', sector: 'Oncologie', news: [] },
-  { name: 'DNA Script', sector: 'Biotech plateforme', news: [] },
-  { name: 'Gleamer', sector: 'Digital Health', news: [] },
-  { name: 'Helix DX', sector: 'Diagnostics', news: [] },
-  { name: 'Volta Medical', sector: 'MedTech', news: [] },
-];
+/** Broader searchable pool: the real startup catalog (no news yet). */
+const pool: Startup[] = startupCatalog.map((s) => ({
+  name: s.name,
+  sector: s.sector,
+  news: [],
+}));
 
 /** Full catalog, de-duplicated by name (seeded data wins over the pool). */
 export const catalog: Startup[] = (() => {
   const byName = new Map<string, Startup>();
-  for (const s of pool) byName.set(s.name, s);
-  for (const s of seeded) byName.set(s.name, s); // seeded overrides pool (e.g. Owkin)
+  for (const s of pool) byName.set(s.name.toLowerCase(), s);
+  for (const s of seeded) byName.set(s.name.toLowerCase(), s); // seeded overrides pool (e.g. Owkin)
   return Array.from(byName.values());
 })();
 

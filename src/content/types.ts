@@ -23,6 +23,8 @@ export type Lead = {
   deck: string;
   /** Company name — links the ★ favorite toggle. */
   company: string;
+  /** Funding stage of this deal (e.g. "Series B", "Seed") — feeds the Favoris badge. */
+  stage?: string;
   /** Source article, opened in the system browser. */
   url: string;
 };
@@ -41,6 +43,8 @@ export type Bref = {
   company: string;
   place: string;
   sector: string;
+  /** Funding stage (e.g. "Series A", "Seed") — feeds the Favoris badge. */
+  stage?: string;
   title: string;
   summary: string;
   url: string;
@@ -77,6 +81,19 @@ export type Edition = {
   brefsIntl: Bref[];
   word: Word;
 };
+
+/** Company → funding stage map derived from one edition (lead, deal, brefs). */
+export function editionStages(e: Edition): Record<string, string> {
+  const out: Record<string, string> = {};
+  const put = (name?: string, stage?: string) => {
+    if (name && stage) out[name] = stage;
+  };
+  put(e.lead?.company, e.lead?.stage);
+  put(e.deal?.company, e.deal?.round);
+  for (const b of e.brefsEurope ?? []) put(b.company, b.stage);
+  for (const b of e.brefsIntl ?? []) put(b.company, b.stage);
+  return out;
+}
 
 /** Minimal runtime check that a fetched object looks like an Edition. */
 export function isEdition(value: unknown): value is Edition {

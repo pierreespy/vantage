@@ -8,7 +8,10 @@
  */
 import React, { useMemo, useState } from 'react';
 import {
+  Alert,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,7 +22,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { catalog, favSectors, startupByName, type Startup } from '@/data/favoris';
-import { useFavorites } from '@/state/favorites';
+import { useFavorites, type CustomStartup } from '@/state/favorites';
+import { useEdition } from '@/content/EditionProvider';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
@@ -27,19 +31,24 @@ const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {
 
 export default function FavorisScreen() {
   const insets = useSafeAreaInsets();
-  const { followed, isFollowed, toggle } = useFavorites();
+  const { followed, isFollowed, toggle, customStartups, addCustomStartup } = useFavorites();
+  const { stageOf } = useEdition();
 
   const [sector, setSector] = useState<string>('Toutes');
   const [addOpen, setAddOpen] = useState(false);
   const [query, setQuery] = useState('');
 
-  // Followed startups we have data for, in the order they were added, filtered by sector.
+  // Every followed startup gets a card, in the order it was added. Ones we have data
+  // for show their sector/news; the stage badge is filled from seeded data or, if
+  // absent, from what the journal has reported for that company (dynamic stage).
   const cards = useMemo<Startup[]>(() => {
     return followed
-      .map(startupByName)
-      .filter((s): s is Startup => !!s)
+      .map((name) => {
+        const base = startupByName(name) ?? { name, sector: '', news: [] };
+        return { ...base, stage: base.stage ?? stageOf(name) };
+      })
       .filter((s) => sector === 'Toutes' || s.sector === sector);
-  }, [followed, sector]);
+  }, [followed, sector, stageOf]);
 
   return (
     <View style={styles.root}>
@@ -107,6 +116,8 @@ export default function FavorisScreen() {
         onQuery={setQuery}
         isFollowed={isFollowed}
         toggle={toggle}
+        customStartups={customStartups}
+        addCustomStartup={addCustomStartup}
       />
     </View>
   );
@@ -121,7 +132,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
             <Text style={styles.star}>★</Text>
             <Text style={styles.name}>{startup.name}</Text>
           </View>
-          <Text style={styles.sector}>{startup.sector}</Text>
+          {startup.sector ? <Text style={styles.sector}>{startup.sector}</Text> : null}
         </View>
         {startup.stage ? (
           <View style={styles.stageBadge}>
@@ -160,6 +171,8 @@ function AddFavoriteSheet({
   onQuery,
   isFollowed,
   toggle,
+  customStartups,
+  addCustomStartup,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -167,23 +180,54 @@ function AddFavoriteSheet({
   onQuery: (v: string) => void;
   isFollowed: (name: string) => boolean;
   toggle: (name: string) => void;
+  customStartups: CustomStartup[];
+  addCustomStartup: (name: string) => void;
 }) {
-  const q = query.trim().toLowerCase();
-  const results = useMemo(() => {
+  const trimmed = query.trim();
+  const q = trimmed.toLowerCase();
+
+  // Searchable set = built-in catalog + the user's manually-added startups.
+  const allStartups = useMemo(() => {
+    const byKey = new Map<string, { name: string; sector: string }>();
+    for (const c of catalog) byKey.set(c.name.toLowerCase(), { name: c.name, sector: c.sector });
+    for (const c of customStartups)
+      if (!byKey.has(c.name.toLowerCase())) byKey.set(c.name.toLowerCase(), { name: c.name, sector: c.sector });
+    return Array.from(byKey.values());
+  }, [customStartups]);
+
+  const matches = useMemo(() => {
     const base = q
-      ? catalog.filter(
+      ? allStartups.filter(
           (c) => c.name.toLowerCase().includes(q) || c.sector.toLowerCase().includes(q)
         )
-      : catalog;
-    return base.slice(0, 8);
-  }, [q]);
+      : allStartups;
+    return [...base].sort((a, b) => a.name.localeCompare(b.name));
+  }, [q, allStartups]);
+  const results = matches.slice(0, 25);
 
   const listLabel = q ? 'Résultats' : 'Suggestions';
-  const noResults = q.length > 0 && results.length === 0;
+  // Let the user add a startup they typed that isn't in the catalog — gated by a
+  // confirmation so they verify the spelling first (avoids garbage entries).
+  const exactExists = allStartups.some((c) => c.name.toLowerCase() === q);
+  const canAddCustom = trimmed.length > 0 && !exactExists;
+
+  const confirmAdd = () => {
+    Alert.alert(
+      'Vérifier le nom',
+      `« ${trimmed} » sera ajoutée à vos favoris et au catalogue de l'app.\n\nVérifiez bien l'orthographe : le nom est enregistré tel quel.`,
+      [
+        { text: 'Corriger', style: 'cancel' },
+        { text: 'Confirmer', onPress: () => addCustomStartup(trimmed) },
+      ]
+    );
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={styles.scrim}>
+      <KeyboardAvoidingView
+        style={styles.scrim}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         {/* Tap the dimmed area (behind the sheet) to close. The sheet is a sibling
             View on top, so taps inside it — and TextInput focus — are unaffected. */}
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
@@ -212,36 +256,55 @@ function AddFavoriteSheet({
 
           <Text style={styles.listLabel}>{listLabel}</Text>
 
-          {noResults ? (
-            <Text style={styles.noResults}>
-              Aucune startup ne correspond à « {query} ».
-            </Text>
-          ) : (
-            <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 360 }}>
-              {results.map((c) => {
-                const on = isFollowed(c.name);
-                return (
-                  <View key={c.name} style={styles.candRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.candName}>{c.name}</Text>
-                      <Text style={styles.candSector}>{c.sector}</Text>
-                    </View>
-                    <Pressable
-                      onPress={() => toggle(c.name)}
-                      style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}
-                      accessibilityRole="button"
-                    >
-                      <Text style={[styles.followText, { color: on ? colors.accent : colors.paper }]}>
-                        {on ? 'Suivi ✓' : 'Suivre'}
-                      </Text>
-                    </Pressable>
+          <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 300 }}>
+            {results.length === 0 && q.length > 0 ? (
+              <Text style={styles.noResults}>
+                Aucune startup du catalogue ne correspond à « {query} ».
+              </Text>
+            ) : null}
+
+            {results.map((c) => {
+              const on = isFollowed(c.name);
+              return (
+                <View key={c.name} style={styles.candRow}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.candName}>{c.name}</Text>
+                    {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
                   </View>
-                );
-              })}
-            </ScrollView>
-          )}
+                  <Pressable
+                    onPress={() => toggle(c.name)}
+                    style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}
+                    accessibilityRole="button"
+                  >
+                    <Text style={[styles.followText, { color: on ? colors.accent : colors.paper }]}>
+                      {on ? 'Suivi ✓' : 'Suivre'}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            })}
+
+            {/* Manual add — for a real startup not yet in the catalogue. */}
+            {canAddCustom ? (
+              <View style={styles.addCustomRow}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.candName}>Ajouter « {trimmed} »</Text>
+                  <Text style={styles.addCustomHint}>
+                    Absente du catalogue — je confirme qu’elle existe
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={confirmAdd}
+                  style={[styles.followBtn, styles.followBtnOff]}
+                  accessibilityRole="button"
+                >
+                  <Text style={[styles.followText, { color: colors.paper }]}>Vérifier</Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -454,6 +517,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.ink50,
     paddingVertical: 18,
+  },
+  addCustomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    marginTop: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderColor: border.firm,
+    backgroundColor: 'rgba(11,79,108,0.04)',
+  },
+  addCustomHint: {
+    fontFamily: fonts.serifItalic,
+    fontSize: 12,
+    color: colors.ink60,
+    marginTop: 2,
   },
   candRow: {
     flexDirection: 'row',

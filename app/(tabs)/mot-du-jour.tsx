@@ -162,11 +162,13 @@ const styles = StyleSheet.create({
   heroBody: { paddingHorizontal: 16, paddingTop: 18, paddingBottom: 16 },
   term: {
     fontFamily: fonts.serifBold,
-    fontSize: 64,
-    lineHeight: 58,
+    fontSize: 60,
+    // lineHeight >= fontSize + small top padding so tall glyphs aren't clipped on iOS.
+    lineHeight: 68,
+    paddingTop: 2,
     letterSpacing: -0.6,
     color: colors.ink,
-    marginBottom: 6,
+    marginBottom: 4,
   },
   full: { fontFamily: fonts.serifSemi, fontSize: 15, color: colors.ink90 },
   fr: {

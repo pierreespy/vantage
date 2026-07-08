@@ -9,7 +9,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { BottomTabBarProps } from 'expo-router/js-tabs';
+import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { colors, border } from '../theme';
 import { fonts } from '../fonts';
 import { TabIcon, TabIconName } from './TabIcon';

@@ -24,7 +24,8 @@ export const sampleEdition: Edition = {
     title: 'Alderaan Bio lève 120 M€ pour ses thérapies à ARN ciblé',
     deck: 'Le tour, mené par Sofinnova avec Jeito Capital et l’EIC Fund, place la biotech parisienne parmi les mieux financées d’Europe en oncologie.',
     company: 'Alderaan Bio',
-    url: 'https://sifted.eu/articles/alderaan-bio-series-b-oncologie',
+    stage: 'Series B',
+    url: 'https://sifted.eu',
   },
 
   deal: {
@@ -32,7 +33,7 @@ export const sampleEdition: Edition = {
     amount: '$1,3 Md',
     round: 'M&A',
     thesis: 'GSK rachète le pionnier allemand de l’ARNm pour internaliser sa plateforme — cas d’école de consolidation post-Covid.',
-    url: 'https://endpts.com/gsk-acquires-curevac-mrna-deal',
+    url: 'https://endpts.com',
   },
 
   brefsEurope: [
@@ -40,9 +41,10 @@ export const sampleEdition: Edition = {
       company: 'Vitrogen',
       place: 'Munich',
       sector: 'MedTech',
+      stage: 'Series A',
       title: 'Vitrogen boucle 24 M€ en Series A',
       summary: 'Valves cardiaques résorbables ; tour mené par un fonds allemand deep-tech. Premiers essais cliniques attendus fin 2026.',
-      url: 'https://www.eu-startups.com/2026/07/vitrogen-series-a',
+      url: 'https://www.eu-startups.com',
     },
     {
       company: 'Flow Neuroscience',
@@ -50,7 +52,7 @@ export const sampleEdition: Edition = {
       sector: 'Digital Health',
       title: 'Flow Neuroscience étend sa Series B à 18 M€',
       summary: 'La medtech de neurostimulation contre la dépression accélère son déploiement aux États-Unis.',
-      url: 'https://sifted.eu/articles/flow-neuroscience-series-b-extension',
+      url: 'https://sifted.eu',
     },
     {
       company: 'Balderton',
@@ -58,15 +60,16 @@ export const sampleEdition: Edition = {
       sector: 'Fonds',
       title: 'Balderton dédie 100 M$ à la healthtech européenne',
       summary: 'Nouveau véhicule early-stage centré sur l’IA appliquée au diagnostic médical.',
-      url: 'https://tech.eu/2026/07/balderton-healthtech-fund',
+      url: 'https://tech.eu',
     },
     {
       company: 'Aboleris Pharma',
       place: 'Paris',
       sector: 'Biotech',
+      stage: 'Series A',
       title: 'Aboleris Pharma lève 42 M€ en Series A',
       summary: 'Immunothérapies de tolérance contre les maladies auto-immunes ; tour mené par Jeito Capital et Bpifrance.',
-      url: 'https://sifted.eu/articles/aboleris-pharma-series-a',
+      url: 'https://sifted.eu',
     },
     {
       company: 'Swissmedic',
@@ -74,7 +77,7 @@ export const sampleEdition: Edition = {
       sector: 'Réglementaire',
       title: 'Swissmedic ouvre une voie accélérée pour les DTx',
       summary: 'Les thérapies digitales validées cliniquement pourront être évaluées en 90 jours.',
-      url: 'https://www.swissmedic.ch/dtx-fast-track',
+      url: 'https://www.swissmedic.ch',
     },
   ],
 
@@ -83,9 +86,10 @@ export const sampleEdition: Edition = {
       company: 'Chroma Medicine',
       place: 'Boston',
       sector: 'Biotech',
+      stage: 'Series A',
       title: 'Chroma Medicine lève 60 M$ en Series A',
       summary: 'Édition épigénétique in vivo ; tour mené par GV (Google Ventures) et Atlas Venture.',
-      url: 'https://www.fiercebiotech.com/biotech/chroma-medicine-series-a',
+      url: 'https://www.fiercebiotech.com',
     },
     {
       company: 'Abridge',
@@ -93,7 +97,7 @@ export const sampleEdition: Edition = {
       sector: 'Digital Health',
       title: 'Abridge lève 90 M$ pour son copilote clinique',
       summary: 'Documentation médicale par IA, déjà déployée dans 40 hôpitaux américains ; Lightspeed en lead.',
-      url: 'https://techcrunch.com/2026/07/abridge-raises-90m',
+      url: 'https://techcrunch.com',
     },
     {
       company: 'Temasek',
@@ -101,7 +105,7 @@ export const sampleEdition: Edition = {
       sector: 'MedTech',
       title: 'Temasek injecte 200 M$ dans la medtech de dépistage',
       summary: 'Le fonds souverain vise les dispositifs de dépistage à bas coût pour l’Asie du Sud-Est.',
-      url: 'https://www.mobihealthnews.com/temasek-medtech-screening',
+      url: 'https://www.mobihealthnews.com',
     },
   ],
 

@@ -7,7 +7,7 @@ dans l'esprit éditorial FT/Bloomberg (papier ivoire, encre, accent pétrole,
 
 ## Stack
 
-- **React Native + Expo** (SDK 57), **TypeScript**
+- **React Native + Expo** (SDK 54, compatible Expo Go), **TypeScript**
 - Navigation **expo-router** (onglets, `expo-router/js-tabs`)
 - `expo-web-browser` (liens d'articles → Safari)
 - `@react-native-async-storage/async-storage` (favoris + cache de l'édition)

@@ -3,7 +3,7 @@
  * pill tab bar. Phase-2 tabs (deal-tracker, etc.) slot in by adding a screen here.
  */
 import React from 'react';
-import { Tabs } from 'expo-router/js-tabs';
+import { Tabs } from 'expo-router';
 import { colors } from '@/theme';
 import { FloatingTabBar } from '@/components/FloatingTabBar';
 

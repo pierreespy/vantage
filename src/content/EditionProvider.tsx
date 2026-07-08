@@ -7,6 +7,10 @@
  *   2. cache  — last successfully fetched edition (works offline)
  *   3. sample — the edition bundled inside the app
  *
+ * It also accumulates a company → funding-stage map from every edition seen, so a
+ * followed startup keeps showing its round (Series A/B…) even after it leaves the
+ * news — the "dynamic stage via the journal" model.
+ *
  * Exposed app-wide so every screen reads the same edition.
  */
 import React, {
@@ -20,9 +24,10 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { config } from '@/config';
 import { sampleEdition } from './sampleEdition';
-import { isEdition, type Edition } from './types';
+import { editionStages, isEdition, type Edition } from './types';
 
 const CACHE_KEY = 'vantage.edition.v1';
+const STAGES_KEY = 'vantage.stages.v1';
 
 export type EditionSource = 'sample' | 'cache' | 'live';
 
@@ -34,6 +39,8 @@ type EditionContextValue = {
   loading: boolean;
   /** Re-fetch the live edition (used by pull-to-refresh). */
   refresh: () => Promise<void>;
+  /** Funding stage known for a company (from any edition seen), or undefined. */
+  stageOf: (name: string) => string | undefined;
 };
 
 const EditionContext = createContext<EditionContextValue | null>(null);
@@ -43,7 +50,10 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
   const [source, setSource] = useState<EditionSource>('sample');
   const [loading, setLoading] = useState(false);
 
-  // Warm up from cache immediately, so a cold offline start shows the last edition.
+  const [stages, setStages] = useState<Record<string, string>>({});
+  const [stagesHydrated, setStagesHydrated] = useState(false);
+
+  // Warm up edition from cache immediately, so a cold offline start shows the last edition.
   useEffect(() => {
     AsyncStorage.getItem(CACHE_KEY)
       .then((raw) => {
@@ -56,6 +66,34 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {});
   }, []);
+
+  // Load the accumulated stage map once.
+  useEffect(() => {
+    AsyncStorage.getItem(STAGES_KEY)
+      .then((raw) => {
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') setStages(parsed);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setStagesHydrated(true));
+  }, []);
+
+  // Merge each edition's stages into the map (only after hydration, so we don't
+  // clobber the persisted history with just the sample edition).
+  useEffect(() => {
+    if (!stagesHydrated) return;
+    const next = editionStages(edition);
+    if (Object.keys(next).length === 0) return;
+    setStages((prev) => ({ ...prev, ...next }));
+  }, [edition, stagesHydrated]);
+
+  // Persist the stage map when it changes.
+  useEffect(() => {
+    if (!stagesHydrated) return;
+    AsyncStorage.setItem(STAGES_KEY, JSON.stringify(stages)).catch(() => {});
+  }, [stages, stagesHydrated]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -79,9 +117,11 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     refresh();
   }, [refresh]);
 
+  const stageOf = useCallback((name: string) => stages[name], [stages]);
+
   const value = useMemo<EditionContextValue>(
-    () => ({ edition, source, loading, refresh }),
-    [edition, source, loading, refresh]
+    () => ({ edition, source, loading, refresh, stageOf }),
+    [edition, source, loading, refresh, stageOf]
   );
 
   return <EditionContext.Provider value={value}>{children}</EditionContext.Provider>;

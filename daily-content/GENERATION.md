@@ -61,6 +61,11 @@ d'investissement, due diligence, actu de deal). Règles, dans l'ordre :
 4. **Générer le reste de l'édition** (`dateLong`, `ticker`, `lead`, `deal`,
    `brefsEurope`, `brefsIntl`) — **règle éditoriale permanente : noms précis** (société,
    montant, investisseur en lead), jamais de descriptions vagues.
+   - **Champ `stage`** (optionnel) sur `lead` et chaque brève : le round de l'opération
+     (`"Pre-seed"`, `"Seed"`, `"Series A"`, `"Series B"`, `"Series C"`, `"Growth"`,
+     `"IPO"`…). L'app **mémorise** ce stade par société et l'affiche sur la carte Favoris.
+     Ainsi le stade reste **dynamique et exact** (mis à jour à chaque nouvelle levée),
+     plutôt que gravé en dur. À remplir dès que le round est connu.
 5. **Écrire les deux fichiers** :
    - `edition.json` (l'édition du jour) ;
    - `recent-words.json` **mis à jour** : ajouter `{ "term", "full", "date" }` (date du
