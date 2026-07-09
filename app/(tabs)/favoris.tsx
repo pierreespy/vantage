@@ -23,6 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { catalog, favSectors, startupByName, type Startup } from '@/data/favoris';
 import { useFavorites, FAVORITES_LIMIT, type CustomStartup } from '@/state/favorites';
+import { useFavoritesSync } from '@/state/favoritesSync';
 import { useEdition } from '@/content/EditionProvider';
 import { useStartupNews } from '@/content/NewsProvider';
 import { colors, border, glass } from '@/theme';
@@ -33,7 +34,20 @@ const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {
 export default function FavorisScreen() {
   const insets = useSafeAreaInsets();
   const { followed, isFollowed, toggle, customStartups, addCustomStartup } = useFavorites();
+  const { consent, reset } = useFavoritesSync();
   const { stageOf } = useEdition();
+
+  // Reset the anonymous reporting: blank the shared doc, wipe local favorites + consent.
+  const confirmReset = () => {
+    Alert.alert(
+      'Réinitialiser la personnalisation',
+      'Vos favoris et votre consentement au partage anonyme seront effacés sur cet appareil, et la liste transmise sera vidée. Cette action est irréversible.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Réinitialiser', style: 'destructive', onPress: () => void reset() },
+      ]
+    );
+  };
 
   const [sector, setSector] = useState<string>('Toutes');
   const [addOpen, setAddOpen] = useState(false);
@@ -62,6 +76,16 @@ export default function FavorisScreen() {
             </Text>
             <Text style={styles.h1}>Favoris</Text>
           </View>
+          {consent === 'granted' ? (
+            <Pressable
+              onPress={confirmReset}
+              style={styles.resetBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Réinitialiser la personnalisation"
+            >
+              <Text style={styles.resetText}>Réinitialiser</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={() => {
               setQuery('');
@@ -359,6 +383,18 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: colors.ink,
     letterSpacing: -0.15,
+  },
+  resetBtn: {
+    alignSelf: 'flex-end',
+    marginRight: 12,
+    marginBottom: 6,
+  },
+  resetText: {
+    fontFamily: fonts.archivoSemi,
+    fontSize: 10.5,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: colors.ink50,
   },
   addBtn: {
     width: 38,

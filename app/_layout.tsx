@@ -9,6 +9,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAppFonts } from '@/fonts';
 import { colors } from '@/theme';
 import { FavoritesProvider } from '@/state/favorites';
+import { FavoritesSyncProvider } from '@/state/favoritesSync';
+import { FavSyncConsentModal } from '@/components/FavSyncConsentModal';
 import { EditionProvider } from '@/content/EditionProvider';
 import { NewsProvider } from '@/content/NewsProvider';
 
@@ -26,10 +28,13 @@ export default function RootLayout() {
       <EditionProvider>
         <NewsProvider>
           <FavoritesProvider>
-            <StatusBar style="dark" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-              <Stack.Screen name="(tabs)" />
-            </Stack>
+            <FavoritesSyncProvider>
+              <StatusBar style="dark" />
+              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+              <FavSyncConsentModal />
+            </FavoritesSyncProvider>
           </FavoritesProvider>
         </NewsProvider>
       </EditionProvider>

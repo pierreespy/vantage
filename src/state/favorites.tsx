@@ -42,6 +42,8 @@ type FavoritesContextValue = {
   /** Add a user-typed startup to the catalog AND follow it. Returns false if blank,
    *  a duplicate that would exceed the cap, or blocked by the cap. */
   addCustomStartup: (name: string) => boolean;
+  /** Remove every followed startup (used by the "reset" of anonymous reporting). */
+  clear: () => void;
   /** Max followed startups (see FAVORITES_LIMIT). */
   limit: number;
   /** True once the followed set is at the cap. */
@@ -125,6 +127,8 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
 
   const isFollowed = useCallback((name: string) => followed.includes(name), [followed]);
 
+  const clear = useCallback(() => setFollowed([]), []);
+
   const addCustomStartup = useCallback(
     (name: string): boolean => {
       const trimmed = name.trim();
@@ -152,11 +156,12 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       toggle,
       customStartups,
       addCustomStartup,
+      clear,
       limit: FAVORITES_LIMIT,
       atLimit: followed.length >= FAVORITES_LIMIT,
       hydrated,
     }),
-    [followed, isFollowed, toggle, customStartups, addCustomStartup, hydrated]
+    [followed, isFollowed, toggle, customStartups, addCustomStartup, clear, hydrated]
   );
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
