@@ -113,7 +113,11 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         return true;
       }
       if (followed.length >= FAVORITES_LIMIT) return false;
-      setFollowed((prev) => (prev.includes(name) ? prev : [...prev, name]));
+      // Re-check the cap inside the updater so two near-simultaneous taps can't
+      // both pass the guard against a stale `followed` closure and push past 5.
+      setFollowed((prev) =>
+        prev.includes(name) || prev.length >= FAVORITES_LIMIT ? prev : [...prev, name]
+      );
       return true;
     },
     [followed]
@@ -132,7 +136,9 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         prev.some((c) => c.name.toLowerCase() === key) ? prev : [...prev, { name: trimmed, sector: '' }]
       );
       setFollowed((prev) =>
-        prev.some((n) => n.toLowerCase() === key) ? prev : [...prev, trimmed]
+        prev.some((n) => n.toLowerCase() === key) || prev.length >= FAVORITES_LIMIT
+          ? prev
+          : [...prev, trimmed]
       );
       return true;
     },

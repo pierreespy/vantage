@@ -71,6 +71,9 @@ Payload envoyé par l'app (à finaliser par `vantage-backend` selon la plateform
 ```
 
 - **Aucune PII**, pas de compte, pas de Sign in with Apple.
+- **Sur Firebase, `anonId` = l'identifiant du document** (l'uid d'auth anonyme), pas un
+  champ du body : le client écrit `follows/<uid>` avec `{ startups, updatedAt }`. Les
+  règles rejettent tout champ supplémentaire (dont un `anonId` en doublon).
 - **Expiration 30 j** : une entrée non revue depuis 30 jours sort de l'union.
 - **Lecture génération** : union dédupliquée des `startups` des docs non expirés → c'est la
   watchlist que `vantage-content` recherche.

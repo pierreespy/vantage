@@ -128,8 +128,8 @@ export default function FavorisScreen() {
 
 function FavoriteCard({ startup }: { startup: Startup }) {
   const { newsFor } = useStartupNews();
-  // Live per-startup news takes precedence; fall back to the seeded examples so the
-  // 4 pre-filled favorites keep showing until real news is published for them.
+  // Live per-startup news takes precedence; fall back to any seeded news for that
+  // startup so a followed catalog entry still shows something until live news exists.
   const live = newsFor(startup.name);
   const news = live.length > 0 ? live : startup.news;
 
