@@ -36,6 +36,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "b33909a4-53f0-4fea-b84b-0a8366ee71a2"
+      }
+    },
+    "owner": "pierre.espy"
   }
 }
