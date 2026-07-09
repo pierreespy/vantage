@@ -86,7 +86,10 @@ at each month boundary**. Consequences:
 - A 31-day month runs on the 31st **and** the 1st (two mornings in a row).
 - After a 30-day month, the 1st also follows the 29th.
 
-This is harmless: the routine is idempotent (deterministic merge; a clean git tree
-= "nothing to commit"), so a back-to-back run just refreshes and usually no-ops. If
-strict 48-hour spacing ever matters, switch to a **daily** cron and skip odd days
-via an epoch-based check inside `run.mjs`.
+This is harmless, but note the nuance: a **same-day** re-run is idempotent (identical
+`generatedAt` + deterministic merge → clean tree → "nothing to commit"). A
+**cross-date** back-to-back run (e.g. 31st then 1st) is **not** a no-op: `generatedAt`
+is set to today's date, so it always differs from the previous day's file and the run
+**always commits at least a `generatedAt` bump** (plus any new articles). That extra
+commit is benign. If strict 48-hour spacing ever matters, switch to a **daily** cron
+and skip odd days via an epoch-based check inside `run.mjs`.

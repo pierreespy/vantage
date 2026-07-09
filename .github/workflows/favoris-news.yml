@@ -5,11 +5,12 @@ name: favoris-news
 # Cadence: ONE MORNING IN TWO. `*/2` in the day-of-month field means days
 # 1,3,5,...,31 — i.e. every other day WITHIN a month, but the step resets at each
 # month boundary. So the end of a 31-day month runs on the 31st AND the 1st (two
-# runs in a row), and after a 30-day month the 1st also follows the 29th. That is
-# a harmless caveat here: the routine is idempotent (deterministic merge + a clean
-# tree means "nothing to commit"), so an occasional back-to-back run just refreshes
-# and usually no-ops. If exact 48h spacing ever matters, switch to a daily cron
-# with an internal "skip odd days since an epoch" check instead.
+# runs in a row), and after a 30-day month the 1st also follows the 29th. Benign:
+# a SAME-day re-run is idempotent (same generatedAt + deterministic merge => clean
+# tree => nothing to commit), but a CROSS-date back-to-back run (31st then 1st)
+# always commits at least a generatedAt bump since generatedAt = today's date.
+# If exact 48h spacing ever matters, switch to a daily cron with an internal
+# "skip odd days since an epoch" check instead.
 on:
   schedule:
     - cron: '0 6 */2 * *' # 06:00 UTC, every other day-of-month

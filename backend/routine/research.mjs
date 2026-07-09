@@ -145,7 +145,7 @@ export async function researchStartup(client, startupName, storedItems = [], opt
     throw new Error(`research for "${startupName}" did not converge within ${maxTurns} turns`);
   }
 
-  const parsed = extractParsed(final);
+  const parsed = extractParsed(final, startupName);
   const items = Array.isArray(parsed?.items) ? parsed.items : [];
 
   const seen = new Set();
@@ -166,18 +166,45 @@ export async function researchStartup(client, startupName, storedItems = [], opt
   return out;
 }
 
-/** Pull the structured object out of the final message. */
-function extractParsed(message) {
-  // The SDK exposes parsed_output when output_config.format is set.
-  if (message.parsed_output) return message.parsed_output;
-  // Fallback: the last text block is the JSON payload.
-  const text = [...message.content].reverse().find((b) => b.type === 'text')?.text;
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
+/**
+ * Pull the structured object out of the final message.
+ *
+ * With `output_config.format` on `messages.create`, the model returns the JSON as
+ * TEXT content — `parsed_output` is only populated by `client.messages.parse()`,
+ * not by `.create()`. So text-parsing is the PRIMARY path; `parsed_output` is only
+ * an opportunistic first try in case a future SDK/path populates it.
+ */
+function extractParsed(message, startupName = '?') {
+  // Opportunistic: use parsed_output only if the SDK actually populated it.
+  if (message.parsed_output && typeof message.parsed_output === 'object') {
+    return message.parsed_output;
+  }
+
+  // Primary path: concatenate every text block, strip markdown fences, JSON.parse.
+  const text = message.content
+    .filter((b) => b.type === 'text' && typeof b.text === 'string')
+    .map((b) => b.text)
+    .join('')
+    .trim();
+
+  if (!text) {
+    console.error(`research "${startupName}": no text content to parse — returning []`);
     return null;
   }
+
+  const cleaned = stripCodeFences(text);
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    console.error(`research "${startupName}": text content was not valid JSON — returning []`);
+    return null;
+  }
+}
+
+/** Remove a wrapping ```json … ``` (or bare ``` … ```) markdown code fence. */
+function stripCodeFences(text) {
+  const fenced = text.match(/^```(?:json)?\s*\n?([\s\S]*?)\n?```$/i);
+  return (fenced ? fenced[1] : text).trim();
 }
 
 /** Convenience factory so run.mjs doesn't hard-code the env var name. */

@@ -30,7 +30,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { simpleGit } from 'simple-git';
 
-import { readUnion } from '../union.mjs';
+import { readUnion, purgeExpired } from '../union.mjs';
 import { mergeStartupNews } from './merge.mjs';
 import { researchStartup, makeClient } from './research.mjs';
 
@@ -86,6 +86,21 @@ async function main() {
   const db = await initFirestore();
   const watchlist = await readUnion(db, now.getTime());
   console.log(`union: ${watchlist.length} followed startup(s): ${watchlist.join(', ') || '(none)'}`);
+
+  // Make the "expiration 30 j = effacement" claim real: physically delete follow
+  // docs older than the retention window (the union already ignores them; this
+  // erases them on disk). Best-effort — a purge failure must never abort the run.
+  // Skipped under DRY_RUN so local test runs never mutate Firestore.
+  if (!DRY_RUN) {
+    try {
+      const purged = await purgeExpired(db, now.getTime());
+      console.log(`purge: deleted ${purged} expired follow doc(s).`);
+    } catch (err) {
+      console.error(`purge failed (continuing): ${err.message}`);
+    }
+  } else {
+    console.log('DRY_RUN=1 — skipping expired-follow purge.');
+  }
 
   const { git, filePath, data } = await checkoutContent();
   const client = makeClient();
