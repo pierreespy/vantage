@@ -1,19 +1,23 @@
 # Génération du contenu quotidien — la « règle du jeu »
 
 Ce dossier décrit **comment est fabriquée l'édition du jour** que l'app télécharge.
-Chaque matin, une tâche Claude produit **trois fichiers**, déposés à l'URL de contenu
-(`config.contentUrl` côté app) :
+Chaque matin, la tâche Claude « édition » produit **deux fichiers**, déposés à l'URL de
+contenu (`config.contentUrl` côté app) :
 
 - **`edition.json`** — le contenu affiché par l'app (voir `example-edition.json` pour le
   gabarit exact ; le format est défini par le type `Edition` dans `src/content/types.ts`).
 - **`recent-words.json`** — la **mémoire** des mots du jour récents, pour ne pas se répéter.
-- **`startup-news.json`** — les **nouvelles par startup** qui alimentent l'onglet Favoris
-  (voir `example-startup-news.json` pour le gabarit ; contrat figé dans
-  `docs/perso-favoris.md`). Réutilise la forme `NewsItem` `{ title, source, date, url }`
-  de `src/data/favoris.ts`.
 
-> Tant que l'automatisation n'est pas branchée, ces fichiers se remplacent à la main.
-> La tâche du matin, elle, suit la procédure ci-dessous à la lettre.
+Un **troisième fichier**, `startup-news.json` (nouvelles par startup pour l'onglet
+Favoris), **n'est PAS produit par la tâche du matin** : il est maintenu par une **routine
+automatisée** (cron **un matin sur deux**, côté backend) qui lit l'union suivie, recherche
+du neuf par startup et applique la rétention. Ses **règles éditoriales** sont documentées
+plus bas (section « L'onglet Favoris ») car son étape LLM les suit ; le contrat de données
+et la mécanique de la routine sont figés dans **`docs/perso-favoris.md`**. Gabarit :
+`example-startup-news.json`.
+
+> Tant que l'automatisation n'est pas branchée, `edition.json` et `recent-words.json` se
+> remplacent à la main. La tâche du matin, elle, suit la procédure ci-dessous à la lettre.
 
 ---
 
@@ -70,34 +74,46 @@ d'investissement, due diligence, actu de deal). Règles, dans l'ordre :
      `"IPO"`…). L'app **mémorise** ce stade par société et l'affiche sur la carte Favoris.
      Ainsi le stade reste **dynamique et exact** (mis à jour à chaque nouvelle levée),
      plutôt que gravé en dur. À remplir dès que le round est connu.
-5. **Router les news par startup dans `startup-news.json`** (voir la section
-   « Favoris » ci-dessous pour le détail du fan-in et de la longue traîne).
-6. **Écrire les trois fichiers** :
+5. **Écrire les deux fichiers** :
    - `edition.json` (l'édition du jour) ;
    - `recent-words.json` **mis à jour** : ajouter `{ "term", "full", "date" }` (date du
      jour au format `AAAA-MM-JJ`) **en tête** de `recent`, puis **tronquer aux ~30 plus
-     récents** ;
-   - `startup-news.json` (nouvelles par startup, gabarit ci-dessous).
+     récents**.
+
+   > `startup-news.json` **ne fait pas partie** de cette tâche : il est maintenu par la
+   > routine « news » (un matin sur deux) décrite dans la section « L'onglet Favoris » et
+   > dans `docs/perso-favoris.md`.
 
 ---
 
-## L'onglet Favoris — `startup-news.json`
+## L'onglet Favoris — `startup-news.json` (routine automatisée)
 
 L'onglet Favoris affiche, pour chaque startup suivie par l'utilisateur, ses **nouvelles
 récentes**. Le contenu est **mutualisé** (par startup, jamais par utilisateur) : on génère
-une fois, et l'app filtre localement selon les favoris on-device. Le contrat de données
-est figé dans **`docs/perso-favoris.md`** ; le gabarit exact est
-`example-startup-news.json`.
+une fois, et l'app filtre localement selon les favoris on-device.
+
+Ce fichier **n'est pas produit par la tâche du matin** ci-dessus. Il est maintenu par une
+**routine planifiée** (cron **un matin sur deux**, côté backend) qui pousse
+`startup-news.json` sur `vantage-content`. L'app **n'a aucune logique de rétention** :
+elle affiche ce que la routine a publié. Le contrat de données et la mécanique complète
+(lecture de l'union, fusion déterministe) sont figés dans **`docs/perso-favoris.md`
+(« La routine de mise à jour »)** ; le gabarit exact est `example-startup-news.json`.
+
+Cette section documente **les règles éditoriales que suit l'étape LLM de la routine**
+(recherche + rédaction des titres). La fusion et la troncature, elles, sont
+**déterministes** (code backend).
 
 ### Schéma (rappel du contrat)
 
 ```jsonc
 {
-  "generatedAt": "2026-07-09",            // date ISO AAAA-MM-JJ (fraîcheur affichée)
+  "generatedAt": "2026-07-09",            // date ISO AAAA-MM-JJ — dernière mise à jour
   "news": {
     // clé = nom EXACT de la startup, casse identique à src/data/startups.ts
     "Owkin": [
-      { "title": "…", "source": "…", "date": "Hier", "url": "https://…" }
+      { "title": "…", "source": "…", "date": "8 juil. 2026",
+        "url": "https://…", "publishedAt": "2026-07-08" }
+      // ≤ 3 items/startup, chacun ≤ 30 j, une affaire = un article
     ]
   }
 }
@@ -105,45 +121,65 @@ est figé dans **`docs/perso-favoris.md`** ; le gabarit exact est
 
 - **Clés = noms de startups**, casse **strictement identique** à `src/data/startups.ts`
   (le review vérifie cette cohérence — une clé mal cassée n'est jamais affichée).
-- **`NewsItem` = `{ title, source, date, url }`** — mêmes 4 champs que le type existant,
-  URL en https, lien direct.
-- Une startup **sans news du jour est absente** du dictionnaire — **jamais de tableau
-  vide**.
+- **`NewsItem` = `{ title, source, date, url, publishedAt }`** :
+  - `date` = **libellé d'affichage**, date FR **absolue** (ex. « 8 juil. 2026 ») ;
+  - `publishedAt` = **date ISO `AAAA-MM-JJ`**, utilisée par la routine pour la **fenêtre
+    glissante de 30 j** et le **tri décroissant** ;
+  - `title`, `source`, `url` (https, lien direct) comme le type existant.
+- Une startup **sans news** est **absente** du dictionnaire — **jamais de tableau vide**.
 
-### Étape 1 — Fan-in (sous-produit gratuit du Journal)
+### Cadence
 
-Le balayage HealthTech/MedTech/Biotech du matin (celui qui construit `edition.json`)
-**est déjà fait** : réutilise-le. Pour **chaque item** du flux du jour (ticker, lead,
-deal, `brefsEurope`, `brefsIntl`), **tague-le par société** et, si le nom correspond à une
-startup du catalogue, **route-le** dans `news["<nom exact>"]`. Coût marginal quasi nul :
-une startup qui « s'allume » dans la couverture du jour alimente les Favoris gratuitement.
+**Un matin sur deux** (cron backend). Le fan-in ci-dessous couvre déjà l'actualité chaude
+d'un jour à l'autre via `edition.json` ; la routine consolide et rafraîchit le stock des
+Favoris à cette cadence.
+
+### Étape LLM 1 — Fan-in (réutiliser le balayage du Journal)
+
+Le balayage HealthTech/MedTech/Biotech qui construit `edition.json` **est déjà fait** :
+réutilise-le. Pour **chaque item** du flux (ticker, lead, deal, `brefsEurope`,
+`brefsIntl`), **tague-le par société** et, si le nom correspond à une startup de l'union
+suivie, **route-le** dans `news["<nom exact>"]`. Coût marginal quasi nul : une startup qui
+« s'allume » dans la couverture du jour alimente les Favoris gratuitement.
 
 - Normalise le nom vers la casse exacte de `src/data/startups.ts` avant d'écrire la clé.
-- Un même événement peut nourrir à la fois `edition.json` et `startup-news.json` — c'est
-  voulu.
+- Un même événement peut nourrir à la fois `edition.json` et `startup-news.json`.
 
-### Étape 2 — Longue traîne (recherche ciblée, basse fréquence)
+### Étape LLM 2 — Longue traîne (recherche ciblée, sur l'union suivie)
 
-Pour les startups suivies qui **ne tombent pas** dans le flux du jour, fais une **recherche
-web ciblée**, mais **uniquement** sur l'**union suivie** (la watchlist), **jamais** sur les
+Pour les startups suivies qui **ne tombent pas** dans le flux, fais une **recherche web
+ciblée**, mais **uniquement** sur l'**union suivie** (la watchlist), **jamais** sur les
 ~370 startups du catalogue.
 
-- **Lire l'union suivie depuis le backend** : un fichier/endpoint fourni par
-  `vantage-backend` qui liste **l'union dédupliquée des startups réellement suivies** par
-  les utilisateurs (favoris remontés anonymement, entrées non expirées à 30 j). Décrit
-  génériquement ici car la plateforme reste à trancher (voir `docs/perso-favoris.md`) :
-  attends-toi à une liste plate de noms de startups (casse catalogue).
-- **Basse fréquence** : inutile de re-chercher chaque startup de l'union tous les jours ;
-  faire tourner (rotation / cadence hebdomadaire) suffit pour la traîne. Le fan-in couvre
-  déjà l'actualité chaude.
-- Cette étape **ajoute** des entrées à `news`, sans écraser celles du fan-in.
+- **Lire l'union suivie depuis le backend** : union **dédupliquée** des startups réellement
+  suivies (favoris remontés anonymement, entrées non expirées à 30 j). Voir
+  `docs/perso-favoris.md` pour le chemin de lecture (`backend/union.mjs`). Liste plate de
+  noms en casse catalogue.
+- Pour chaque startup, fournis au modèle **les titres déjà en stock** afin qu'il ne
+  renvoie que des développements **nouveaux et distincts** (pas de re-publication).
 
-### Règle éditoriale — noms précis (s'applique aussi aux Favoris)
+### Règles éditoriales de la routine
 
-Comme pour le Journal : **noms précis** dans chaque `title` — **société, montant,
-investisseur en lead**. Jamais de description vague (« lève un tour de financement » →
-« lève 260 M$ en Series B menée par Lightspeed et General Catalyst »). Sociétés, montants,
-investisseurs, dates et URLs doivent être **réels et vérifiés**, rien d'inventé.
+- **Noms précis** dans chaque `title` — **société, montant, investisseur en lead**. Jamais
+  de description vague (« lève un tour » → « lève 260 M$ en Series B menée par Lightspeed
+  et General Catalyst »). Sociétés, montants, investisseurs, dates et URLs **réels et
+  vérifiés**, rien d'inventé.
+- **Dédoublonnage — « une affaire = un article »** : si le web renvoie plusieurs articles
+  sur **la même affaire**, n'en garde **qu'un** (au sein du run *et* vis-à-vis du stock).
+- **Ne renvoyer que du neuf** : uniquement des développements **absents** des items déjà
+  stockés pour la startup.
+
+### Rétention (fusion déterministe, garantie par la routine)
+
+Après l'étape LLM, la routine fusionne par startup, de façon **déterministe** :
+
+- ajoute les nouveaux items ;
+- retire tout item dont `publishedAt` a **plus de 30 jours** (fenêtre glissante) ;
+- **trie par `publishedAt` décroissant** et **ne garde que les 3 plus récents**.
+
+→ En une phrase : **≤ 3 articles/startup, chacun ≤ 30 j, une affaire = un article.** Un
+article quitte les Favoris **uniquement** s'il a > 30 j **ou** s'il sort du top 3 sous la
+poussée d'articles plus récents. L'app ne fait **aucun** de ces calculs.
 
 ---
 

@@ -5,38 +5,43 @@
       {
         "title": "Owkin étend son partenariat oncologie avec Sanofi (+30 M€)",
         "source": "Tech.eu",
-        "date": "Hier",
-        "url": "https://tech.eu/2026/07/owkin-sanofi-oncology-extension"
+        "date": "8 juil. 2026",
+        "url": "https://tech.eu/2026/07/owkin-sanofi-oncology-extension",
+        "publishedAt": "2026-07-08"
       },
       {
         "title": "Owkin recrute un Chief Medical Officer issu de Servier Oncologie",
         "source": "Endpoints News",
-        "date": "Il y a 4 j",
-        "url": "https://endpts.com/owkin-appoints-cmo-from-servier"
+        "date": "5 juil. 2026",
+        "url": "https://endpts.com/owkin-appoints-cmo-from-servier",
+        "publishedAt": "2026-07-05"
       }
     ],
     "Abivax": [
       {
         "title": "Abivax publie des résultats de phase 3 positifs pour l'obefazimod dans la rectocolite hémorragique",
         "source": "Fierce Biotech",
-        "date": "Aujourd'hui",
-        "url": "https://www.fiercebiotech.com/biotech/abivax-obefazimod-phase-3-ulcerative-colitis"
+        "date": "9 juil. 2026",
+        "url": "https://www.fiercebiotech.com/biotech/abivax-obefazimod-phase-3-ulcerative-colitis",
+        "publishedAt": "2026-07-09"
       }
     ],
     "Neko Health": [
       {
         "title": "Neko Health lève 260 M$ en Series B menée par Lightspeed et General Catalyst",
         "source": "Sifted",
-        "date": "Il y a 2 j",
-        "url": "https://sifted.eu/articles/neko-health-series-b-lightspeed-general-catalyst"
+        "date": "7 juil. 2026",
+        "url": "https://sifted.eu/articles/neko-health-series-b-lightspeed-general-catalyst",
+        "publishedAt": "2026-07-07"
       }
     ],
     "Insilico Medicine": [
       {
         "title": "Insilico Medicine boucle une Series E de 110 M$ menée par Value Partners Group",
         "source": "Endpoints News",
-        "date": "Il y a 3 j",
-        "url": "https://endpts.com/insilico-medicine-series-e-value-partners"
+        "date": "6 juil. 2026",
+        "url": "https://endpts.com/insilico-medicine-series-e-value-partners",
+        "publishedAt": "2026-07-06"
       }
     ]
   }
