@@ -23,6 +23,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -87,6 +88,12 @@ export function FavoritesSyncProvider({ children }: { children: React.ReactNode 
   const [consent, setConsent] = useState<SyncConsent>('unset');
   const [consentResolved, setConsentResolved] = useState(false);
 
+  // Whether a non-empty set has already been reported in this app session. Gates the
+  // "clear the remote doc when you remove your last favorite" case: we only write `[]`
+  // if there was something to clear, so granting-with-zero-favorites never touches the
+  // network (no session, no doc) — see docs/privacy-policy.md.
+  const hasReportedNonEmpty = useRef(false);
+
   // Load the persisted consent choice once.
   useEffect(() => {
     let active = true;
@@ -119,6 +126,7 @@ export function FavoritesSyncProvider({ children }: { children: React.ReactNode 
     // this install immediately (rules DENY delete — we overwrite with an empty list).
     const auth = getFirebaseAuth();
     if (auth?.currentUser) await writeFollow([]);
+    hasReportedNonEmpty.current = false;
     clear();
     setConsent('unset');
     AsyncStorage.removeItem(CONSENT_KEY).catch(() => {});
@@ -129,7 +137,13 @@ export function FavoritesSyncProvider({ children }: { children: React.ReactNode 
   // seeded/empty pre-hydration state).
   useEffect(() => {
     if (consent !== 'granted' || !hydrated) return;
+    // Privacy: no collection until the user follows at least one startup. Granting with
+    // an empty set creates NO anonymous session and NO doc. The only time we write `[]`
+    // here is to clear the server after the user removes their last favorite — i.e. only
+    // once a non-empty set was already reported this session.
+    if (followed.length === 0 && !hasReportedNonEmpty.current) return;
     const t = setTimeout(() => {
+      if (followed.length > 0) hasReportedNonEmpty.current = true;
       writeFollow(followed);
     }, DEBOUNCE_MS);
     return () => clearTimeout(t);

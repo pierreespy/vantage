@@ -133,6 +133,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     (name: string): boolean => {
       const trimmed = name.trim();
       if (!trimmed) return false;
+      // Mirror backend/firestore.rules, which bounds each startup string to <= 80 chars.
+      // Rejecting here avoids a locally-accepted name whose report the rules would then
+      // silently drop — which would quietly remove this install from the union.
+      if (trimmed.length > 80) return false;
       const key = trimmed.toLowerCase();
       const already = followed.some((n) => n.toLowerCase() === key);
       if (!already && followed.length >= FAVORITES_LIMIT) return false;

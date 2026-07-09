@@ -48,12 +48,26 @@ function ensureInit(): void {
 
     // AsyncStorage persistence keeps the anonymous uid stable across launches, so a
     // given install maps to exactly one `follows/<uid>` document.
+    // NOTE: a STABLE anon uid across relaunches must be verified on a real device /
+    // dev-client — a successful `expo export` proves the bundle builds, NOT that the RN
+    // persistence export resolved and AsyncStorage actually persisted the session. If it
+    // silently falls back to in-memory persistence, each launch mints a new uid and
+    // leaves orphaned `follows` docs; watch the warning below during that verification.
     try {
       auth = initializeAuth(app, {
         persistence: getReactNativePersistence(AsyncStorage),
       });
-    } catch {
-      // Already initialized (e.g. Fast Refresh) — reuse the existing instance.
+    } catch (err) {
+      // Only the "already initialized" case is expected (e.g. Fast Refresh re-running
+      // this module against a live app) — reuse the existing instance. Any OTHER failure
+      // (e.g. getReactNativePersistence missing) must NOT be swallowed silently, because
+      // getAuth() then uses in-memory persistence → a fresh uid every launch.
+      if ((err as { code?: string })?.code !== 'auth/already-initialized') {
+        console.warn(
+          '[firebase] initializeAuth with AsyncStorage persistence failed; falling back to in-memory auth (anon uid will NOT persist across launches).',
+          err
+        );
+      }
       auth = getAuth(app);
     }
 
