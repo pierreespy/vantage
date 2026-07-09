@@ -5,9 +5,15 @@ Ce prompt est pour une **tâche Claude agentique** (type « Claude Code ») qui 
 2. a **accès web** (recherche d'actualités),
 3. a le **droit de pousser** sur GitHub (dépôt connecté / token).
 
-Elle lit `recent-words.json`, génère le contenu du jour, écrit les fichiers, **commit et push**.
+Elle lit `recent-words.json`, génère le contenu du jour, écrit **deux fichiers**
+(`edition.json`, `recent-words.json`), **commit et push**.
 
 Planifie-la une fois par jour (le matin).
+
+> `startup-news.json` (onglet Favoris) **n'est plus produit par ce prompt** : il est
+> maintenu par une **routine automatisée** (un matin sur deux, côté backend). Voir
+> `docs/perso-favoris.md` (« La routine de mise à jour ») et `GENERATION.md` (section
+> Favoris) pour ses règles éditoriales.
 
 ---
 

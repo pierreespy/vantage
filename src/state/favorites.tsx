@@ -2,7 +2,8 @@
  * Shared favorites + user-catalog state.
  *
  * Holds:
- *  - `followed`: the set of favorited startup names (persisted);
+ *  - `followed`: the set of favorited startup names (persisted). Capped at
+ *    `FAVORITES_LIMIT` — new users start with none and pick their own.
  *  - `customStartups`: startups the user added by hand (persisted) — real startups
  *    not yet in the built-in catalog. They become searchable like any other.
  *
@@ -23,17 +24,30 @@ import { initialFollowed } from '../data/favoris';
 const FOLLOWED_KEY = 'vantage.followed.v1';
 const CUSTOM_KEY = 'vantage.customStartups.v1';
 
+/** Max number of startups a user can follow. Keeps the feed focused and bounds
+ *  the distinct-startup set the morning generation has to research. */
+export const FAVORITES_LIMIT = 5;
+
 export type CustomStartup = { name: string; sector: string };
 
 type FavoritesContextValue = {
-  /** Followed startup names, in the order they were added (seeded first). */
+  /** Followed startup names, in the order they were added. */
   followed: string[];
   isFollowed: (name: string) => boolean;
-  toggle: (name: string) => void;
+  /** Toggle a startup. Removing always applies. Adding applies only while under
+   *  the limit. Returns true if the change was applied, false if blocked by the cap. */
+  toggle: (name: string) => boolean;
   /** Startups the user added manually (persisted), merged into the catalog. */
   customStartups: CustomStartup[];
-  /** Add a user-typed startup to the catalog AND follow it. No-op if blank/duplicate. */
-  addCustomStartup: (name: string) => void;
+  /** Add a user-typed startup to the catalog AND follow it. Returns false if blank,
+   *  a duplicate that would exceed the cap, or blocked by the cap. */
+  addCustomStartup: (name: string) => boolean;
+  /** Remove every followed startup (used by the "reset" of anonymous reporting). */
+  clear: () => void;
+  /** Max followed startups (see FAVORITES_LIMIT). */
+  limit: number;
+  /** True once the followed set is at the cap. */
+  atLimit: boolean;
   /** True until the persisted data has been read back. */
   hydrated: boolean;
 };
@@ -57,7 +71,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
         if (!active) return;
         if (rawFollowed) {
           const parsed = JSON.parse(rawFollowed);
-          if (Array.isArray(parsed)) setFollowed(parsed.filter((v) => typeof v === 'string'));
+          if (Array.isArray(parsed)) {
+            // Trim to the cap in case an older build persisted more.
+            setFollowed(parsed.filter((v) => typeof v === 'string').slice(0, FAVORITES_LIMIT));
+          }
         }
         if (rawCustom) {
           const parsed = JSON.parse(rawCustom);
@@ -91,29 +108,64 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(CUSTOM_KEY, JSON.stringify(customStartups)).catch(() => {});
   }, [customStartups, hydrated]);
 
-  const toggle = useCallback((name: string) => {
-    setFollowed((prev) =>
-      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
-    );
-  }, []);
+  const toggle = useCallback(
+    (name: string): boolean => {
+      if (followed.includes(name)) {
+        setFollowed((prev) => prev.filter((n) => n !== name));
+        return true;
+      }
+      if (followed.length >= FAVORITES_LIMIT) return false;
+      // Re-check the cap inside the updater so two near-simultaneous taps can't
+      // both pass the guard against a stale `followed` closure and push past 5.
+      setFollowed((prev) =>
+        prev.includes(name) || prev.length >= FAVORITES_LIMIT ? prev : [...prev, name]
+      );
+      return true;
+    },
+    [followed]
+  );
 
   const isFollowed = useCallback((name: string) => followed.includes(name), [followed]);
 
-  const addCustomStartup = useCallback((name: string) => {
-    const trimmed = name.trim();
-    if (!trimmed) return;
-    const key = trimmed.toLowerCase();
-    setCustomStartups((prev) =>
-      prev.some((c) => c.name.toLowerCase() === key) ? prev : [...prev, { name: trimmed, sector: '' }]
-    );
-    setFollowed((prev) =>
-      prev.some((n) => n.toLowerCase() === key) ? prev : [...prev, trimmed]
-    );
-  }, []);
+  const clear = useCallback(() => setFollowed([]), []);
+
+  const addCustomStartup = useCallback(
+    (name: string): boolean => {
+      const trimmed = name.trim();
+      if (!trimmed) return false;
+      // Mirror backend/firestore.rules, which bounds each startup string to <= 80 chars.
+      // Rejecting here avoids a locally-accepted name whose report the rules would then
+      // silently drop — which would quietly remove this install from the union.
+      if (trimmed.length > 80) return false;
+      const key = trimmed.toLowerCase();
+      const already = followed.some((n) => n.toLowerCase() === key);
+      if (!already && followed.length >= FAVORITES_LIMIT) return false;
+      setCustomStartups((prev) =>
+        prev.some((c) => c.name.toLowerCase() === key) ? prev : [...prev, { name: trimmed, sector: '' }]
+      );
+      setFollowed((prev) =>
+        prev.some((n) => n.toLowerCase() === key) || prev.length >= FAVORITES_LIMIT
+          ? prev
+          : [...prev, trimmed]
+      );
+      return true;
+    },
+    [followed]
+  );
 
   const value = useMemo<FavoritesContextValue>(
-    () => ({ followed, isFollowed, toggle, customStartups, addCustomStartup, hydrated }),
-    [followed, isFollowed, toggle, customStartups, addCustomStartup, hydrated]
+    () => ({
+      followed,
+      isFollowed,
+      toggle,
+      customStartups,
+      addCustomStartup,
+      clear,
+      limit: FAVORITES_LIMIT,
+      atLimit: followed.length >= FAVORITES_LIMIT,
+      hydrated,
+    }),
+    [followed, isFollowed, toggle, customStartups, addCustomStartup, clear, hydrated]
   );
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;

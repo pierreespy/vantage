@@ -7,14 +7,24 @@
  */
 import { startupCatalog } from './startups';
 
-export type NewsItem = { title: string; source: string; date: string; url: string };
+export type NewsItem = {
+  title: string;
+  source: string;
+  /** Human display label (absolute FR date, e.g. "8 juil. 2026"). */
+  date: string;
+  url: string;
+  /** ISO AAAA-MM-JJ machine date. Set by the news routine for the 30-day sliding
+   *  window + ordering; absent on legacy seeded items. */
+  publishedAt?: string;
+};
 export type Startup = { name: string; sector: string; stage?: string; news: NewsItem[] };
 
 /** Sector filter chips shown in the Favoris header. */
 export const favSectors = ['Toutes', 'Oncologie', 'MedTech', 'Digital Health', 'Diagnostics'] as const;
 
-/** Startups initially marked as favorites. */
-export const initialFollowed = ['Alderaan Bio', 'Owkin', 'Vitrogen', 'Flow Neuroscience'];
+/** Startups initially marked as favorites. New users start with none — each person
+ *  picks up to FAVORITES_LIMIT (see src/state/favorites.tsx) from the catalog. */
+export const initialFollowed: string[] = [];
 
 /** The 4 seeded favorites, with stage + news. */
 const seeded: Startup[] = [

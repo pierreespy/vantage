@@ -22,8 +22,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { catalog, favSectors, startupByName, type Startup } from '@/data/favoris';
-import { useFavorites, type CustomStartup } from '@/state/favorites';
+import { useFavorites, FAVORITES_LIMIT, type CustomStartup } from '@/state/favorites';
+import { useFavoritesSync } from '@/state/favoritesSync';
 import { useEdition } from '@/content/EditionProvider';
+import { useStartupNews } from '@/content/NewsProvider';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
@@ -32,7 +34,20 @@ const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {
 export default function FavorisScreen() {
   const insets = useSafeAreaInsets();
   const { followed, isFollowed, toggle, customStartups, addCustomStartup } = useFavorites();
+  const { consent, reset } = useFavoritesSync();
   const { stageOf } = useEdition();
+
+  // Reset the anonymous reporting: blank the shared doc, wipe local favorites + consent.
+  const confirmReset = () => {
+    Alert.alert(
+      'Réinitialiser la personnalisation',
+      'Vos favoris et votre consentement au partage anonyme seront effacés sur cet appareil, et la liste transmise sera vidée. Cette action est irréversible.',
+      [
+        { text: 'Annuler', style: 'cancel' },
+        { text: 'Réinitialiser', style: 'destructive', onPress: () => void reset() },
+      ]
+    );
+  };
 
   const [sector, setSector] = useState<string>('Toutes');
   const [addOpen, setAddOpen] = useState(false);
@@ -56,9 +71,21 @@ export default function FavorisScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>{followed.length} startups suivies</Text>
+            <Text style={styles.eyebrow}>
+              {followed.length}/{FAVORITES_LIMIT} startups suivies
+            </Text>
             <Text style={styles.h1}>Favoris</Text>
           </View>
+          {consent === 'granted' ? (
+            <Pressable
+              onPress={confirmReset}
+              style={styles.resetBtn}
+              accessibilityRole="button"
+              accessibilityLabel="Réinitialiser la personnalisation"
+            >
+              <Text style={styles.resetText}>Réinitialiser</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={() => {
               setQuery('');
@@ -124,6 +151,12 @@ export default function FavorisScreen() {
 }
 
 function FavoriteCard({ startup }: { startup: Startup }) {
+  const { newsFor } = useStartupNews();
+  // Live per-startup news takes precedence; fall back to any seeded news for that
+  // startup so a followed catalog entry still shows something until live news exists.
+  const live = newsFor(startup.name);
+  const news = live.length > 0 ? live : startup.news;
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHead}>
@@ -142,10 +175,10 @@ function FavoriteCard({ startup }: { startup: Startup }) {
       </View>
 
       <View style={styles.newsWrap}>
-        {startup.news.length === 0 ? (
+        {news.length === 0 ? (
           <Text style={styles.noNews}>Pas encore d’actualité suivie.</Text>
         ) : (
-          startup.news.map((n, i) => (
+          news.map((n, i) => (
             <Pressable
               key={n.url + i}
               onPress={() => openLink(n.url)}
@@ -179,9 +212,9 @@ function AddFavoriteSheet({
   query: string;
   onQuery: (v: string) => void;
   isFollowed: (name: string) => boolean;
-  toggle: (name: string) => void;
+  toggle: (name: string) => boolean;
   customStartups: CustomStartup[];
-  addCustomStartup: (name: string) => void;
+  addCustomStartup: (name: string) => boolean;
 }) {
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
@@ -217,7 +250,17 @@ function AddFavoriteSheet({
       `« ${trimmed} » sera ajoutée à vos favoris et au catalogue de l'app.\n\nVérifiez bien l'orthographe : le nom est enregistré tel quel.`,
       [
         { text: 'Corriger', style: 'cancel' },
-        { text: 'Confirmer', onPress: () => addCustomStartup(trimmed) },
+        {
+          text: 'Confirmer',
+          onPress: () => {
+            if (!addCustomStartup(trimmed)) {
+              Alert.alert(
+                'Limite atteinte',
+                `Vous pouvez suivre au maximum ${FAVORITES_LIMIT} startups. Retirez-en une pour en ajouter une autre.`
+              );
+            }
+          },
+        },
       ]
     );
   };
@@ -272,7 +315,14 @@ function AddFavoriteSheet({
                     {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
                   </View>
                   <Pressable
-                    onPress={() => toggle(c.name)}
+                    onPress={() => {
+                      if (!toggle(c.name)) {
+                        Alert.alert(
+                          'Limite atteinte',
+                          `Vous pouvez suivre au maximum ${FAVORITES_LIMIT} startups. Retirez-en une pour en ajouter une autre.`
+                        );
+                      }
+                    }}
                     style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}
                     accessibilityRole="button"
                   >
@@ -333,6 +383,18 @@ const styles = StyleSheet.create({
     fontSize: 30,
     color: colors.ink,
     letterSpacing: -0.15,
+  },
+  resetBtn: {
+    alignSelf: 'flex-end',
+    marginRight: 12,
+    marginBottom: 6,
+  },
+  resetText: {
+    fontFamily: fonts.archivoSemi,
+    fontSize: 10.5,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: colors.ink50,
   },
   addBtn: {
     width: 38,
