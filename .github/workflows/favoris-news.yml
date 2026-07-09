@@ -1,0 +1,51 @@
+name: favoris-news
+
+# Maintains startup-news.json in the vantage-content repo.
+#
+# Cadence: ONE MORNING IN TWO. `*/2` in the day-of-month field means days
+# 1,3,5,...,31 — i.e. every other day WITHIN a month, but the step resets at each
+# month boundary. So the end of a 31-day month runs on the 31st AND the 1st (two
+# runs in a row), and after a 30-day month the 1st also follows the 29th. That is
+# a harmless caveat here: the routine is idempotent (deterministic merge + a clean
+# tree means "nothing to commit"), so an occasional back-to-back run just refreshes
+# and usually no-ops. If exact 48h spacing ever matters, switch to a daily cron
+# with an internal "skip odd days since an epoch" check instead.
+on:
+  schedule:
+    - cron: '0 6 */2 * *' # 06:00 UTC, every other day-of-month
+  workflow_dispatch: {} # allow manual runs from the Actions tab
+
+# Least privilege: this job pushes to the SEPARATE content repo via a PAT, not to
+# this repo, so it needs no write permission on its own contents.
+permissions:
+  contents: read
+
+concurrency:
+  group: favoris-news
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout (this repo, for backend/ sources)
+        uses: actions/checkout@v4
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install routine deps (isolated from the app bundle)
+        working-directory: backend/routine
+        run: npm ci
+
+      - name: Run the news routine
+        working-directory: backend/routine
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          CONTENT_REPO_TOKEN: ${{ secrets.CONTENT_REPO_TOKEN }}
+          CONTENT_REPO: ${{ vars.CONTENT_REPO }}
+        run: node run.mjs

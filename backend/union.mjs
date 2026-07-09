@@ -18,20 +18,25 @@
 //   - GOOGLE_APPLICATION_CREDENTIALS pointing at a service-account key file, or
 //   - run inside a Google environment (Cloud Functions / Cloud Run) where the
 //     default credentials are already the project's service account.
-
-import { initializeApp, applicationDefault } from 'firebase-admin/app';
-import { getFirestore, Timestamp } from 'firebase-admin/firestore';
+//
+// firebase-admin is NOT imported at module scope. `readUnion` / `purgeExpired`
+// take an already-constructed Firestore `db` (dependency injection), so importers
+// that live in a different package (e.g. backend/routine, with its own isolated
+// node_modules) can supply the handle without this file needing to resolve
+// firebase-admin from its own directory. The CLI block below builds a `db`
+// lazily, so `node backend/union.mjs` still works exactly as before.
 
 const RETENTION_DAYS = 30;
 
-initializeApp({ credential: applicationDefault() });
-const db = getFirestore();
-
 /**
+ * @param {import('firebase-admin/firestore').Firestore} db an initialized Firestore handle.
+ * @param {number} [now] epoch ms; defaults to Date.now().
  * @returns {Promise<string[]>} sorted, deduped startup names seen in the last 30 days.
  */
-export async function readUnion(now = Date.now()) {
-  const cutoff = Timestamp.fromMillis(now - RETENTION_DAYS * 24 * 60 * 60 * 1000);
+export async function readUnion(db, now = Date.now()) {
+  // A JS Date is auto-converted to a Firestore Timestamp by the Admin SDK, so we
+  // don't need to import Timestamp here.
+  const cutoff = new Date(now - RETENTION_DAYS * 24 * 60 * 60 * 1000);
 
   // Server-side filter on updatedAt so expired docs never enter the union.
   // (Also lets Firestore skip them; a single-field index on updatedAt suffices.)
@@ -55,8 +60,8 @@ export async function readUnion(now = Date.now()) {
 // Optional hard erasure: physically delete docs older than the retention window
 // so the store never keeps data past 30 days (the union already ignores them;
 // this makes the deletion real on disk). Run occasionally, e.g. from a cron.
-export async function purgeExpired(now = Date.now()) {
-  const cutoff = Timestamp.fromMillis(now - RETENTION_DAYS * 24 * 60 * 60 * 1000);
+export async function purgeExpired(db, now = Date.now()) {
+  const cutoff = new Date(now - RETENTION_DAYS * 24 * 60 * 60 * 1000);
   const snap = await db.collection('follows').where('updatedAt', '<', cutoff).get();
   let deleted = 0;
   const batchSize = 400;
@@ -69,9 +74,15 @@ export async function purgeExpired(now = Date.now()) {
   return deleted;
 }
 
-// CLI entrypoint: print the watchlist as JSON on stdout.
+// CLI entrypoint: print the watchlist as JSON on stdout. firebase-admin is
+// imported here (lazily) rather than at module scope, so importing this file for
+// its pure exports never forces a firebase-admin resolution.
 if (import.meta.url === `file://${process.argv[1]}`) {
-  readUnion()
+  const { initializeApp, applicationDefault } = await import('firebase-admin/app');
+  const { getFirestore } = await import('firebase-admin/firestore');
+  initializeApp({ credential: applicationDefault() });
+  const db = getFirestore();
+  readUnion(db)
     .then((names) => {
       process.stdout.write(JSON.stringify({ generatedAt: new Date().toISOString(), watchlist: names }, null, 2) + '\n');
     })
