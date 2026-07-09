@@ -38,3 +38,22 @@ npx expo export --platform ios    # doit bundler sans erreur
 - Règle éditoriale permanente : dans les brèves/actus, **noms précis** (société, montant,
   investisseur lead), jamais de descriptions vagues.
 - Phase 2 (deal-tracker/contacts) : ajouter des `Tabs.Screen` + une entrée `TABS`.
+
+## L'équipe d'agents (`.claude/agents/`)
+
+Sous-agents spécialisés, à lancer via le tool Agent selon la tâche :
+
+- **Contenu** — `margaux-fact-check` (lecture seule + web) : fact-checke un
+  `edition.json`, verdict PUBLIER par défaut, ne bloque que sur l'invérifiable ;
+  `leo-correction` (read/write) : applique les corrections relevées par Margaux.
+- **Amélioration de l'existant** — `camille-ergonomie` (lecture seule) : audite un
+  onglet existant et propose des améliorations UX priorisées.
+- **Innovation** — `victor-innovation` (lecture seule) : fiches concept pour de
+  nouveaux onglets/options (Phase 2 et au-delà).
+- **Construction & revue** — `sofia-ecrans` (read/write) : implémente écrans et
+  onglets dans les conventions maison ; `eleonore-da` (lecture seule) : audite tout
+  diff UI contre la DA journal papier ; `karim-rn-expo` (lecture seule) : revue
+  technique RN/Expo du diff (providers, hydratation, triplet de navigation).
+
+Flux type : Camille/Victor proposent → Pierre arbitre → Sofia construit →
+Éléonore + Karim relisent (→ Margaux/Léo pour tout ce qui touche l'édition).
