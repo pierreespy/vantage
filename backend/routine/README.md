@@ -12,7 +12,19 @@ bloat the iOS bundle).
 
 ## How it works
 
-`run.mjs` orchestrates, once per run:
+There are **two modes** that share the same deterministic core (`../union.mjs` for
+the union + purge, `merge.mjs` for retention) and produce the identical
+`startup-news.json`:
+
+- **Mode A — GitHub Actions + Anthropic API** (`run.mjs` + `research.mjs` +
+  `.github/workflows/favoris-news.yml`). Fully automated cron; research runs through
+  the paid Anthropic API. Documented immediately below.
+- **Mode B — Claude Code Remote (no API key)** (`ccr-union.mjs` + `ccr-publish.mjs`
+  + [`CCR_ROUTINE.md`](./CCR_ROUTINE.md)). A scheduled Claude Code session does the
+  web research **natively**; the two Node scripts are just the deterministic
+  bookends. See the section near the end.
+
+### Mode A — `run.mjs` orchestrates, once per run:
 
 1. **Union** — reads the deduped set of *actually followed* startups from Firestore
    via [`../union.mjs`](../union.mjs) (`readUnion(db, now)`), never the ~370-startup
@@ -75,6 +87,47 @@ FIREBASE_SERVICE_ACCOUNT="$(cat service-account.json)" \
 CONTENT_REPO=pierreespy/vantage-content \
 CONTENT_REPO_TOKEN=... \
 node run.mjs
+```
+
+## Mode B: Claude Code Remote routine (no API key)
+
+Same output, no paid Anthropic API. A scheduled **Claude Code Remote** session runs
+the research with its **own native web search**; two deterministic Node scripts do
+the non-research work. The step-by-step the session follows is
+[`CCR_ROUTINE.md`](./CCR_ROUTINE.md) — this is a summary.
+
+Pieces:
+
+- **`ccr-union.mjs`** — inits `firebase-admin` from `FIREBASE_SERVICE_ACCOUNT`
+  (a JSON **string**, `JSON.parse` + `cert(...)`), calls `readUnion(db, Date.now())`,
+  and prints `{"startups":[...]}` to **stdout** (all logs to stderr, so the session
+  can capture just the JSON). Also `purgeExpired(db, Date.now())`, best-effort.
+- **`ccr-publish.mjs <candidates.json>`** — takes the NEW items the session found
+  (`{ "<Startup>": [ {title,source,url,publishedAt,date}, ... ] }`), clones
+  `CONTENT_REPO`, and for every startup in (existing ∪ candidates) applies the SAME
+  `mergeStartupNews(…, { windowDays:30, maxPerStartup:3 })` retention, drops empties,
+  bumps `generatedAt`, commits + pushes. Clean-tree short-circuit and `DRY_RUN=1`
+  like `run.mjs`.
+
+How it differs from Mode A:
+
+| | Mode A (`run.mjs`) | Mode B (CCR) |
+|---|---|---|
+| Research | `research.mjs` → Anthropic API (`claude-opus-4-8`, `web_search_20260209`) | Claude Code session's **native** web search |
+| API key | `ANTHROPIC_API_KEY` required | **none** |
+| Trigger | GitHub Actions cron | scheduled Claude Code session |
+| Union read | inline in `run.mjs` | `ccr-union.mjs` (stdout JSON) |
+| Merge + push | inline in `run.mjs` | `ccr-publish.mjs candidates.json` |
+| Union + merge core | `../union.mjs` + `merge.mjs` | **same** `../union.mjs` + `merge.mjs` |
+
+Env secrets for Mode B: `FIREBASE_SERVICE_ACCOUNT`, `CONTENT_REPO`,
+`CONTENT_REPO_TOKEN` (optional `CONTENT_NEWS_PATH`). No `ANTHROPIC_API_KEY`.
+
+```bash
+cd backend/routine && npm ci
+node ccr-union.mjs > union.json           # {"startups":[...]}
+# ... session researches each startup natively -> candidates.json ...
+node ccr-publish.mjs candidates.json      # merge (retention) + push
 ```
 
 ## Cadence caveat — "one morning in two"
