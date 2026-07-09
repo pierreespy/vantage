@@ -22,8 +22,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { catalog, favSectors, startupByName, type Startup } from '@/data/favoris';
-import { useFavorites, type CustomStartup } from '@/state/favorites';
+import { useFavorites, FAVORITES_LIMIT, type CustomStartup } from '@/state/favorites';
 import { useEdition } from '@/content/EditionProvider';
+import { useStartupNews } from '@/content/NewsProvider';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
@@ -56,7 +57,9 @@ export default function FavorisScreen() {
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>{followed.length} startups suivies</Text>
+            <Text style={styles.eyebrow}>
+              {followed.length}/{FAVORITES_LIMIT} startups suivies
+            </Text>
             <Text style={styles.h1}>Favoris</Text>
           </View>
           <Pressable
@@ -124,6 +127,12 @@ export default function FavorisScreen() {
 }
 
 function FavoriteCard({ startup }: { startup: Startup }) {
+  const { newsFor } = useStartupNews();
+  // Live per-startup news takes precedence; fall back to the seeded examples so the
+  // 4 pre-filled favorites keep showing until real news is published for them.
+  const live = newsFor(startup.name);
+  const news = live.length > 0 ? live : startup.news;
+
   return (
     <View style={styles.card}>
       <View style={styles.cardHead}>
@@ -142,10 +151,10 @@ function FavoriteCard({ startup }: { startup: Startup }) {
       </View>
 
       <View style={styles.newsWrap}>
-        {startup.news.length === 0 ? (
+        {news.length === 0 ? (
           <Text style={styles.noNews}>Pas encore d’actualité suivie.</Text>
         ) : (
-          startup.news.map((n, i) => (
+          news.map((n, i) => (
             <Pressable
               key={n.url + i}
               onPress={() => openLink(n.url)}
@@ -179,9 +188,9 @@ function AddFavoriteSheet({
   query: string;
   onQuery: (v: string) => void;
   isFollowed: (name: string) => boolean;
-  toggle: (name: string) => void;
+  toggle: (name: string) => boolean;
   customStartups: CustomStartup[];
-  addCustomStartup: (name: string) => void;
+  addCustomStartup: (name: string) => boolean;
 }) {
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
@@ -217,7 +226,17 @@ function AddFavoriteSheet({
       `« ${trimmed} » sera ajoutée à vos favoris et au catalogue de l'app.\n\nVérifiez bien l'orthographe : le nom est enregistré tel quel.`,
       [
         { text: 'Corriger', style: 'cancel' },
-        { text: 'Confirmer', onPress: () => addCustomStartup(trimmed) },
+        {
+          text: 'Confirmer',
+          onPress: () => {
+            if (!addCustomStartup(trimmed)) {
+              Alert.alert(
+                'Limite atteinte',
+                `Vous pouvez suivre au maximum ${FAVORITES_LIMIT} startups. Retirez-en une pour en ajouter une autre.`
+              );
+            }
+          },
+        },
       ]
     );
   };
@@ -272,7 +291,14 @@ function AddFavoriteSheet({
                     {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
                   </View>
                   <Pressable
-                    onPress={() => toggle(c.name)}
+                    onPress={() => {
+                      if (!toggle(c.name)) {
+                        Alert.alert(
+                          'Limite atteinte',
+                          `Vous pouvez suivre au maximum ${FAVORITES_LIMIT} startups. Retirez-en une pour en ajouter une autre.`
+                        );
+                      }
+                    }}
                     style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}
                     accessibilityRole="button"
                   >

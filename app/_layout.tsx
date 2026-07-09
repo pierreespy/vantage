@@ -10,6 +10,7 @@ import { useAppFonts } from '@/fonts';
 import { colors } from '@/theme';
 import { FavoritesProvider } from '@/state/favorites';
 import { EditionProvider } from '@/content/EditionProvider';
+import { NewsProvider } from '@/content/NewsProvider';
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useAppFonts();
@@ -23,12 +24,14 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <EditionProvider>
-        <FavoritesProvider>
-          <StatusBar style="dark" />
-          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-            <Stack.Screen name="(tabs)" />
-          </Stack>
-        </FavoritesProvider>
+        <NewsProvider>
+          <FavoritesProvider>
+            <StatusBar style="dark" />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+          </FavoritesProvider>
+        </NewsProvider>
       </EditionProvider>
     </SafeAreaProvider>
   );

@@ -15,4 +15,6 @@
 export const config = {
   /** URL of the daily edition JSON. */
   contentUrl: 'https://pierreespy.github.io/vantage-content/edition.json',
+  /** URL of the per-startup news JSON (sibling of contentUrl). */
+  newsUrl: 'https://pierreespy.github.io/vantage-content/startup-news.json',
 } as const;
