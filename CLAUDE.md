@@ -23,6 +23,10 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   les couleurs/polices en dur dans les écrans.
 - **Favoris** = état partagé et persisté via `src/state/favorites.tsx` (AsyncStorage) ;
   catalogue de startups dans `src/data/favoris.ts` (propre à l'utilisateur, hors édition).
+- **Logo / icône (à préserver)** : l'icône officielle de l'app est le monogramme **VC**
+  (V en encre `#22201D`, C en pétrole `#0B4F6C`, fond papier `#F9EFE3`) —
+  `assets/icon.png`. **Ne jamais la remplacer ni la modifier sans accord explicite de
+  Pierre**, quelle que soit la mise à jour.
 
 ## Vérifier
 
