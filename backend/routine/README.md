@@ -91,10 +91,16 @@ node run.mjs
 
 ## Mode B: Claude Code Remote routine (no API key)
 
-Same output, no paid Anthropic API. A scheduled **Claude Code Remote** session runs
-the research with its **own native web search**; two deterministic Node scripts do
-the non-research work. The step-by-step the session follows is
+Same output, no paid Anthropic API **and no GitHub PAT**. A scheduled **Claude Code
+Remote** session runs the research with its **own native web search** and publishes
+through its **own GitHub connection**; two deterministic Node scripts do the
+non-research work. The step-by-step the session follows is
 [`CCR_ROUTINE.md`](./CCR_ROUTINE.md) — this is a summary.
+
+**Research hard rule (30-day window):** the session must keep only articles whose
+`publishedAt` is within the last 30 days of today and **discard anything older** —
+the retention merge drops >30-day items anyway, so older articles are wasted effort.
+This is stated as a hard per-startup rule in `CCR_ROUTINE.md`.
 
 Pieces:
 
@@ -102,12 +108,15 @@ Pieces:
   (a JSON **string**, `JSON.parse` + `cert(...)`), calls `readUnion(db, Date.now())`,
   and prints `{"startups":[...]}` to **stdout** (all logs to stderr, so the session
   can capture just the JSON). Also `purgeExpired(db, Date.now())`, best-effort.
-- **`ccr-publish.mjs <candidates.json>`** — takes the NEW items the session found
-  (`{ "<Startup>": [ {title,source,url,publishedAt,date}, ... ] }`), clones
-  `CONTENT_REPO`, and for every startup in (existing ∪ candidates) applies the SAME
-  `mergeStartupNews(…, { windowDays:30, maxPerStartup:3 })` retention, drops empties,
-  bumps `generatedAt`, commits + pushes. Clean-tree short-circuit and `DRY_RUN=1`
-  like `run.mjs`.
+- **`ccr-merge.mjs <candidates.json> <current.json> <output.json>`** — a **pure**
+  deterministic merge (no git, no token, no network). Takes the NEW items the
+  session found and the CURRENT published file (which the session fetched via the
+  GitHub `get_file_contents` tool), applies the SAME
+  `mergeStartupNews(…, { windowDays:30, maxPerStartup:3 })` retention per startup
+  over (existing ∪ candidates), drops empties, sets `generatedAt` to today, and
+  **writes** the merged JSON to `<output.json>`. The **session** then publishes it
+  to `pierreespy/vantage-content` with the GitHub `create_or_update_file` tool
+  (using the blob SHA read alongside the current content).
 
 How it differs from Mode A:
 
@@ -117,17 +126,22 @@ How it differs from Mode A:
 | API key | `ANTHROPIC_API_KEY` required | **none** |
 | Trigger | GitHub Actions cron | scheduled Claude Code session |
 | Union read | inline in `run.mjs` | `ccr-union.mjs` (stdout JSON) |
-| Merge + push | inline in `run.mjs` | `ccr-publish.mjs candidates.json` |
+| Merge | inline in `run.mjs` | `ccr-merge.mjs` (pure, writes local file) |
+| Publish | `simple-git` clone + push with `CONTENT_REPO_TOKEN` | session's **GitHub connection** (`create_or_update_file`), no token |
 | Union + merge core | `../union.mjs` + `merge.mjs` | **same** `../union.mjs` + `merge.mjs` |
 
-Env secrets for Mode B: `FIREBASE_SERVICE_ACCOUNT`, `CONTENT_REPO`,
-`CONTENT_REPO_TOKEN` (optional `CONTENT_NEWS_PATH`). No `ANTHROPIC_API_KEY`.
+The **only** secret for Mode B is `FIREBASE_SERVICE_ACCOUNT` (union read + purge).
+There is **no** `ANTHROPIC_API_KEY`, **no** `CONTENT_REPO_TOKEN`, and **no**
+`CONTENT_REPO`: publishing targets `pierreespy/vantage-content` through the session's
+GitHub connection.
 
 ```bash
 cd backend/routine && npm ci
 node ccr-union.mjs > union.json           # {"startups":[...]}
+# GitHub get_file_contents pierreespy/vantage-content startup-news.json -> current.json (+ SHA)
 # ... session researches each startup natively -> candidates.json ...
-node ccr-publish.mjs candidates.json      # merge (retention) + push
+node ccr-merge.mjs candidates.json current.json merged.json   # pure merge (retention)
+# GitHub create_or_update_file pierreespy/vantage-content startup-news.json (content=merged.json, sha)
 ```
 
 ## Cadence caveat — "one morning in two"
