@@ -617,11 +617,11 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.paper },
 
   // header
-  header: { paddingHorizontal: 22, paddingBottom: 2 },
+  header: { paddingHorizontal: 20, paddingBottom: 2 },
   eyebrow: {
     fontFamily: fonts.mono,
-    fontSize: 10.5,
-    letterSpacing: 1.6,
+    fontSize: 10,
+    letterSpacing: 1.4,
     textTransform: 'uppercase',
     color: colors.ink60,
   },
@@ -629,17 +629,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     justifyContent: 'space-between',
-    marginTop: 5,
+    marginTop: 4,
   },
   titleActions: { flexDirection: 'row', alignItems: 'center' },
   h1: {
     fontFamily: fonts.serifBold,
-    fontSize: 42,
-    lineHeight: 42,
+    fontSize: 30,
     color: colors.ink,
-    letterSpacing: -0.4,
+    letterSpacing: -0.15,
   },
-  resetBtn: { marginRight: 14, marginBottom: 8 },
+  resetBtn: { marginRight: 12, marginBottom: 6 },
   resetText: {
     fontFamily: fonts.archivoSemi,
     fontSize: 10.5,
@@ -648,9 +647,9 @@ const styles = StyleSheet.create({
     color: colors.ink50,
   },
   addBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
@@ -662,7 +661,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     marginTop: -2,
   },
-  chips: { gap: 8, marginTop: 18, paddingRight: 22 },
+  chips: { gap: 8, marginTop: 16, paddingRight: 20 },
   chip: {
     paddingHorizontal: 15,
     paddingVertical: 8,
@@ -683,7 +682,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginHorizontal: 22,
+    marginHorizontal: 20,
     marginTop: 16,
     paddingVertical: 13,
     paddingHorizontal: 15,
@@ -714,7 +713,7 @@ const styles = StyleSheet.create({
   },
 
   // list
-  list: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 128 },
+  list: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 128 },
   emptyList: {
     fontFamily: fonts.serifItalic,
     fontSize: 14.5,
@@ -766,7 +765,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
     paddingHorizontal: 7,
     paddingVertical: 4,
-    borderRadius: 3,
+    borderRadius: 2,
   },
   stageText: {
     fontFamily: fonts.mono,
