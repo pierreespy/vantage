@@ -65,7 +65,8 @@ MOT DU JOUR (word)
 - INTERDICTION : n'utilise aucun terme présent dans le recent-words.json que tu as lu (étape 1).
   Fais tourner les familles d'un jour à l'autre.
 - Remplis tous les champs : term, full, fr, field, definition (vulgarisée, 1 phrase),
-  parts (3 : label + rôle), how (3 étapes), why (angle VC), deals (3-4, chacune avec year).
+  parts (3 : label + rôle), how (3 étapes), why (angle VC), startups (3-4 startups
+  emblématiques ACTUELLES du concept, chacune avec name + note + tag).
 
 SCHÉMA de edition.json (mêmes clés, mêmes types — JSON strict, parseable tel quel) :
 
@@ -118,12 +119,16 @@ SCHÉMA de edition.json (mêmes clés, mêmes types — JSON strict, parseable t
       { "n": "3", "h": "Libération", "t": "…" }
     ],
     "why": "Pourquoi c'est en vogue, angle VC.",
-    "deals": [ { "buyer": "Pfizer", "target": "Seagen", "amount": "43 Md$", "year": "2023" } ]
+    "startups": [ { "name": "ADC Therapeutics", "note": "Pure-player suisse, Zynlonta approuvé", "tag": "Lausanne" } ]
   }
 }
 
 Comptes attendus : brefsEurope = 5, brefsIntl = 3, ticker = 6, word.parts = 3, word.how = 3,
-word.deals = 3 à 4.
+word.startups = 3 à 4.
+
+word.startups : sociétés emblématiques ACTUELLES du concept (leaders / pure-players du
+moment), pas des rachats passés. name = nom exact, note = ce qui la rend emblématique
+(1 courte phrase), tag = un marqueur court (ville/HQ, ou statut).
 
 CONTRAINTES JSON (impératives)
 - JSON strict : guillemets doubles, aucune virgule finale, aucun commentaire.

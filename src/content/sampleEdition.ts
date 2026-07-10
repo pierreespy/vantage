@@ -127,11 +127,11 @@ export const sampleEdition: Edition = {
       { n: '3', h: 'Libération', t: 'Le linker se rompt dans la cellule et libère la charge, qui la détruit de l’intérieur.' },
     ],
     why: 'Après des décennies de faux départs, les linkers de nouvelle génération ont rendu les ADC à la fois efficaces et tolérables. Résultat : la plus grosse vague de M&A oncologique de la décennie, et une course aux cibles au-delà d’HER2. L’un des terrains de chasse les plus actifs pour les fonds biotech.',
-    deals: [
-      { buyer: 'Pfizer', target: '3SBio (accord ADC)', amount: '1,25 Md$', year: '2025' },
-      { buyer: 'J&J', target: 'Ambrx', amount: '2 Md$', year: '2024' },
-      { buyer: 'Genmab', target: 'ProfoundBio', amount: '1,8 Md$', year: '2024' },
-      { buyer: 'AbbVie', target: 'ImmunoGen', amount: '10 Md$', year: '2024' },
+    startups: [
+      { name: 'ADC Therapeutics', note: 'Pure-player suisse, Zynlonta approuvé dans le lymphome', tag: 'Lausanne' },
+      { name: 'DualityBio', note: 'Plateforme chinoise, accords avec BioNTech et GSK', tag: 'Shanghai' },
+      { name: 'Mersana Therapeutics', note: 'Conjugués immunostimulants (Immunosynthen)', tag: 'Boston' },
+      { name: 'Sutro Biopharma', note: 'ADC site-spécifiques par synthèse acellulaire', tag: 'San Francisco' },
     ],
   },
 };

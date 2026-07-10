@@ -64,8 +64,9 @@ d'investissement, due diligence, actu de deal). Règles, dans l'ordre :
 3. **Rédiger le bloc `word`** (mêmes champs que le gabarit) :
    `term`, `full`, `fr`, `field`, `definition` (vulgarisée, une phrase claire),
    `parts` (3 briques : label + rôle), `how` (3 étapes du mécanisme),
-   `why` (pourquoi c'est en vogue, angle VC), `deals` (M&A/levées de référence, avec
-   `year`).
+   `why` (pourquoi c'est en vogue, angle VC), `startups` (3–4 startups emblématiques
+   **actuelles** du concept — leaders / pure-players du moment, pas des rachats passés ;
+   chacune avec `name`, `note` et `tag`).
 4. **Générer le reste de l'édition** (`dateLong`, `ticker`, `lead`, `deal`,
    `brefsEurope`, `brefsIntl`) — **règle éditoriale permanente : noms précis** (société,
    montant, investisseur en lead), jamais de descriptions vagues.

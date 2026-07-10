@@ -3,7 +3,7 @@
  *
  * Full-screen explainer of the day's bio/med term (ADC), same editorial habillage
  * as the Journal: hero card, "Anatomie" of the concept, a 3-step mechanism,
- * why it's hot (VC angle), and recent flagship M&A.
+ * why it's hot (VC angle), and the current flagship startups on the concept.
  */
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -58,7 +58,9 @@ export default function MotDuJourScreen() {
             <Text style={styles.heroBarField}>{word.field}</Text>
           </View>
           <View style={styles.heroBody}>
-            <Text style={styles.term}>{word.term}</Text>
+            <Text style={styles.term} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+              {word.term}
+            </Text>
             <Text style={styles.full}>{word.full}</Text>
             <Text style={styles.fr}>{word.fr}</Text>
             <Text style={styles.definition}>{word.definition}</Text>
@@ -97,20 +99,16 @@ export default function MotDuJourScreen() {
           <Text style={styles.whyText}>{word.why}</Text>
         </View>
 
-        {/* M&A */}
-        <SectionHeader label="M&A emblématiques" color={colors.ink60} rule="faint" />
+        {/* STARTUPS EMBLÉMATIQUES */}
+        <SectionHeader label="Startups emblématiques" color={colors.ink60} rule="faint" />
         <View style={{ marginBottom: 18 }}>
-          {word.deals.map((d, i) => (
-            <View key={d.buyer + i} style={styles.deal}>
-              <View style={styles.yearPill}>
-                <Text style={styles.yearText}>{d.year}</Text>
+          {word.startups.map((s, i) => (
+            <View key={s.name + i} style={styles.startup}>
+              <View style={styles.startupMid}>
+                <Text style={styles.startupName}>{s.name}</Text>
+                <Text style={styles.startupNote}>{s.note}</Text>
               </View>
-              <Text style={styles.dealMid} numberOfLines={1}>
-                <Text style={styles.buyer}>{d.buyer}</Text>
-                <Text style={styles.arrow}>{'  →  '}</Text>
-                <Text style={styles.target}>{d.target}</Text>
-              </Text>
-              <Text style={styles.amount}>{d.amount}</Text>
+              <Text style={styles.startupTag}>{s.tag}</Text>
             </View>
           ))}
         </View>
@@ -162,11 +160,11 @@ const styles = StyleSheet.create({
   heroBody: { paddingHorizontal: 16, paddingTop: 18, paddingBottom: 16 },
   term: {
     fontFamily: fonts.serifBold,
-    fontSize: 60,
+    fontSize: 42,
     // lineHeight >= fontSize + small top padding so tall glyphs aren't clipped on iOS.
-    lineHeight: 68,
+    lineHeight: 48,
     paddingTop: 2,
-    letterSpacing: -0.6,
+    letterSpacing: -0.4,
     color: colors.ink,
     marginBottom: 4,
   },
@@ -242,8 +240,8 @@ const styles = StyleSheet.create({
   },
   whyText: { fontFamily: fonts.serif, fontSize: 14, lineHeight: 21.5, color: colors.ink90 },
 
-  // deals
-  deal: {
+  // startups emblématiques
+  startup: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
@@ -251,21 +249,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: border.light,
   },
-  yearPill: {
-    backgroundColor: colors.ink,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
-  yearText: {
-    fontFamily: fonts.monoMed,
+  startupMid: { flex: 1 },
+  startupName: { fontFamily: fonts.serifBold, fontSize: 14, color: colors.ink, marginBottom: 2 },
+  startupNote: { fontFamily: fonts.serif, fontSize: 12.5, lineHeight: 17, color: colors.ink70 },
+  startupTag: {
+    fontFamily: fonts.mono,
     fontSize: 10,
     letterSpacing: 0.6,
-    color: colors.paper,
+    textTransform: 'uppercase',
+    color: colors.accent,
   },
-  dealMid: { flex: 1 },
-  buyer: { fontFamily: fonts.serifBold, fontSize: 14, color: colors.ink },
-  arrow: { fontFamily: fonts.mono, fontSize: 13, color: colors.accent },
-  target: { fontFamily: fonts.serifSemi, fontSize: 14, color: colors.ink90 },
-  amount: { fontFamily: fonts.monoSemi, fontSize: 13, color: colors.accent },
 });

@@ -157,30 +157,26 @@
       }
     ],
     "why": "Après des décennies de faux départs, les linkers de nouvelle génération ont rendu les ADC à la fois efficaces et tolérables. Résultat : la plus grosse vague de M&A oncologique de la décennie, et une course aux cibles au-delà d'HER2.",
-    "deals": [
+    "startups": [
       {
-        "buyer": "Pfizer",
-        "target": "3SBio (accord ADC)",
-        "amount": "1,25 Md$",
-        "year": "2025"
+        "name": "ADC Therapeutics",
+        "note": "Pure-player suisse, Zynlonta approuvé dans le lymphome",
+        "tag": "Lausanne"
       },
       {
-        "buyer": "J&J",
-        "target": "Ambrx",
-        "amount": "2 Md$",
-        "year": "2024"
+        "name": "DualityBio",
+        "note": "Plateforme chinoise, accords avec BioNTech et GSK",
+        "tag": "Shanghai"
       },
       {
-        "buyer": "Genmab",
-        "target": "ProfoundBio",
-        "amount": "1,8 Md$",
-        "year": "2024"
+        "name": "Mersana Therapeutics",
+        "note": "Conjugués immunostimulants (Immunosynthen)",
+        "tag": "Boston"
       },
       {
-        "buyer": "AbbVie",
-        "target": "ImmunoGen",
-        "amount": "10 Md$",
-        "year": "2024"
+        "name": "Sutro Biopharma",
+        "note": "ADC site-spécifiques par synthèse acellulaire",
+        "tag": "San Francisco"
       }
     ]
   }
