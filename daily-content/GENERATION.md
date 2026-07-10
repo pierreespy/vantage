@@ -183,6 +183,61 @@ poussée d'articles plus récents. L'app ne fait **aucun** de ces calculs.
 
 ---
 
+## Le code d'accès quotidien — `access.json` (paliers Favoris)
+
+L'onglet Favoris a **deux paliers** : *restreint* (**1** startup) par défaut, *étendu*
+(**6** startups) une fois débloqué. Le déblocage se fait en saisissant le **code du jour**,
+que Pierre distribue à la demande (LinkedIn). Le déblocage est **permanent** sur l'appareil.
+
+**Ce n'est pas de la sécurité forte, c'est de la friction.** Un client natif ne garde pas
+de secret : le hash du jour est extractible. La **rotation quotidienne** ne sert qu'à
+plafonner la durée de vie d'un code partagé (~24 h), pour que chacun redemande le sien.
+
+### Contrat de données (`access.json`, à côté de `edition.json`)
+
+```jsonc
+{
+  "date": "2026-07-10",         // ISO AAAA-MM-JJ — jour de validité (affichage/fraîcheur)
+  "algo": "sha256",             // seul algo compris par l'app
+  "salt": "c08ab6d76831811363", // sel aléatoire du jour, publié
+  "hash": "dd0355…e01e",        // sha256(salt + ":" + canonical(code)) — 64 hex
+  "hint": "…"                   // indice public FACULTATIF — ne révèle JAMAIS le code
+}
+```
+
+- **On publie uniquement le hash salé, jamais le code en clair.** Le type et le contrôle
+  runtime sont dans `src/content/accessTypes.ts` (`isAccessManifest`).
+- **`canonical(code)`** = `trim` + minuscules + espaces internes compactés. Il **doit rester
+  identique** à `canonicalCode()` dans `src/content/accessTypes.ts`, sinon un code correct
+  ne validera pas.
+- L'app vérifie **hors-ligne** : elle recalcule `sha256(salt + ":" + canonical(saisie))` et
+  compare au `hash`. Aucun appel réseau à la validation, aucun backend d'auth.
+
+### Procédure du matin (en plus des deux fichiers d'édition)
+
+1. **Choisir la passphrase du jour** — lisible et transmissible à la main : 2–3 mots ASCII
+   minuscules + un nombre, séparés par des tirets, **sans caractères ambigus** (pas de
+   `o/0`, `l/1/I`). Ex. `quorum-heron-73`. **Différente chaque jour.**
+2. **Tirer un sel aléatoire** :
+   ```bash
+   node -e 'console.log(require("crypto").randomBytes(9).toString("hex"))'
+   ```
+3. **Calculer le hash** (même canonicalisation que l'app) :
+   ```bash
+   node -e 'const{createHash}=require("crypto");const c=s=>s.trim().toLowerCase().replace(/\s+/g," ");console.log(createHash("sha256").update(process.argv[1]+":"+c(process.argv[2])).digest("hex"))' "<sel>" "<passphrase>"
+   ```
+4. **Écrire `access.json`** avec `{ date, algo:"sha256", salt, hash, hint? }` — **jamais** le
+   code en clair, jamais dans le `hint`.
+5. **Transmettre le code en clair à Pierre hors du dépôt** (résumé de run / canal privé), pour
+   qu'il le donne sur demande. **Ne committer que `access.json`.**
+
+> **Cap backend en phase :** le palier étendu autorise **6** favoris. Les règles Firestore
+> (`backend/firestore.rules`) et `EXTENDED_LIMIT` (`src/state/favorites.tsx`) plafonnent à 6 —
+> les garder synchronisés, sinon une remontée de 6 favoris est rejetée et l'appareil disparaît
+> de l'union.
+
+---
+
 ## Pourquoi une mémoire séparée ?
 
 L'app n'a pas besoin de connaître l'historique des mots (elle n'affiche que celui du

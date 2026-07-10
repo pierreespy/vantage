@@ -2,10 +2,15 @@
  * Shared favorites + user-catalog state.
  *
  * Holds:
- *  - `followed`: the set of favorited startup names (persisted). Capped at
- *    `FAVORITES_LIMIT` — new users start with none and pick their own.
+ *  - `followed`: the set of favorited startup names (persisted). Capped at the
+ *    tier's limit — new users start with none and pick their own.
  *  - `customStartups`: startups the user added by hand (persisted) — real startups
  *    not yet in the built-in catalog. They become searchable like any other.
+ *  - `tier`: 'restricted' (1 favorite) or 'extended' (6). New installs are restricted;
+ *    entering the day's access code unlocks 'extended' PERMANENTLY on this device
+ *    (see AccessProvider / docs/perso-favoris.md). On hydration the followed set is
+ *    truncated to the current tier's limit — a restricted user carrying favorites from
+ *    an older build keeps only the first one.
  *
  * Exposed app-wide via context so the Favoris list and the "Ajouter un favori"
  * sheet stay in sync.
@@ -23,10 +28,21 @@ import { initialFollowed } from '../data/favoris';
 
 const FOLLOWED_KEY = 'vantage.followed.v1';
 const CUSTOM_KEY = 'vantage.customStartups.v1';
+const TIER_KEY = 'vantage.tier.v1';
 
-/** Max number of startups a user can follow. Keeps the feed focused and bounds
- *  the distinct-startup set the morning generation has to research. */
-export const FAVORITES_LIMIT = 5;
+/** Access tiers. Restricted is the default; extended is unlocked with the day's code. */
+export type Tier = 'restricted' | 'extended';
+
+/** Favorites cap per tier. Extended is bounded too, to keep the feed focused and bound
+ *  the distinct-startup set the morning generation has to research (and the anonymous
+ *  report, whose backend rules cap the list — keep EXTENDED_LIMIT and
+ *  backend/firestore.rules in lockstep). */
+export const RESTRICTED_LIMIT = 1;
+export const EXTENDED_LIMIT = 6;
+
+export function limitForTier(tier: Tier): number {
+  return tier === 'extended' ? EXTENDED_LIMIT : RESTRICTED_LIMIT;
+}
 
 export type CustomStartup = { name: string; sector: string };
 
@@ -44,9 +60,14 @@ type FavoritesContextValue = {
   addCustomStartup: (name: string) => boolean;
   /** Remove every followed startup (used by the "reset" of anonymous reporting). */
   clear: () => void;
-  /** Max followed startups (see FAVORITES_LIMIT). */
+  /** Current access tier. */
+  tier: Tier;
+  /** Switch to the extended tier (persisted). Called after the day's code is verified.
+   *  Does NOT restore favorites truncated while restricted — the user re-adds them. */
+  unlockExtended: () => void;
+  /** Max followed startups for the current tier. */
   limit: number;
-  /** True once the followed set is at the cap. */
+  /** True once the followed set is at the current tier's cap. */
   atLimit: boolean;
   /** True until the persisted data has been read back. */
   hydrated: boolean;
@@ -57,23 +78,32 @@ const FavoritesContext = createContext<FavoritesContextValue | null>(null);
 export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [followed, setFollowed] = useState<string[]>(initialFollowed);
   const [customStartups, setCustomStartups] = useState<CustomStartup[]>([]);
+  const [tier, setTier] = useState<Tier>('restricted');
   const [hydrated, setHydrated] = useState(false);
 
-  // Load persisted state once on mount.
+  const limit = limitForTier(tier);
+
+  // Load persisted state once on mount. Resolve the tier first, then trim the followed
+  // set to that tier's limit (the "truncate to 1 for restricted" migration).
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const [rawFollowed, rawCustom] = await Promise.all([
+        const [rawFollowed, rawCustom, rawTier] = await Promise.all([
           AsyncStorage.getItem(FOLLOWED_KEY),
           AsyncStorage.getItem(CUSTOM_KEY),
+          AsyncStorage.getItem(TIER_KEY),
         ]);
         if (!active) return;
+        const resolvedTier: Tier = rawTier === 'extended' ? 'extended' : 'restricted';
+        setTier(resolvedTier);
+        const cap = limitForTier(resolvedTier);
         if (rawFollowed) {
           const parsed = JSON.parse(rawFollowed);
           if (Array.isArray(parsed)) {
-            // Trim to the cap in case an older build persisted more.
-            setFollowed(parsed.filter((v) => typeof v === 'string').slice(0, FAVORITES_LIMIT));
+            // Trim to the tier's cap — a restricted user with a legacy 5-startup set
+            // keeps only the first (the agreed migration; the rest are dropped).
+            setFollowed(parsed.filter((v) => typeof v === 'string').slice(0, cap));
           }
         }
         if (rawCustom) {
@@ -108,26 +138,33 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(CUSTOM_KEY, JSON.stringify(customStartups)).catch(() => {});
   }, [customStartups, hydrated]);
 
+  useEffect(() => {
+    if (!hydrated) return;
+    AsyncStorage.setItem(TIER_KEY, tier).catch(() => {});
+  }, [tier, hydrated]);
+
   const toggle = useCallback(
     (name: string): boolean => {
       if (followed.includes(name)) {
         setFollowed((prev) => prev.filter((n) => n !== name));
         return true;
       }
-      if (followed.length >= FAVORITES_LIMIT) return false;
+      if (followed.length >= limit) return false;
       // Re-check the cap inside the updater so two near-simultaneous taps can't
-      // both pass the guard against a stale `followed` closure and push past 5.
+      // both pass the guard against a stale `followed` closure and push past the cap.
       setFollowed((prev) =>
-        prev.includes(name) || prev.length >= FAVORITES_LIMIT ? prev : [...prev, name]
+        prev.includes(name) || prev.length >= limit ? prev : [...prev, name]
       );
       return true;
     },
-    [followed]
+    [followed, limit]
   );
 
   const isFollowed = useCallback((name: string) => followed.includes(name), [followed]);
 
   const clear = useCallback(() => setFollowed([]), []);
+
+  const unlockExtended = useCallback(() => setTier('extended'), []);
 
   const addCustomStartup = useCallback(
     (name: string): boolean => {
@@ -139,18 +176,18 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       if (trimmed.length > 80) return false;
       const key = trimmed.toLowerCase();
       const already = followed.some((n) => n.toLowerCase() === key);
-      if (!already && followed.length >= FAVORITES_LIMIT) return false;
+      if (!already && followed.length >= limit) return false;
       setCustomStartups((prev) =>
         prev.some((c) => c.name.toLowerCase() === key) ? prev : [...prev, { name: trimmed, sector: '' }]
       );
       setFollowed((prev) =>
-        prev.some((n) => n.toLowerCase() === key) || prev.length >= FAVORITES_LIMIT
+        prev.some((n) => n.toLowerCase() === key) || prev.length >= limit
           ? prev
           : [...prev, trimmed]
       );
       return true;
     },
-    [followed]
+    [followed, limit]
   );
 
   const value = useMemo<FavoritesContextValue>(
@@ -161,11 +198,13 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
       customStartups,
       addCustomStartup,
       clear,
-      limit: FAVORITES_LIMIT,
-      atLimit: followed.length >= FAVORITES_LIMIT,
+      tier,
+      unlockExtended,
+      limit,
+      atLimit: followed.length >= limit,
       hydrated,
     }),
-    [followed, isFollowed, toggle, customStartups, addCustomStartup, clear, hydrated]
+    [followed, isFollowed, toggle, customStartups, addCustomStartup, clear, tier, unlockExtended, limit, hydrated]
   );
 
   return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;

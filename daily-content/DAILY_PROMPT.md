@@ -5,8 +5,12 @@ Ce prompt est pour une **tâche Claude agentique** (type « Claude Code ») qui 
 2. a **accès web** (recherche d'actualités),
 3. a le **droit de pousser** sur GitHub (dépôt connecté / token).
 
-Elle lit `recent-words.json`, génère le contenu du jour, écrit **deux fichiers**
-(`edition.json`, `recent-words.json`), **commit et push**.
+Elle lit `recent-words.json`, génère le contenu du jour, écrit **trois fichiers**
+(`edition.json`, `recent-words.json`, `access.json`), **commit et push**.
+
+> `access.json` = le **code d'accès du jour** qui débloque le palier étendu des Favoris
+> (voir `GENERATION.md`, section « Le code d'accès quotidien »). On publie **seulement** le
+> hash salé ; le code en clair est transmis à Pierre **hors dépôt**.
 
 Planifie-la une fois par jour (le matin).
 
@@ -36,9 +40,20 @@ CONTEXTE D'EXÉCUTION
 4. Écris/écrase le fichier `edition.json` du dépôt avec le nouvel objet JSON.
 5. Mets à jour `recent-words.json` : ajoute en TÊTE de "recent"
    { "term": "…", "full": "…", "date": "AAAA-MM-JJ" } (date du jour), tronque aux 30 plus récents.
-6. Publie : `git add edition.json recent-words.json` puis
+6. Génère le CODE D'ACCÈS DU JOUR et écris `access.json` :
+   - choisis une passphrase lisible, NOUVELLE chaque jour : 2-3 mots ASCII minuscules + un
+     nombre, séparés par des tirets, sans caractères ambigus (pas de o/0, l/1/I), ex.
+     `quorum-heron-73` ;
+   - tire un sel : `node -e 'console.log(require("crypto").randomBytes(9).toString("hex"))'` ;
+   - calcule le hash (MÊME canonicalisation que l'app — trim + minuscules + espaces compactés) :
+     `node -e 'const{createHash}=require("crypto");const c=s=>s.trim().toLowerCase().replace(/\s+/g," ");console.log(createHash("sha256").update(process.argv[1]+":"+c(process.argv[2])).digest("hex"))' "<sel>" "<passphrase>"` ;
+   - écris `access.json` = { "date":"AAAA-MM-JJ", "algo":"sha256", "salt":"<sel>", "hash":"<hash>", "hint":"…" }.
+     Le `hint` NE DOIT JAMAIS contenir le code. N'écris JAMAIS le code en clair dans un fichier.
+7. Publie : `git add edition.json recent-words.json access.json` puis
    `git commit -m "Édition du <dateLong>"` puis `git push`.
    Vérifie que le push a réussi (réessaie une fois en cas d'échec réseau).
+8. Dans ton RÉSUMÉ DE FIN (hors dépôt), affiche la passphrase du jour EN CLAIR pour que
+   Pierre puisse la distribuer. Jamais dans un fichier, jamais dans un commit.
 
 VÉRITÉ ABSOLUE — NE RIEN INVENTER
 Sociétés, montants, investisseurs (lead), dates et URLs doivent être RÉELS et vérifiés via tes

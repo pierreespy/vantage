@@ -1,12 +1,15 @@
 /**
  * Favoris tab — native.
  *
- * One card per followed startup (star + name, sector, stage badge) with its recent
- * clickable news. A "+" opens the "Ajouter un favori" sheet: a live-search field
- * over the startup catalog with a Suivre / Suivi ✓ toggle. Sector chips filter the
- * list. Favorites are the shared, persisted state.
+ * One card per followed startup (star + name, sector, stage badge, remove ✕) with its
+ * recent clickable news. A "+" opens the "Ajouter un favori" sheet: a live-search field
+ * over the startup catalog with a Suivre / Suivi ✓ toggle. Sector chips filter the list.
+ *
+ * Tiers: a new install is "restricted" (1 favorite). Entering the day's access code —
+ * obtained from the owner on LinkedIn — unlocks the "extended" tier (up to 6) for good.
+ * Favorites are the shared, persisted state; the tier lives there too.
  */
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
@@ -22,20 +25,37 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { catalog, favSectors, startupByName, type Startup } from '@/data/favoris';
-import { useFavorites, FAVORITES_LIMIT, type CustomStartup } from '@/state/favorites';
+import {
+  useFavorites,
+  EXTENDED_LIMIT,
+  type CustomStartup,
+  type Tier,
+} from '@/state/favorites';
 import { useFavoritesSync } from '@/state/favoritesSync';
 import { useEdition } from '@/content/EditionProvider';
 import { useStartupNews } from '@/content/NewsProvider';
+import { useAccess } from '@/content/AccessProvider';
+import { config } from '@/config';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
+/** The message shown when an add is blocked by the cap — tier-aware. */
+function limitReachedMessage(tier: Tier, limit: number): string {
+  if (tier === 'restricted') {
+    return `La version restreinte n’autorise qu’un seul favori. Débloquez la version étendue pour en suivre jusqu’à ${EXTENDED_LIMIT}.`;
+  }
+  return `Vous pouvez suivre au maximum ${limit} startups. Retirez-en une pour en ajouter une autre.`;
+}
+
 export default function FavorisScreen() {
   const insets = useSafeAreaInsets();
-  const { followed, isFollowed, toggle, customStartups, addCustomStartup } = useFavorites();
+  const { followed, isFollowed, toggle, customStartups, addCustomStartup, limit, tier, unlockExtended } =
+    useFavorites();
   const { consent, reset } = useFavoritesSync();
   const { stageOf } = useEdition();
+  const access = useAccess();
 
   // Reset the anonymous reporting: blank the shared doc, wipe local favorites + consent.
   const confirmReset = () => {
@@ -51,6 +71,7 @@ export default function FavorisScreen() {
 
   const [sector, setSector] = useState<string>('Toutes');
   const [addOpen, setAddOpen] = useState(false);
+  const [unlockOpen, setUnlockOpen] = useState(false);
   const [query, setQuery] = useState('');
 
   // Every followed startup gets a card, in the order it was added. Ones we have data
@@ -72,7 +93,7 @@ export default function FavorisScreen() {
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.eyebrow}>
-              {followed.length}/{FAVORITES_LIMIT} startups suivies
+              {followed.length}/{limit} startups suivies
             </Text>
             <Text style={styles.h1}>Favoris</Text>
           </View>
@@ -120,6 +141,25 @@ export default function FavorisScreen() {
         </ScrollView>
       </View>
 
+      {/* TIER BANNER — only while restricted; the door to the extended tier. */}
+      {tier === 'restricted' ? (
+        <Pressable
+          onPress={() => setUnlockOpen(true)}
+          style={styles.tierBanner}
+          accessibilityRole="button"
+          accessibilityLabel="Débloquer la version étendue"
+        >
+          <Text style={styles.tierLock}>🔒</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.tierTitle}>Version restreinte — 1 favori</Text>
+            <Text style={styles.tierSub}>
+              Débloquer la version étendue (jusqu’à {EXTENDED_LIMIT})
+            </Text>
+          </View>
+          <Text style={styles.tierChevron}>›</Text>
+        </Pressable>
+      ) : null}
+
       {/* LIST */}
       <ScrollView
         style={{ flex: 1 }}
@@ -145,6 +185,18 @@ export default function FavorisScreen() {
         toggle={toggle}
         customStartups={customStartups}
         addCustomStartup={addCustomStartup}
+        limit={limit}
+        tier={tier}
+      />
+
+      {/* UNLOCK SHEET */}
+      <UnlockSheet
+        visible={unlockOpen}
+        onClose={() => setUnlockOpen(false)}
+        verify={access.verify}
+        ready={access.ready}
+        hint={access.hint}
+        onUnlocked={unlockExtended}
       />
     </View>
   );
@@ -152,10 +204,18 @@ export default function FavorisScreen() {
 
 function FavoriteCard({ startup }: { startup: Startup }) {
   const { newsFor } = useStartupNews();
+  const { toggle } = useFavorites();
   // Live per-startup news takes precedence; fall back to any seeded news for that
   // startup so a followed catalog entry still shows something until live news exists.
   const live = newsFor(startup.name);
   const news = live.length > 0 ? live : startup.news;
+
+  const confirmRemove = () => {
+    Alert.alert('Retirer ce favori', `« ${startup.name} » sera retirée de vos favoris.`, [
+      { text: 'Annuler', style: 'cancel' },
+      { text: 'Retirer', style: 'destructive', onPress: () => toggle(startup.name) },
+    ]);
+  };
 
   return (
     <View style={styles.card}>
@@ -172,6 +232,15 @@ function FavoriteCard({ startup }: { startup: Startup }) {
             <Text style={styles.stageText}>{startup.stage}</Text>
           </View>
         ) : null}
+        <Pressable
+          onPress={confirmRemove}
+          style={styles.removeBtn}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel={`Retirer ${startup.name} des favoris`}
+        >
+          <Text style={styles.removeGlyph}>✕</Text>
+        </Pressable>
       </View>
 
       <View style={styles.newsWrap}>
@@ -197,6 +266,118 @@ function FavoriteCard({ startup }: { startup: Startup }) {
   );
 }
 
+function UnlockSheet({
+  visible,
+  onClose,
+  verify,
+  ready,
+  hint,
+  onUnlocked,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  verify: (input: string) => boolean;
+  ready: boolean;
+  hint?: string;
+  onUnlocked: () => void;
+}) {
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+
+  // Reset the field each time the sheet opens.
+  useEffect(() => {
+    if (visible) {
+      setCode('');
+      setError(null);
+    }
+  }, [visible]);
+
+  const submit = () => {
+    // Never grant the tier against the bundled demo manifest: require a live/cached
+    // (real) code of the day. Keeps the public demo code from unlocking offline.
+    if (!ready) {
+      setError('Code indisponible hors-ligne. Connectez-vous à Internet puis réessayez.');
+      return;
+    }
+    if (verify(code)) {
+      onUnlocked();
+      onClose();
+      Alert.alert(
+        'Version étendue débloquée',
+        `Vous pouvez maintenant suivre jusqu’à ${EXTENDED_LIMIT} startups.`
+      );
+      return;
+    }
+    setError('Code incorrect ou expiré. Le code change chaque jour — redemandez-le si besoin.');
+  };
+
+  return (
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <KeyboardAvoidingView
+        style={styles.scrim}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
+        <View style={styles.sheet}>
+          <View style={styles.grabber} />
+
+          <View style={styles.sheetHead}>
+            <Text style={styles.sheetTitle}>Version étendue</Text>
+            <Pressable onPress={onClose} accessibilityRole="button">
+              <Text style={styles.sheetClose}>Fermer</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.unlockCopy}>
+            La version étendue permet de suivre jusqu’à {EXTENDED_LIMIT} startups. Elle se
+            débloque avec le <Text style={styles.unlockStrong}>code du jour</Text>, qui change
+            chaque matin.
+          </Text>
+
+          <Pressable
+            onPress={() => openLink(config.contactLinkedInUrl)}
+            style={styles.linkedinBtn}
+            accessibilityRole="link"
+          >
+            <Text style={styles.linkedinText}>Obtenir le code du jour sur LinkedIn</Text>
+          </Pressable>
+
+          <Text style={styles.listLabel}>Code du jour</Text>
+          <View style={[styles.searchBox, error ? styles.searchBoxError : null]}>
+            <TextInput
+              value={code}
+              onChangeText={(v) => {
+                setCode(v);
+                if (error) setError(null);
+              }}
+              placeholder="ex. mot-mot-nombre"
+              placeholderTextColor={colors.ink50}
+              style={styles.searchInput}
+              autoCorrect={false}
+              autoCapitalize="none"
+              autoFocus
+              onSubmitEditing={submit}
+              returnKeyType="done"
+            />
+          </View>
+
+          {error ? <Text style={styles.unlockError}>{error}</Text> : null}
+          {!error && hint ? <Text style={styles.unlockHint}>{hint}</Text> : null}
+
+          <Pressable
+            onPress={submit}
+            disabled={code.trim().length === 0}
+            style={[styles.unlockBtn, code.trim().length === 0 && styles.unlockBtnDisabled]}
+            accessibilityRole="button"
+          >
+            <Text style={styles.unlockBtnText}>Débloquer</Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+}
+
 function AddFavoriteSheet({
   visible,
   onClose,
@@ -206,6 +387,8 @@ function AddFavoriteSheet({
   toggle,
   customStartups,
   addCustomStartup,
+  limit,
+  tier,
 }: {
   visible: boolean;
   onClose: () => void;
@@ -215,6 +398,8 @@ function AddFavoriteSheet({
   toggle: (name: string) => boolean;
   customStartups: CustomStartup[];
   addCustomStartup: (name: string) => boolean;
+  limit: number;
+  tier: Tier;
 }) {
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
@@ -254,10 +439,7 @@ function AddFavoriteSheet({
           text: 'Confirmer',
           onPress: () => {
             if (!addCustomStartup(trimmed)) {
-              Alert.alert(
-                'Limite atteinte',
-                `Vous pouvez suivre au maximum ${FAVORITES_LIMIT} startups. Retirez-en une pour en ajouter une autre.`
-              );
+              Alert.alert('Limite atteinte', limitReachedMessage(tier, limit));
             }
           },
         },
@@ -317,10 +499,7 @@ function AddFavoriteSheet({
                   <Pressable
                     onPress={() => {
                       if (!toggle(c.name)) {
-                        Alert.alert(
-                          'Limite atteinte',
-                          `Vous pouvez suivre au maximum ${FAVORITES_LIMIT} startups. Retirez-en une pour en ajouter une autre.`
-                        );
+                        Alert.alert('Limite atteinte', limitReachedMessage(tier, limit));
                       }
                     }}
                     style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}
@@ -428,6 +607,40 @@ const styles = StyleSheet.create({
   },
   chipTextOn: { color: colors.paper },
 
+  // tier banner
+  tierBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11,
+    marginHorizontal: 20,
+    marginTop: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 13,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: border.firm,
+    backgroundColor: 'rgba(11,79,108,0.06)',
+  },
+  tierLock: { fontSize: 15 },
+  tierTitle: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 12.5,
+    color: colors.ink,
+    letterSpacing: 0.2,
+  },
+  tierSub: {
+    fontFamily: fonts.archivoSemi,
+    fontSize: 11,
+    color: colors.accent,
+    marginTop: 2,
+  },
+  tierChevron: {
+    fontFamily: fonts.archivo,
+    fontSize: 22,
+    color: colors.accent,
+    marginTop: -2,
+  },
+
   // list
   list: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 128 },
   emptyList: {
@@ -481,6 +694,18 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
     textTransform: 'uppercase',
     color: colors.paper,
+  },
+  removeBtn: {
+    width: 22,
+    height: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeGlyph: {
+    fontFamily: fonts.archivo,
+    fontSize: 15,
+    lineHeight: 18,
+    color: colors.ink50,
   },
   newsWrap: { borderTopWidth: 1, borderTopColor: 'rgba(34,32,29,0.14)' },
   noNews: {
@@ -558,6 +783,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: colors.white,
   },
+  searchBoxError: { borderColor: colors.claret },
   searchGlyph: { color: colors.ink50, fontSize: 16 },
   searchInput: {
     flex: 1,
@@ -580,6 +806,58 @@ const styles = StyleSheet.create({
     color: colors.ink50,
     paddingVertical: 18,
   },
+
+  // unlock sheet
+  unlockCopy: {
+    fontFamily: fonts.serif,
+    fontSize: 14.5,
+    lineHeight: 21,
+    color: colors.ink80,
+    marginBottom: 14,
+  },
+  unlockStrong: { fontFamily: fonts.serifBold, color: colors.ink },
+  linkedinBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 9,
+    paddingHorizontal: 14,
+    borderRadius: 100,
+    backgroundColor: colors.accent,
+    marginBottom: 18,
+  },
+  linkedinText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 12,
+    letterSpacing: 0.3,
+    color: colors.paper,
+  },
+  unlockError: {
+    fontFamily: fonts.archivoSemi,
+    fontSize: 12,
+    color: colors.claret,
+    marginTop: 8,
+  },
+  unlockHint: {
+    fontFamily: fonts.serifItalic,
+    fontSize: 12.5,
+    color: colors.ink50,
+    marginTop: 8,
+  },
+  unlockBtn: {
+    marginTop: 18,
+    paddingVertical: 13,
+    borderRadius: 12,
+    backgroundColor: colors.ink,
+    alignItems: 'center',
+  },
+  unlockBtnDisabled: { opacity: 0.4 },
+  unlockBtnText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 13,
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+    color: colors.paper,
+  },
+
   addCustomRow: {
     flexDirection: 'row',
     alignItems: 'center',

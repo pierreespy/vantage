@@ -1,0 +1,7 @@
+{
+  "date": "2026-07-10",
+  "algo": "sha256",
+  "salt": "vantage-sample-salt-v1",
+  "hash": "a0676552852754d1cc999821e7373bdea17606d0dcae2ca9ae48638802e7a17f",
+  "hint": "Exemple — le code de démonstration derrière ce hash est « vantage-demo ». Dans un vrai fichier, l’indice ne révèle JAMAIS le code."
+}

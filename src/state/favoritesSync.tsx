@@ -11,7 +11,7 @@
  *     no Sign in with Apple, no IDFA/IDFV, no PII.
  *   - we write `follows/<uid>` with ONLY { startups, updatedAt: serverTimestamp() }.
  *     Doc id == uid, so a client can physically only write its own row.
- *   - `startups` is already capped at 5 by FavoritesProvider.
+ *   - `startups` is already capped by FavoritesProvider (1 restricted / 6 extended).
  *
  * Consent gate: NOTHING is ever written unless the user explicitly opted in
  * (persisted in AsyncStorage). Decline → favorites stay purely local; can opt in

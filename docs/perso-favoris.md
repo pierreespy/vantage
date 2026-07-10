@@ -25,8 +25,10 @@ personnalisés par utilisateur.
 - **Fan-in.** Les startups qui tombent dans le balayage HealthTech du matin alimentent
   les Favoris **gratuitement** (sous-produit du Journal). Le reste (longue traîne) fait
   l'objet d'une recherche ciblée **basse fréquence**, uniquement sur l'union suivie.
-- **Cap à 5 favoris / utilisateur** — borne le feed et le nombre de startups distinctes à
-  rechercher. Les nouveaux utilisateurs démarrent **à zéro**.
+- **Paliers d'accès** — *restreint* (**1** favori) par défaut, *étendu* (**6** favoris) une
+  fois le **code du jour** saisi (déblocage **permanent** sur l'appareil). Borne le feed et
+  le nombre de startups distinctes à rechercher. Les nouveaux utilisateurs démarrent
+  **à zéro**. Voir la section « Paliers d'accès » plus bas.
 
 ## Contrat de données — `startup-news.json`
 
@@ -97,7 +99,7 @@ Payload envoyé par l'app (à finaliser par `vantage-backend` selon la plateform
 ```jsonc
 {
   "anonId": "<UUID aléatoire local, jamais IDFA/IDFV>",
-  "startups": ["Owkin", "Abivax"],       // <= 5, noms du catalogue
+  "startups": ["Owkin", "Abivax"],       // <= 6, noms du catalogue
   "updatedAt": "<timestamp serveur>"
 }
 ```
@@ -114,6 +116,49 @@ Payload envoyé par l'app (à finaliser par `vantage-backend` selon la plateform
 > Plateforme backend, workflow de génération et dépôt de contenu : **en attente de
 > décision** (voir les 3 questions au coordinateur). Cette section sera complétée une fois
 > tranché.
+
+## Paliers d'accès & code du jour (`access.json`)
+
+Deux paliers côté app (`tier` dans `src/state/favorites.tsx`, persisté) :
+
+| Palier | Limite favoris | Déblocage |
+|---|---|---|
+| `restricted` (défaut) | **1** | — |
+| `extended` | **6** (`EXTENDED_LIMIT`) | saisie du **code du jour**, **permanent** sur l'appareil |
+
+- **Migration** : à l'hydratation, le set suivi est **tronqué à la limite du palier**. Un
+  utilisateur restreint qui portait plusieurs favoris (build antérieur) **ne garde que le
+  premier** (décision produit ; le reste est réellement supprimé).
+- **Déblocage permanent** : une fois le bon code saisi, `tier = 'extended'` est persisté. La
+  rotation quotidienne du code ne **re-verrouille pas** — elle ne bloque que les *nouveaux*
+  déblocages avec un vieux code.
+- **Cap backend en phase** : `EXTENDED_LIMIT` (app) **=** `size() <= 6` (`backend/firestore.rules`)
+  **=** `startups[<=6]` (payload). Les trois doivent rester synchronisés.
+
+### Contrat `access.json` (à côté de `edition.json`, via `config.accessUrl`)
+
+```jsonc
+{
+  "date": "2026-07-10",         // ISO AAAA-MM-JJ, jour de validité
+  "algo": "sha256",
+  "salt": "c08ab6d76831811363", // sel du jour, publié
+  "hash": "dd0355…e01e",        // sha256(salt + ":" + canonical(code)) — 64 hex
+  "hint": "…"                   // indice public facultatif — ne révèle jamais le code
+}
+```
+
+- **On ne publie que le hash salé**, jamais le code en clair. Type + garde runtime :
+  `src/content/accessTypes.ts`. Provider (fetch/cache/fallback, jumeau de `NewsProvider`) :
+  `src/content/AccessProvider.tsx`. Repli hors-ligne : `src/content/sampleAccess.ts` (code
+  de démo public ; le vrai déblocage exige le fichier live).
+- **Vérification 100 % locale** : l'app recalcule `sha256(salt + ":" + canonical(saisie))` et
+  compare. `canonical` = trim + minuscules + espaces compactés, **identique** entre app
+  (`canonicalCode`) et génération (`daily-content/GENERATION.md`).
+- **Sécurité = friction, pas coffre-fort** : un client natif ne garde pas de secret ; la
+  rotation quotidienne plafonne la durée de vie d'un code partagé (~24 h). Aucune PII n'entre
+  ni ne sort ici — le fichier est **téléchargé**, jamais remonté.
+- **Production** : mint quotidien par la tâche du matin (voir `DAILY_PROMPT.md` / `GENERATION.md`).
+  Le code en clair est transmis à Pierre hors dépôt ; il le distribue sur LinkedIn.
 
 ## Répartition du travail
 

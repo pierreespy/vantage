@@ -13,6 +13,7 @@ import { FavoritesSyncProvider } from '@/state/favoritesSync';
 import { FavSyncConsentModal } from '@/components/FavSyncConsentModal';
 import { EditionProvider } from '@/content/EditionProvider';
 import { NewsProvider } from '@/content/NewsProvider';
+import { AccessProvider } from '@/content/AccessProvider';
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useAppFonts();
@@ -27,15 +28,17 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <EditionProvider>
         <NewsProvider>
-          <FavoritesProvider>
-            <FavoritesSyncProvider>
-              <StatusBar style="dark" />
-              <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-                <Stack.Screen name="(tabs)" />
-              </Stack>
-              <FavSyncConsentModal />
-            </FavoritesSyncProvider>
-          </FavoritesProvider>
+          <AccessProvider>
+            <FavoritesProvider>
+              <FavoritesSyncProvider>
+                <StatusBar style="dark" />
+                <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+                  <Stack.Screen name="(tabs)" />
+                </Stack>
+                <FavSyncConsentModal />
+              </FavoritesSyncProvider>
+            </FavoritesProvider>
+          </AccessProvider>
         </NewsProvider>
       </EditionProvider>
     </SafeAreaProvider>

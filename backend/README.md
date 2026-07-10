@@ -18,7 +18,7 @@ Collection **`follows`**, one document per client:
 | | |
 |---|---|
 | **Document id** | the client's **Firebase Anonymous Auth uid** (a random, per-install id) |
-| `startups` | `string[]`, length **≤ 5**, exact startup names from the app catalog |
+| `startups` | `string[]`, length **≤ 6**, exact startup names from the app catalog |
 | `updatedAt` | `serverTimestamp()` — the server clock, not a client-supplied time |
 
 ```jsonc
@@ -53,7 +53,7 @@ uid; it does not put `anonId` inside the document body.
   real app can obtain a token, so the write path is **not openly spammable** even
   though it is unauthenticated in the human sense. Auth answers *whose doc*; App
   Check answers *is this really our app*.
-- **No PII**: the entire payload is an opaque id + up to 5 startup names drawn from
+- **No PII**: the entire payload is an opaque id + up to 6 startup names drawn from
   the app's own catalog. No contact info, no location, no analytics.
 
 ---
@@ -69,7 +69,7 @@ See [`firestore.rules`](./firestore.rules). Summary of what they enforce:
 - **Create/update: allowed only if** `request.auth != null` **and**
   `docId == request.auth.uid` **and** the payload is well-formed:
   - keys are exactly `{ startups, updatedAt }` (no extra fields / no PII smuggling),
-  - `startups` is a `list` of `string`, `size() <= 5`,
+  - `startups` is a `list` of `string`, `size() <= 6`,
   - `updatedAt == request.time` (must be a server timestamp, so the 30-day expiry
     can be trusted).
 
