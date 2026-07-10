@@ -1,13 +1,13 @@
 /**
- * Favoris tab — native.
+ * Favoris tab — native. Implements the "Vantage Favoris restreint" Claude Design.
  *
- * One card per followed startup (star + name, sector, stage badge, remove ✕) with its
- * recent clickable news. A "+" opens the "Ajouter un favori" sheet: a live-search field
- * over the startup catalog with a Suivre / Suivi ✓ toggle. Sector chips filter the list.
+ * One card per followed startup (star + name, sector + stage badge, remove ✕) with its
+ * recent clickable news. A "+" opens the "Ajouter un favori" sheet. Sector chips filter.
  *
- * Tiers: a new install is "restricted" (1 favorite). Entering the day's access code —
- * obtained from the owner on LinkedIn — unlocks the "extended" tier (up to 6) for good.
- * Favorites are the shared, persisted state; the tier lives there too.
+ * Tiers: a new install is "restricted" (1 favorite). The header banner + a locked
+ * "upsell" card (stacked ghost slots showing the favorites still to unlock) both open the
+ * unlock sheet; entering the day's code — obtained from the owner on LinkedIn — unlocks
+ * the "extended" tier (up to 6) for good. Favorites are the shared, persisted state.
  */
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -49,6 +49,39 @@ function limitReachedMessage(tier: Tier, limit: number): string {
   return `Vous pouvez suivre au maximum ${limit} startups. Retirez-en une pour en ajouter une autre.`;
 }
 
+/** Small vector padlock, tinted, drawn to match the design (no emoji). */
+function LockIcon({ color, size = 1 }: { color: string; size?: number }) {
+  return (
+    <View style={{ width: 14 * size, height: 16 * size }}>
+      <View
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 2.5 * size,
+          width: 9 * size,
+          height: 8 * size,
+          borderWidth: 2 * size,
+          borderColor: color,
+          borderBottomWidth: 0,
+          borderTopLeftRadius: 5 * size,
+          borderTopRightRadius: 5 * size,
+        }}
+      />
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          width: 14 * size,
+          height: 10 * size,
+          backgroundColor: color,
+          borderRadius: 2 * size,
+        }}
+      />
+    </View>
+  );
+}
+
 export default function FavorisScreen() {
   const insets = useSafeAreaInsets();
   const { followed, isFollowed, toggle, customStartups, addCustomStartup, limit, tier, unlockExtended } =
@@ -86,38 +119,41 @@ export default function FavorisScreen() {
       .filter((s) => sector === 'Toutes' || s.sector === sector);
   }, [followed, sector, stageOf]);
 
+  // How many more startups the extended tier would unlock (drives the upsell card).
+  const remaining = Math.max(0, EXTENDED_LIMIT - followed.length);
+
   return (
     <View style={styles.root}>
       {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
-        <View style={styles.headerRow}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.eyebrow}>
-              {followed.length}/{limit} startups suivies
-            </Text>
-            <Text style={styles.h1}>Favoris</Text>
-          </View>
-          {consent === 'granted' ? (
+        <Text style={styles.eyebrow}>
+          {followed.length} / {limit} startup{limit > 1 ? 's' : ''} suivie{limit > 1 ? 's' : ''}
+        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.h1}>Favoris</Text>
+          <View style={styles.titleActions}>
+            {consent === 'granted' ? (
+              <Pressable
+                onPress={confirmReset}
+                style={styles.resetBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Réinitialiser la personnalisation"
+              >
+                <Text style={styles.resetText}>Réinitialiser</Text>
+              </Pressable>
+            ) : null}
             <Pressable
-              onPress={confirmReset}
-              style={styles.resetBtn}
+              onPress={() => {
+                setQuery('');
+                setAddOpen(true);
+              }}
+              style={styles.addBtn}
               accessibilityRole="button"
-              accessibilityLabel="Réinitialiser la personnalisation"
+              accessibilityLabel="Ajouter un favori"
             >
-              <Text style={styles.resetText}>Réinitialiser</Text>
+              <Text style={styles.addPlus}>+</Text>
             </Pressable>
-          ) : null}
-          <Pressable
-            onPress={() => {
-              setQuery('');
-              setAddOpen(true);
-            }}
-            style={styles.addBtn}
-            accessibilityRole="button"
-            accessibilityLabel="Ajouter un favori"
-          >
-            <Text style={styles.addPlus}>+</Text>
-          </Pressable>
+          </View>
         </View>
 
         {/* sector filter chips */}
@@ -149,12 +185,15 @@ export default function FavorisScreen() {
           accessibilityRole="button"
           accessibilityLabel="Débloquer la version étendue"
         >
-          <Text style={styles.tierLock}>🔒</Text>
+          <LockIcon color={colors.accent} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.tierTitle}>Version restreinte — 1 favori</Text>
-            <Text style={styles.tierSub}>
-              Débloquer la version étendue (jusqu’à {EXTENDED_LIMIT})
-            </Text>
+            <Text style={styles.tierTitle}>Version restreinte — {limit} favori</Text>
+            <Text style={styles.tierSub}>Débloquer la version étendue (jusqu’à {EXTENDED_LIMIT})</Text>
+            <View style={styles.progressRow}>
+              {Array.from({ length: EXTENDED_LIMIT }).map((_, i) => (
+                <View key={i} style={[styles.seg, i < followed.length && styles.segOn]} />
+              ))}
+            </View>
           </View>
           <Text style={styles.tierChevron}>›</Text>
         </Pressable>
@@ -173,6 +212,10 @@ export default function FavorisScreen() {
         ) : (
           cards.map((f) => <FavoriteCard key={f.name} startup={f} />)
         )}
+
+        {tier === 'restricted' && remaining > 0 ? (
+          <UpsellLocked remaining={remaining} onPress={() => setUnlockOpen(true)} />
+        ) : null}
       </ScrollView>
 
       {/* ADD SHEET */}
@@ -195,7 +238,6 @@ export default function FavorisScreen() {
         onClose={() => setUnlockOpen(false)}
         verify={access.verify}
         ready={access.ready}
-        hint={access.hint}
         onUnlocked={unlockExtended}
       />
     </View>
@@ -220,18 +262,10 @@ function FavoriteCard({ startup }: { startup: Startup }) {
   return (
     <View style={styles.card}>
       <View style={styles.cardHead}>
-        <View style={{ flex: 1 }}>
-          <View style={styles.nameRow}>
-            <Text style={styles.star}>★</Text>
-            <Text style={styles.name}>{startup.name}</Text>
-          </View>
-          {startup.sector ? <Text style={styles.sector}>{startup.sector}</Text> : null}
+        <View style={styles.nameRow}>
+          <Text style={styles.star}>★</Text>
+          <Text style={styles.name}>{startup.name}</Text>
         </View>
-        {startup.stage ? (
-          <View style={styles.stageBadge}>
-            <Text style={styles.stageText}>{startup.stage}</Text>
-          </View>
-        ) : null}
         <Pressable
           onPress={confirmRemove}
           style={styles.removeBtn}
@@ -243,26 +277,67 @@ function FavoriteCard({ startup }: { startup: Startup }) {
         </Pressable>
       </View>
 
-      <View style={styles.newsWrap}>
-        {news.length === 0 ? (
-          <Text style={styles.noNews}>Pas encore d’actualité suivie.</Text>
-        ) : (
-          news.map((n, i) => (
-            <Pressable
-              key={n.url + i}
-              onPress={() => openLink(n.url)}
-              style={styles.newsItem}
-              accessibilityRole="link"
-            >
-              <Text style={styles.newsTitle}>{n.title}</Text>
-              <Text style={styles.newsMeta}>
-                {n.source} · {n.date}
-              </Text>
-            </Pressable>
-          ))
-        )}
-      </View>
+      {startup.sector || startup.stage ? (
+        <View style={styles.metaRow}>
+          {startup.sector ? <Text style={styles.sector}>{startup.sector}</Text> : null}
+          {startup.stage ? (
+            <View style={styles.stageBadge}>
+              <Text style={styles.stageText}>{startup.stage}</Text>
+            </View>
+          ) : null}
+        </View>
+      ) : null}
+
+      <View style={styles.cardDivider} />
+
+      {news.length === 0 ? (
+        <Text style={styles.noNews}>Pas encore d’actualité suivie.</Text>
+      ) : (
+        news.map((n, i) => (
+          <Pressable
+            key={n.url + i}
+            onPress={() => openLink(n.url)}
+            style={[styles.newsItem, i > 0 && styles.newsItemDivided]}
+            accessibilityRole="link"
+          >
+            <Text style={styles.newsTitle}>{n.title}</Text>
+            <Text style={styles.newsMeta}>
+              {n.source} · {n.date}
+            </Text>
+          </Pressable>
+        ))
+      )}
     </View>
+  );
+}
+
+/** The locked "upsell" card: what the extended tier would unlock, with stacked ghost
+ *  slots peeking out below. Tapping it opens the unlock sheet. Restricted tier only. */
+function UpsellLocked({ remaining, onPress }: { remaining: number; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={styles.upsellWrap}
+      accessibilityRole="button"
+      accessibilityLabel={`Débloquer ${remaining} favoris supplémentaires avec la version étendue`}
+    >
+      <View style={styles.upsellMain}>
+        <View style={styles.upsellIcon}>
+          <LockIcon color={colors.paper} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={styles.upsellTitle}>
+            Encore {remaining} favori{remaining > 1 ? 's' : ''} à suivre
+          </Text>
+          <Text style={styles.upsellSub}>Avec la version étendue</Text>
+        </View>
+        <View style={styles.upsellBadge}>
+          <Text style={styles.upsellBadgeText}>+{remaining}</Text>
+        </View>
+      </View>
+      <View style={styles.ghost1} />
+      <View style={styles.ghost2} />
+    </Pressable>
   );
 }
 
@@ -271,16 +346,15 @@ function UnlockSheet({
   onClose,
   verify,
   ready,
-  hint,
   onUnlocked,
 }: {
   visible: boolean;
   onClose: () => void;
   verify: (input: string) => boolean;
   ready: boolean;
-  hint?: string;
   onUnlocked: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -308,7 +382,7 @@ function UnlockSheet({
       );
       return;
     }
-    setError('Code incorrect ou expiré. Le code change chaque jour — redemandez-le si besoin.');
+    setError('Code incorrect.');
   };
 
   return (
@@ -318,20 +392,14 @@ function UnlockSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { paddingBottom: 28 + insets.bottom }]}>
           <View style={styles.grabber} />
 
-          <View style={styles.sheetHead}>
-            <Text style={styles.sheetTitle}>Version étendue</Text>
-            <Pressable onPress={onClose} accessibilityRole="button">
-              <Text style={styles.sheetClose}>Fermer</Text>
-            </Pressable>
-          </View>
-
+          <Text style={styles.unlockTitle}>Version étendue</Text>
           <Text style={styles.unlockCopy}>
-            La version étendue permet de suivre jusqu’à {EXTENDED_LIMIT} startups. Elle se
-            débloque avec le <Text style={styles.unlockStrong}>code du jour</Text>, qui change
-            chaque matin.
+            La version étendue permet de suivre jusqu’à {EXTENDED_LIMIT} startups. Pour des
+            raisons d’architecture, elle n’est pas ouverte à tous : elle se débloque avec un
+            code que je pourrais vous transmettre sur LinkedIn.
           </Text>
 
           <Pressable
@@ -339,30 +407,37 @@ function UnlockSheet({
             style={styles.linkedinBtn}
             accessibilityRole="link"
           >
-            <Text style={styles.linkedinText}>Obtenir le code du jour sur LinkedIn</Text>
+            <View style={styles.linkedinBadge}>
+              <Text style={styles.linkedinBadgeText}>in</Text>
+            </View>
+            <Text style={styles.linkedinText}>Me contacter sur LinkedIn</Text>
           </Pressable>
 
-          <Text style={styles.listLabel}>Code du jour</Text>
-          <View style={[styles.searchBox, error ? styles.searchBoxError : null]}>
-            <TextInput
-              value={code}
-              onChangeText={(v) => {
-                setCode(v);
-                if (error) setError(null);
-              }}
-              placeholder="ex. mot-mot-nombre"
-              placeholderTextColor={colors.ink50}
-              style={styles.searchInput}
-              autoCorrect={false}
-              autoCapitalize="none"
-              autoFocus
-              onSubmitEditing={submit}
-              returnKeyType="done"
-            />
-          </View>
+          <Text style={styles.codeLabel}>Code</Text>
+          <TextInput
+            value={code}
+            onChangeText={(v) => {
+              setCode(v);
+              if (error) setError(null);
+            }}
+            placeholder="ex. mot-mot-nombre"
+            placeholderTextColor={colors.ink40}
+            style={[styles.codeInput, error ? styles.codeInputError : null]}
+            autoCorrect={false}
+            autoCapitalize="none"
+            autoFocus
+            onSubmitEditing={submit}
+            returnKeyType="done"
+          />
 
-          {error ? <Text style={styles.unlockError}>{error}</Text> : null}
-          {!error && hint ? <Text style={styles.unlockHint}>{hint}</Text> : null}
+          {error ? (
+            <View style={styles.errRow}>
+              <View style={styles.errDot}>
+                <Text style={styles.errDotText}>!</Text>
+              </View>
+              <Text style={styles.errText}>{error}</Text>
+            </View>
+          ) : null}
 
           <Pressable
             onPress={submit}
@@ -370,7 +445,7 @@ function UnlockSheet({
             style={[styles.unlockBtn, code.trim().length === 0 && styles.unlockBtnDisabled]}
             accessibilityRole="button"
           >
-            <Text style={styles.unlockBtnText}>Débloquer</Text>
+            <Text style={styles.unlockBtnText}>DÉBLOQUER</Text>
           </Pressable>
         </View>
       </KeyboardAvoidingView>
@@ -542,32 +617,29 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.paper },
 
   // header
-  header: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.ink,
-  },
-  headerRow: { flexDirection: 'row', alignItems: 'flex-end' },
+  header: { paddingHorizontal: 22, paddingBottom: 2 },
   eyebrow: {
     fontFamily: fonts.mono,
-    fontSize: 10,
-    letterSpacing: 1.4,
+    fontSize: 10.5,
+    letterSpacing: 1.6,
     textTransform: 'uppercase',
     color: colors.ink60,
-    marginBottom: 3,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    justifyContent: 'space-between',
+    marginTop: 5,
+  },
+  titleActions: { flexDirection: 'row', alignItems: 'center' },
   h1: {
     fontFamily: fonts.serifBold,
-    fontSize: 30,
+    fontSize: 42,
+    lineHeight: 42,
     color: colors.ink,
-    letterSpacing: -0.15,
+    letterSpacing: -0.4,
   },
-  resetBtn: {
-    alignSelf: 'flex-end',
-    marginRight: 12,
-    marginBottom: 6,
-  },
+  resetBtn: { marginRight: 14, marginBottom: 8 },
   resetText: {
     fontFamily: fonts.archivoSemi,
     fontSize: 10.5,
@@ -576,9 +648,9 @@ const styles = StyleSheet.create({
     color: colors.ink50,
   },
   addBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
@@ -590,19 +662,18 @@ const styles = StyleSheet.create({
     lineHeight: 30,
     marginTop: -2,
   },
-  chips: { gap: 6, marginTop: 12, paddingRight: 20 },
+  chips: { gap: 8, marginTop: 18, paddingRight: 22 },
   chip: {
-    paddingHorizontal: 11,
-    paddingVertical: 5,
-    borderRadius: 100,
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 6,
     borderWidth: 1,
     borderColor: border.firm,
   },
   chipOn: { backgroundColor: colors.ink, borderColor: colors.ink },
   chipText: {
     fontFamily: fonts.archivoSemi,
-    fontSize: 11,
-    letterSpacing: 0.2,
+    fontSize: 12.5,
     color: colors.ink70,
   },
   chipTextOn: { color: colors.paper },
@@ -611,149 +682,315 @@ const styles = StyleSheet.create({
   tierBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11,
-    marginHorizontal: 20,
-    marginTop: 12,
-    paddingVertical: 11,
-    paddingHorizontal: 13,
-    borderRadius: 12,
+    gap: 12,
+    marginHorizontal: 22,
+    marginTop: 16,
+    paddingVertical: 13,
+    paddingHorizontal: 15,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: border.firm,
+    borderColor: border.accent,
     backgroundColor: glass.accentTint,
   },
-  tierLock: { fontSize: 15 },
   tierTitle: {
-    fontFamily: fonts.archivoBold,
-    fontSize: 12.5,
+    fontFamily: fonts.serifSemi,
+    fontSize: 14,
     color: colors.ink,
-    letterSpacing: 0.2,
   },
   tierSub: {
     fontFamily: fonts.archivoSemi,
-    fontSize: 11,
+    fontSize: 12,
     color: colors.accent,
     marginTop: 2,
   },
+  progressRow: { flexDirection: 'row', gap: 3, marginTop: 9 },
+  seg: { flex: 1, height: 4, borderRadius: 2, backgroundColor: border.accentStrong },
+  segOn: { backgroundColor: colors.accent },
   tierChevron: {
-    fontFamily: fonts.archivo,
+    fontFamily: fonts.serifBold,
     fontSize: 22,
     color: colors.accent,
-    marginTop: -2,
+    alignSelf: 'flex-start',
   },
 
   // list
-  list: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 128 },
+  list: { paddingHorizontal: 22, paddingTop: 16, paddingBottom: 128 },
   emptyList: {
     fontFamily: fonts.serifItalic,
     fontSize: 14.5,
     color: colors.ink50,
-    marginTop: 24,
+    marginTop: 8,
     lineHeight: 22,
   },
 
   // card
   card: {
     borderWidth: 1,
-    borderColor: border.medium,
-    backgroundColor: glass.cardFill,
-    padding: 13,
-    paddingHorizontal: 14,
-    marginBottom: 12,
+    borderColor: border.faint,
+    backgroundColor: colors.white,
+    borderRadius: 8,
+    padding: 15,
+    paddingHorizontal: 16,
+    marginBottom: 14,
   },
   cardHead: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 8,
-    marginBottom: 10,
+    justifyContent: 'space-between',
   },
-  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  star: { color: colors.accent, fontSize: 14, lineHeight: 18 },
+  nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  star: { color: colors.accent, fontSize: 15, lineHeight: 20 },
   name: {
     fontFamily: fonts.serifBold,
-    fontSize: 17,
+    fontSize: 20,
     color: colors.ink,
-    lineHeight: 18,
+    lineHeight: 21,
+    flexShrink: 1,
   },
-  sector: {
-    fontFamily: fonts.archivoSemi,
-    fontSize: 10.5,
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
-    color: colors.accent,
-    marginTop: 3,
-  },
-  stageBadge: {
-    backgroundColor: colors.ink,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
-  stageText: {
-    fontFamily: fonts.monoMed,
-    fontSize: 10,
-    letterSpacing: 0.4,
-    textTransform: 'uppercase',
-    color: colors.paper,
-  },
-  removeBtn: {
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  removeBtn: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
   removeGlyph: {
     fontFamily: fonts.archivo,
     fontSize: 15,
     lineHeight: 18,
-    color: colors.ink50,
+    color: colors.ink40,
   },
-  newsWrap: { borderTopWidth: 1, borderTopColor: 'rgba(34,32,29,0.14)' },
+  metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 9 },
+  sector: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 10,
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.accent,
+  },
+  stageBadge: {
+    backgroundColor: colors.ink,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 3,
+  },
+  stageText: {
+    fontFamily: fonts.mono,
+    fontSize: 9,
+    letterSpacing: 0.9,
+    textTransform: 'uppercase',
+    color: colors.paper,
+  },
+  cardDivider: { height: 1, backgroundColor: border.faint, marginVertical: 14 },
   noNews: {
     fontFamily: fonts.serifItalic,
     fontSize: 12.5,
     color: colors.ink50,
-    paddingVertical: 10,
   },
-  newsItem: {
-    paddingVertical: 9,
-    borderBottomWidth: 1,
-    borderBottomColor: border.faint,
+  newsItem: { paddingVertical: 2 },
+  newsItemDivided: {
+    borderTopWidth: 1,
+    borderTopColor: border.faint,
+    marginTop: 10,
+    paddingTop: 11,
   },
   newsTitle: {
     fontFamily: fonts.serifSemi,
-    fontSize: 13.5,
-    lineHeight: 17.5,
+    fontSize: 14.5,
+    lineHeight: 19,
     color: colors.ink,
-    marginBottom: 3,
   },
   newsMeta: {
     fontFamily: fonts.mono,
-    fontSize: 9.5,
-    letterSpacing: 0.4,
+    fontSize: 9,
+    letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: colors.ink50,
+    marginTop: 6,
   },
 
-  // sheet
+  // upsell (locked)
+  upsellWrap: { marginTop: 2 },
+  upsellMain: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 13,
+    padding: 15,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: border.accentStrong,
+    backgroundColor: glass.accentFill,
+  },
+  upsellIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 8,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  upsellTitle: {
+    fontFamily: fonts.serifBold,
+    fontSize: 16,
+    color: colors.ink,
+    lineHeight: 18,
+  },
+  upsellSub: {
+    fontFamily: fonts.mono,
+    fontSize: 9.5,
+    letterSpacing: 1.1,
+    textTransform: 'uppercase',
+    color: colors.accent,
+    marginTop: 4,
+  },
+  upsellBadge: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 11,
+    paddingVertical: 7,
+    borderRadius: 6,
+  },
+  upsellBadgeText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 15,
+    color: colors.paper,
+  },
+  ghost1: {
+    height: 10,
+    marginTop: -1,
+    marginHorizontal: 12,
+    backgroundColor: glass.accentTint,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: border.accent,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+  ghost2: {
+    height: 8,
+    marginTop: -1,
+    marginHorizontal: 24,
+    backgroundColor: glass.accentFillFaint,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: border.accentFaint,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
+  },
+
+  // sheets (shared)
   scrim: { flex: 1, backgroundColor: glass.scrim, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.paper,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingTop: 10,
-    paddingHorizontal: 20,
-    paddingBottom: 34,
-    maxHeight: '84%',
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingTop: 12,
+    paddingHorizontal: 24,
+    paddingBottom: 28,
+    maxHeight: '88%',
   },
   grabber: {
-    width: 40,
-    height: 4,
-    borderRadius: 2,
+    width: 38,
+    height: 5,
+    borderRadius: 3,
     backgroundColor: border.firm,
     alignSelf: 'center',
     marginTop: 4,
-    marginBottom: 16,
+    marginBottom: 20,
   },
+
+  // unlock sheet
+  unlockTitle: {
+    fontFamily: fonts.serifBold,
+    fontSize: 26,
+    color: colors.ink,
+    letterSpacing: -0.2,
+  },
+  unlockCopy: {
+    fontFamily: fonts.archivo,
+    fontSize: 14,
+    lineHeight: 22,
+    color: colors.ink70,
+    marginTop: 12,
+  },
+  linkedinBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 9,
+    backgroundColor: colors.accent,
+    borderRadius: 100,
+    paddingVertical: 15,
+    marginTop: 20,
+  },
+  linkedinBadge: {
+    width: 18,
+    height: 18,
+    borderRadius: 3,
+    backgroundColor: colors.paper,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  linkedinBadgeText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 11,
+    color: colors.accent,
+  },
+  linkedinText: {
+    fontFamily: fonts.archivoSemi,
+    fontSize: 14,
+    color: colors.paper,
+  },
+  codeLabel: {
+    fontFamily: fonts.mono,
+    fontSize: 10,
+    letterSpacing: 1.6,
+    textTransform: 'uppercase',
+    color: colors.ink60,
+    marginTop: 22,
+  },
+  codeInput: {
+    backgroundColor: colors.white,
+    borderWidth: 1,
+    borderColor: border.bold,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    fontFamily: fonts.archivo,
+    fontSize: 15,
+    color: colors.ink,
+    marginTop: 8,
+  },
+  codeInputError: { borderColor: colors.claret },
+  errRow: { flexDirection: 'row', alignItems: 'center', gap: 7, marginTop: 9 },
+  errDot: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: colors.claret,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errDotText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 11,
+    color: colors.paper,
+    lineHeight: 13,
+  },
+  errText: {
+    fontFamily: fonts.archivoMed,
+    fontSize: 12.5,
+    color: colors.claret,
+  },
+  unlockBtn: {
+    backgroundColor: colors.ink,
+    borderRadius: 8,
+    paddingVertical: 17,
+    alignItems: 'center',
+    marginTop: 14,
+  },
+  unlockBtnDisabled: { opacity: 0.4 },
+  unlockBtnText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 14,
+    letterSpacing: 1.4,
+    color: colors.paper,
+  },
+
+  // add sheet
   sheetHead: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -783,7 +1020,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     backgroundColor: colors.white,
   },
-  searchBoxError: { borderColor: colors.claret },
   searchGlyph: { color: colors.ink50, fontSize: 16 },
   searchInput: {
     flex: 1,
@@ -806,58 +1042,6 @@ const styles = StyleSheet.create({
     color: colors.ink50,
     paddingVertical: 18,
   },
-
-  // unlock sheet
-  unlockCopy: {
-    fontFamily: fonts.serif,
-    fontSize: 14.5,
-    lineHeight: 21,
-    color: colors.ink80,
-    marginBottom: 14,
-  },
-  unlockStrong: { fontFamily: fonts.serifBold, color: colors.ink },
-  linkedinBtn: {
-    alignSelf: 'flex-start',
-    paddingVertical: 9,
-    paddingHorizontal: 14,
-    borderRadius: 100,
-    backgroundColor: colors.accent,
-    marginBottom: 18,
-  },
-  linkedinText: {
-    fontFamily: fonts.archivoBold,
-    fontSize: 12,
-    letterSpacing: 0.3,
-    color: colors.paper,
-  },
-  unlockError: {
-    fontFamily: fonts.archivoSemi,
-    fontSize: 12,
-    color: colors.claret,
-    marginTop: 8,
-  },
-  unlockHint: {
-    fontFamily: fonts.serifItalic,
-    fontSize: 12.5,
-    color: colors.ink50,
-    marginTop: 8,
-  },
-  unlockBtn: {
-    marginTop: 18,
-    paddingVertical: 13,
-    borderRadius: 12,
-    backgroundColor: colors.ink,
-    alignItems: 'center',
-  },
-  unlockBtnDisabled: { opacity: 0.4 },
-  unlockBtnText: {
-    fontFamily: fonts.archivoBold,
-    fontSize: 13,
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    color: colors.paper,
-  },
-
   addCustomRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -869,7 +1053,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderStyle: 'dashed',
     borderColor: border.firm,
-    backgroundColor: 'rgba(11,79,108,0.04)',
+    backgroundColor: glass.accentTint,
   },
   addCustomHint: {
     fontFamily: fonts.serifItalic,

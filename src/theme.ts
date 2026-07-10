@@ -48,6 +48,10 @@ export const border = {
   bold: 'rgba(34,32,29,0.25)',
   divider: 'rgba(34,32,29,0.3)',
   starIdle: 'rgba(34,32,29,0.28)',
+  /** Pétrole (accent) borders, for accented surfaces on paper. */
+  accentFaint: 'rgba(11,79,108,0.12)',
+  accent: 'rgba(11,79,108,0.16)',
+  accentStrong: 'rgba(11,79,108,0.22)',
 } as const;
 
 /** Frosted panel tints (tab bar, native headers). */
@@ -56,6 +60,8 @@ export const glass = {
   header: 'rgba(249,239,227,0.92)',
   scrim: 'rgba(24,22,20,0.42)',
   cardFill: 'rgba(255,255,255,0.4)',
-  /** Faint pétrole (accent #0B4F6C) wash — for accented surfaces on paper. */
+  /** Faint pétrole (accent #0B4F6C) washes — for accented surfaces on paper. */
   accentTint: 'rgba(11,79,108,0.06)',
+  accentFill: 'rgba(11,79,108,0.08)',
+  accentFillFaint: 'rgba(11,79,108,0.04)',
 } as const;
