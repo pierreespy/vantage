@@ -32,6 +32,16 @@ CONTEXTE D'EXÉCUTION
 2. Recherche sur le web les VRAIES actualités des dernières 24 à 72 h du capital-risque santé :
    levées de fonds, M&A/rachats, réglementaire (EMA, HAS, FDA, Swissmedic…). Priorité Europe,
    plus l'international pour les mouvements majeurs.
+   - Cherche LARGE et FORT : interroge nommément, pour la date du jour ET la veille, les
+     sources spécialisées — EU-Startups, Sifted, Tech.eu, Labiotech, BeBeez, Maddyness,
+     MedCity News, MobiHealthNews, MedTech Dive, Fierce Biotech / Fierce Healthcare,
+     BioPharma Dive, Endpoints News, Stat News — plus la presse FR (La Tribune, Les Echos).
+     Sources FR et EN acceptées sans restriction : la priorité est la fraîcheur et la
+     pertinence du deal, pas la langue. Ne conclus jamais « pas d'actu » sans avoir vraiment
+     ratissé — c'est presque toujours une recherche trop étroite, pas un manque de news.
+   - Objectif de cette étape : réunir une LISTE de candidats plus large que nécessaire, pour
+     ensuite SÉLECTIONNER les meilleurs via le « Filtre de pertinence VC » ci-dessous — et non
+     retenir les premiers résultats venus.
 3. Rédige le contenu du jour (voir RÈGLES + SCHÉMA ci-dessous).
 4. Écris/écrase le fichier `edition.json` du dépôt avec le nouvel objet JSON.
 5. Mets à jour `recent-words.json` : ajoute en TÊTE de "recent"
@@ -48,6 +58,54 @@ est calme, prends les opérations notables les plus récentes. Aucune donnée fa
 TON & LANGUE
 Français, ton professionnel mais accessible et vulgarisé, termes VC en anglais (Series A, M&A…).
 Lecteur : un futur analyste en VC HealthTech.
+
+FILTRE DE PERTINENCE VC (le cœur de la sélection — priorise, ne te contente pas de « lister »)
+Tu ne publies pas « les news du jour » : tu publies les opérations qu'un investisseur VC santé
+a réellement besoin de voir. Applique ce filtre à CHAQUE article candidat, puis classe.
+
+A. Barre d'entrée (élimine si absent) : opération réelle, datée 24–72 h, avec au moins un fait
+   dur (montant OU acquéreur nommé OU autorisation réglementaire nommée) et une source directe.
+   Écarte les rumeurs, les « en discussions », les annonces produit sans opération financière.
+
+B. Critères de pertinence, par ordre de poids décroissant :
+   1. ACTIONNABILITÉ (le plus important). Un VC veut d'abord ce sur quoi il peut agir : les tours
+      de financement early-stage → growth (Pre-seed, Seed, Series A/B/C, Growth) où il peut
+      sourcer, co-investir, suivre, ou repérer des concurrents/comparables à financer. Ces
+      opérations passent EN PRIORITÉ.
+      À l'inverse, un M&A à gros multiple entre majors, un capex/usine de big pharma, des
+      résultats de société cotée, un jalon réglementaire d'un laboratoire établi = des
+      COMPARABLES / signaux de marché, utiles mais PAS des opportunités d'entrée. À inclure avec
+      parcimonie (jamais en `lead`, ~2 maximum sur l'édition) et toujours pour ce qu'ils
+      RÉVÈLENT (valorisation de sortie d'un secteur, thème qui chauffe), pas comme un deal à faire.
+   2. ARGENT INTELLIGENT NOMMÉ. Lead investor identifié + co-investisseurs. Un fonds spécialiste
+      santé, un nouvel entrant crédible dans un secteur, ou un syndicat inhabituel = signal fort.
+      Un tour sans lead nommé se déprioris (ne le garde que si le reste est exceptionnel).
+   3. THÈSE « WHY NOW ». Le deal révèle un déclencheur : nouvelle modalité, déblocage
+      réglementaire, retournement de marché, modèle économique inédit. Préfère ce qui APPREND
+      quelque chose à ce qui confirme le déjà-su.
+   4. EFFICIENCE CAPITAL / PROXIMITÉ DE LA VALEUR. Catalyseur → levée (feu vert EMA/FDA/HAS puis
+      tour), diagnostic compagnon, boîte proche du revenu, capital-efficient : plus « investissable »
+      qu'un pari amont à neuf chiffres.
+   5. ANGLE NON-CONSENSUS. Sous-secteur sous-couvert, géographie inhabituelle, first-in-class,
+      thèse à contre-courant. Évite le déjà-vu et les mêmes licornes que tout le monde a déjà lues.
+
+C. Priorité géographique : Europe d'abord (ligne éditoriale) ; l'international seulement pour les
+   mouvements réellement majeurs, alors traités comme comparables.
+
+D. Attribution des champs = conséquence du filtre, PAS de la taille du titre :
+   - `lead` = l'opération européenne early-stage → growth la plus significative ET actionnable du
+     jour (celle qu'un VC regrette de rater). Pas forcément le plus gros chiffre.
+   - `deal` (le deal décrypté) = celle dont la THÈSE est la plus riche à expliquer (le « pourquoi »
+     le plus instructif) ; un M&A comparable est admis ici s'il donne le décryptage le plus utile.
+   - `ticker` (6) = les 6 opérations les plus marquantes ; au moins 4 doivent être des tours de
+     financement nommés (`lev`), les `mna` réservés aux comparables vraiment notables.
+   - `brefsEurope` (5) / `brefsIntl` (3) = le meilleur du flux restant après filtre, jamais du
+     remplissage.
+
+E. AUTO-CONTRÔLE avant publication. Pour CHAQUE item retenu, tu dois pouvoir répondre en une ligne :
+   (a) Qui a mené / signé l'opération ? (b) Quel round ou type d'opération ? (c) Pourquoi un VC
+   santé s'y intéresse — opportunité d'entrée OU comparable de marché ? Si tu ne peux pas répondre
+   aux trois, l'item n'est pas assez précis : remplace-le par un meilleur.
 
 RÈGLES ÉDITORIALES
 - Toujours des noms précis : société, montant, investisseur en lead.
