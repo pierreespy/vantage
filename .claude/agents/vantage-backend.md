@@ -8,7 +8,7 @@ You are the backend & privacy engineer for **Vantage**. The app is otherwise 100
 
 ## Hard privacy constraints (these keep the App Store footprint minimal)
 - **No accounts, no Sign in with Apple.** Identity is a client-generated random UUID (never IDFA/IDFV, never cross-app).
-- **No PII.** The only payload is `{ anonId, startups: string[<=5], updatedAt }` where `startups` are names drawn from the app's own catalog.
+- **No PII.** The only payload is `{ anonId, startups: string[<=6], updatedAt }` where `startups` are names drawn from the app's own catalog. The cap is 6 = the app's `EXTENDED_LIMIT`; keep `firestore.rules` in lockstep.
 - **Expiry / retention.** Docs unseen for 30 days drop out of the union (right-to-erasure + data minimisation, GDPR).
 - **Anti-abuse.** The write endpoint must not be openly spammable — use Firebase App Check + anonymous auth, or a Worker with a shared secret. Document the choice.
 

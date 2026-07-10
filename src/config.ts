@@ -20,7 +20,6 @@ export const config = {
   /** URL of the daily access-code manifest (sibling of contentUrl). Gates the
    *  extended favorites tier; see src/content/accessTypes.ts. */
   accessUrl: 'https://pierreespy.github.io/vantage-content/access.json',
-  /** Where users are sent to request the day's access code. TODO: confirm the exact
-   *  LinkedIn profile URL. */
-  contactLinkedInUrl: 'https://www.linkedin.com/in/pierre-comelait',
+  /** Where users are sent to request the day's access code. */
+  contactLinkedInUrl: 'https://www.linkedin.com/in/pierre-espy',
 } as const;

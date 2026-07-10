@@ -56,4 +56,6 @@ export const glass = {
   header: 'rgba(249,239,227,0.92)',
   scrim: 'rgba(24,22,20,0.42)',
   cardFill: 'rgba(255,255,255,0.4)',
+  /** Faint pétrole (accent #0B4F6C) wash — for accented surfaces on paper. */
+  accentTint: 'rgba(11,79,108,0.06)',
 } as const;

@@ -19,6 +19,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -55,15 +56,20 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
   const [source, setSource] = useState<AccessSource>('sample');
   const [loading, setLoading] = useState(false);
 
+  // Set once a live fetch has landed, so a slow cache read can't clobber a fresher
+  // live manifest (which would let yesterday's cached code validate). The race is
+  // near-impossible — disk beats network — but the guard is free and this is a gate.
+  const liveLoaded = useRef(false);
+
   // Warm up from cache immediately, so a returning user can unlock offline against the
   // last fetched code (rare, but keeps the twin's offline-first behaviour).
   useEffect(() => {
     AsyncStorage.getItem(CACHE_KEY)
       .then((raw) => {
-        if (!raw) return;
+        if (!raw || liveLoaded.current) return;
         const parsed = JSON.parse(raw);
         if (isAccessManifest(parsed)) {
-          setManifest(parsed);
+          setManifest((m) => (liveLoaded.current ? m : parsed));
           setSource((s) => (s === 'sample' ? 'cache' : s));
         }
       })
@@ -77,6 +83,7 @@ export function AccessProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const parsed = await res.json();
       if (!isAccessManifest(parsed)) throw new Error('Malformed access manifest');
+      liveLoaded.current = true;
       setManifest(parsed);
       setSource('live');
       AsyncStorage.setItem(CACHE_KEY, JSON.stringify(parsed)).catch(() => {});

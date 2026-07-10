@@ -619,7 +619,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: border.firm,
-    backgroundColor: 'rgba(11,79,108,0.06)',
+    backgroundColor: glass.accentTint,
   },
   tierLock: { fontSize: 15 },
   tierTitle: {

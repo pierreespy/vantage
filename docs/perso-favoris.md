@@ -164,14 +164,14 @@ Deux paliers côté app (`tier` dans `src/state/favorites.tsx`, persisté) :
 
 | Stream | Agent | Tâches |
 |---|---|---|
-| **App** | `vantage-app` | ✅ cap à 5 + démarrage à zéro · `NewsProvider` · câblage Favoris → news par startup · client de remontée anonyme des favoris · note de confidentialité 1er lancement + bouton reset |
+| **App** | `vantage-app` | ✅ paliers (1 restreint / 6 étendu) + démarrage à zéro · `NewsProvider` · `AccessProvider` (code du jour) · câblage Favoris → news par startup · retrait par carte · client de remontée anonyme des favoris · note de confidentialité 1er lancement + bouton reset |
 | **Backend** | `vantage-backend` | modèle de données + règles · chemin de lecture de l'union · privacy policy + réponses labels App Store · notes de provisioning (free tier) |
 | **Contenu** | `vantage-content` | schéma + exemple `startup-news.json` · fan-in · MAJ `GENERATION.md` / `DAILY_PROMPT.md` |
 | **Revue** | `vantage-review` | revue de chaque diff · `typecheck` + `expo export` · cohérence du contrat · conformité App Store |
 
 ## Séquencement
 
-1. **Socle app** (cap 5 + zéro) — ✅ fait, sans dépendance.
+1. **Socle app** (paliers 1/6 + zéro) — ✅ fait, sans dépendance.
 2. **Décisions** : plateforme backend · workflow de génération · dépôt de contenu.
 3. **Parallèle** : `NewsProvider` (app) + schéma `startup-news.json` (contenu) + modèle
    de données (backend) — tous adossés à ce contrat.

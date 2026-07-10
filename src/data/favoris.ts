@@ -23,7 +23,8 @@ export type Startup = { name: string; sector: string; stage?: string; news: News
 export const favSectors = ['Toutes', 'Oncologie', 'MedTech', 'Digital Health', 'Diagnostics'] as const;
 
 /** Startups initially marked as favorites. New users start with none — each person
- *  picks up to FAVORITES_LIMIT (see src/state/favorites.tsx) from the catalog. */
+ *  picks up to their tier's limit (RESTRICTED_LIMIT / EXTENDED_LIMIT, see
+ *  src/state/favorites.tsx) from the catalog. */
 export const initialFollowed: string[] = [];
 
 /** The 4 seeded favorites, with stage + news. */
