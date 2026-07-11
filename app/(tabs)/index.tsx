@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as WebBrowser from 'expo-web-browser';
 import { useEdition } from '@/content/EditionProvider';
 import { useFavorites } from '@/state/favorites';
+import { useNotifications } from '@/state/notifications';
 import type { Bref } from '@/content/types';
 import { Ticker } from '@/components/Ticker';
 import { colors, border } from '@/theme';
@@ -33,11 +34,22 @@ export default function JournalScreen() {
   const insets = useSafeAreaInsets();
   const { edition, loading, refresh, usesAI } = useEdition();
   const { isFollowed, toggle } = useFavorites();
+  const { noteRead } = useNotifications();
   const { lead, deal, ticker, brefsEurope, brefsIntl } = edition;
 
   const onRefresh = useCallback(() => {
     refresh();
   }, [refresh]);
+
+  // Opening an article is the "first read" signal that arms the morning-notification
+  // primer (see src/state/notifications.tsx). Every source link routes through here.
+  const openArticle = useCallback(
+    (url: string) => {
+      noteRead();
+      openLink(url);
+    },
+    [noteRead]
+  );
 
   const starColor = (name: string) => (isFollowed(name) ? colors.accent : border.starIdle);
 
@@ -89,7 +101,7 @@ export default function JournalScreen() {
           {lead.ai || usesAI(lead.company) ? <AiBadge /> : null}
         </View>
         <View style={styles.leadRow}>
-          <Pressable style={{ flex: 1 }} onPress={() => openLink(lead.url)} accessibilityRole="link">
+          <Pressable style={{ flex: 1 }} onPress={() => openArticle(lead.url)} accessibilityRole="link">
             <Text style={styles.leadTitle}>{lead.title}</Text>
           </Pressable>
           <Pressable
@@ -110,7 +122,7 @@ export default function JournalScreen() {
           </View>
           <View style={styles.dealBody}>
             <View style={styles.dealHead}>
-              <Pressable onPress={() => openLink(deal.url)} accessibilityRole="link">
+              <Pressable onPress={() => openArticle(deal.url)} accessibilityRole="link">
                 <Text style={styles.dealCompany}>{deal.company}</Text>
               </Pressable>
               <Text style={styles.dealAmount}>{deal.amount}</Text>
@@ -136,6 +148,7 @@ export default function JournalScreen() {
             ai={b.ai || usesAI(b.company)}
             starColor={starColor(b.company)}
             onFav={() => onToggleFav(b.company)}
+            onOpen={openArticle}
           />
         ))}
 
@@ -151,6 +164,7 @@ export default function JournalScreen() {
             ai={b.ai || usesAI(b.company)}
             starColor={starColor(b.company)}
             onFav={() => onToggleFav(b.company)}
+            onOpen={openArticle}
           />
         ))}
       </ScrollView>
@@ -172,12 +186,14 @@ function BrefRow({
   ai = false,
   starColor,
   onFav,
+  onOpen,
 }: {
   bref: Bref;
   accent?: boolean;
   ai?: boolean;
   starColor: string;
   onFav: () => void;
+  onOpen: (url: string) => void;
 }) {
   return (
     <View style={styles.bref}>
@@ -188,7 +204,7 @@ function BrefRow({
         {ai ? <AiBadge /> : null}
       </View>
       <View style={styles.brefTitleRow}>
-        <Pressable style={{ flex: 1 }} onPress={() => openLink(bref.url)} accessibilityRole="link">
+        <Pressable style={{ flex: 1 }} onPress={() => onOpen(bref.url)} accessibilityRole="link">
           <Text style={styles.brefTitle}>{bref.title}</Text>
         </Pressable>
         <Pressable onPress={onFav} accessibilityRole="button" accessibilityLabel="Favori" hitSlop={8}>

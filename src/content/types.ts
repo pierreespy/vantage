@@ -76,6 +76,17 @@ export type WordStartup = {
   place?: string;
 };
 
+/** The morning push notification for this edition — a punchy teaser about the lead
+ *  story (la une). Written by the generation task with the same "precise names"
+ *  editorial rule; sent by the 07:30 job in vantage-content. Optional: an edition
+ *  without it simply produces no push that day. */
+export type PushTeaser = {
+  /** Short notification title, e.g. "La une du jour". */
+  title: string;
+  /** One-line hook about the lead — precise names + a figure, ~90 chars max. */
+  body: string;
+};
+
 /** The "Mot du jour" term explainer. */
 export type Word = {
   term: string;
@@ -100,6 +111,8 @@ export type Edition = {
   brefsEurope: Bref[];
   brefsIntl: Bref[];
   word: Word;
+  /** Optional morning push teaser about the lead — sent at 07:30, not stored. */
+  pushTeaser?: PushTeaser;
 };
 
 /** Company → funding stage map derived from one edition (lead, deal, brefs). */

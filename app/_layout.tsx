@@ -10,7 +10,9 @@ import { useAppFonts } from '@/fonts';
 import { colors } from '@/theme';
 import { FavoritesProvider } from '@/state/favorites';
 import { FavoritesSyncProvider } from '@/state/favoritesSync';
+import { NotificationsProvider } from '@/state/notifications';
 import { FavSyncConsentModal } from '@/components/FavSyncConsentModal';
+import { NotifPrimerModal } from '@/components/NotifPrimerModal';
 import { EditionProvider } from '@/content/EditionProvider';
 import { NewsProvider } from '@/content/NewsProvider';
 import { AccessProvider } from '@/content/AccessProvider';
@@ -31,11 +33,14 @@ export default function RootLayout() {
           <AccessProvider>
             <FavoritesProvider>
               <FavoritesSyncProvider>
-                <StatusBar style="dark" />
-                <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-                  <Stack.Screen name="(tabs)" />
-                </Stack>
-                <FavSyncConsentModal />
+                <NotificationsProvider>
+                  <StatusBar style="dark" />
+                  <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+                    <Stack.Screen name="(tabs)" />
+                  </Stack>
+                  <FavSyncConsentModal />
+                  <NotifPrimerModal />
+                </NotificationsProvider>
               </FavoritesSyncProvider>
             </FavoritesProvider>
           </AccessProvider>
