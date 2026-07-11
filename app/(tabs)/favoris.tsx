@@ -123,7 +123,14 @@ export default function FavorisScreen() {
       'Vos favoris et votre consentement au partage anonyme seront effacés sur cet appareil, et la liste transmise sera vidée. Cette action est irréversible.',
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Réinitialiser', style: 'destructive', onPress: () => void reset() },
+        {
+          text: 'Réinitialiser',
+          style: 'destructive',
+          onPress: () => {
+            void reset();
+            hapticSuccess();
+          },
+        },
       ]
     );
   };
@@ -281,7 +288,14 @@ function FavoriteCard({ startup }: { startup: Startup }) {
   const confirmRemove = () => {
     Alert.alert('Retirer ce favori', `« ${startup.name} » sera retirée de vos favoris.`, [
       { text: 'Annuler', style: 'cancel' },
-      { text: 'Retirer', style: 'destructive', onPress: () => toggle(startup.name) },
+      {
+        text: 'Retirer',
+        style: 'destructive',
+        onPress: () => {
+          toggle(startup.name);
+          hapticSuccess();
+        },
+      },
     ]);
   };
 
@@ -394,10 +408,12 @@ function UnlockSheet({
     // Never grant the tier against the bundled demo manifest: require a live/cached
     // (real) code of the day. Keeps the public demo code from unlocking offline.
     if (!ready) {
+      hapticError();
       setError('Code indisponible hors-ligne. Connectez-vous à Internet puis réessayez.');
       return;
     }
     if (verify(code)) {
+      hapticSuccess();
       onUnlocked();
       onClose();
       Alert.alert(
@@ -406,6 +422,7 @@ function UnlockSheet({
       );
       return;
     }
+    hapticError();
     setError('Code incorrect.');
   };
 
