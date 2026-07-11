@@ -288,18 +288,16 @@ function FavoriteCard({ startup }: { startup: Startup }) {
     <View style={styles.card}>
       <View style={styles.cardHead}>
         <View style={styles.nameRow}>
-          <Text style={styles.star}>★</Text>
+          <Pressable
+            onPress={confirmRemove}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel={`Retirer ${startup.name} des favoris`}
+          >
+            <Text style={styles.star}>★</Text>
+          </Pressable>
           <Text style={styles.name}>{startup.name}</Text>
         </View>
-        <Pressable
-          onPress={confirmRemove}
-          style={styles.removeBtn}
-          hitSlop={10}
-          accessibilityRole="button"
-          accessibilityLabel={`Retirer ${startup.name} des favoris`}
-        >
-          <Text style={styles.removeGlyph}>✕</Text>
-        </Pressable>
       </View>
 
       {startup.sector || startup.stage ? (
@@ -768,13 +766,6 @@ const styles = StyleSheet.create({
     color: colors.ink,
     lineHeight: 21,
     flexShrink: 1,
-  },
-  removeBtn: { width: 22, height: 22, alignItems: 'center', justifyContent: 'center' },
-  removeGlyph: {
-    fontFamily: fonts.archivo,
-    fontSize: 15,
-    lineHeight: 18,
-    color: colors.ink40,
   },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginTop: 9 },
   sector: {
