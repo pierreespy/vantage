@@ -22,6 +22,9 @@ import * as WebBrowser from 'expo-web-browser';
 import { useEdition } from '@/content/EditionProvider';
 import { useFavorites } from '@/state/favorites';
 import { useNotifications } from '@/state/notifications';
+import { useShareCard } from '@/lib/useShareCard';
+import { dealCardData, brefCardData } from '@/lib/shareData';
+import { ShareButton } from '@/components/ShareButton';
 import type { Bref } from '@/content/types';
 import { Ticker } from '@/components/Ticker';
 import { colors, border } from '@/theme';
@@ -35,6 +38,7 @@ export default function JournalScreen() {
   const { edition, loading, refresh, usesAI } = useEdition();
   const { isFollowed, toggle } = useFavorites();
   const { noteRead } = useNotifications();
+  const { shareCard, sharing } = useShareCard();
   const { lead, deal, ticker, brefsEurope, brefsIntl } = edition;
 
   const onRefresh = useCallback(() => {
@@ -132,6 +136,13 @@ export default function JournalScreen() {
               {deal.ai || usesAI(deal.company) ? <AiBadge /> : null}
             </View>
             <Text style={styles.dealThesis}>{deal.thesis}</Text>
+            <View style={styles.dealShareRow}>
+              <ShareButton
+                label="Partager"
+                onPress={() => shareCard(dealCardData(deal, edition.dateLong))}
+                disabled={sharing}
+              />
+            </View>
           </View>
         </View>
 
@@ -149,6 +160,8 @@ export default function JournalScreen() {
             starColor={starColor(b.company)}
             onFav={() => onToggleFav(b.company)}
             onOpen={openArticle}
+            onShare={() => shareCard(brefCardData(b, edition.dateLong))}
+            shareDisabled={sharing}
           />
         ))}
 
@@ -165,6 +178,8 @@ export default function JournalScreen() {
             starColor={starColor(b.company)}
             onFav={() => onToggleFav(b.company)}
             onOpen={openArticle}
+            onShare={() => shareCard(brefCardData(b, edition.dateLong))}
+            shareDisabled={sharing}
           />
         ))}
       </ScrollView>
@@ -187,6 +202,8 @@ function BrefRow({
   starColor,
   onFav,
   onOpen,
+  onShare,
+  shareDisabled = false,
 }: {
   bref: Bref;
   accent?: boolean;
@@ -194,6 +211,8 @@ function BrefRow({
   starColor: string;
   onFav: () => void;
   onOpen: (url: string) => void;
+  onShare: () => void;
+  shareDisabled?: boolean;
 }) {
   return (
     <View style={styles.bref}>
@@ -207,6 +226,7 @@ function BrefRow({
         <Pressable style={{ flex: 1 }} onPress={() => onOpen(bref.url)} accessibilityRole="link">
           <Text style={styles.brefTitle}>{bref.title}</Text>
         </Pressable>
+        <ShareButton onPress={onShare} disabled={shareDisabled} />
         <Pressable onPress={onFav} accessibilityRole="button" accessibilityLabel="Favori" hitSlop={8}>
           <Text style={[styles.starSmall, { color: starColor }]}>★</Text>
         </Pressable>
@@ -325,6 +345,7 @@ const styles = StyleSheet.create({
     color: colors.paper,
   },
   dealThesis: { fontFamily: fonts.serif, fontSize: 13, lineHeight: 18.8, color: colors.ink90 },
+  dealShareRow: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: 12 },
 
   // section headers
   sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 },

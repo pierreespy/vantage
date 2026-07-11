@@ -11,6 +11,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEdition } from '@/content/EditionProvider';
 import { WordView } from '@/components/WordView';
 import { GlossaireModal } from '@/components/GlossaireModal';
+import { ShareButton } from '@/components/ShareButton';
+import { useShareCard } from '@/lib/useShareCard';
+import { wordCardData } from '@/lib/shareData';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
@@ -18,6 +21,7 @@ export default function MotDuJourScreen() {
   const insets = useSafeAreaInsets();
   const { edition } = useEdition();
   const { word } = edition;
+  const { shareCard, sharing } = useShareCard();
   const [glossaryOpen, setGlossaryOpen] = useState(false);
 
   return (
@@ -29,6 +33,10 @@ export default function MotDuJourScreen() {
             <Text style={styles.date}>{edition.dateLong}</Text>
             <Text style={styles.h1}>Mot du jour</Text>
           </View>
+          <ShareButton
+            onPress={() => shareCard(wordCardData(word, edition.dateLong))}
+            disabled={sharing}
+          />
           <Pressable
             onPress={() => setGlossaryOpen(true)}
             style={styles.glossaryBtn}

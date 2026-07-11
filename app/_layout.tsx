@@ -11,6 +11,7 @@ import { colors } from '@/theme';
 import { FavoritesProvider } from '@/state/favorites';
 import { FavoritesSyncProvider } from '@/state/favoritesSync';
 import { NotificationsProvider } from '@/state/notifications';
+import { ShareProvider } from '@/lib/useShareCard';
 import { FavSyncConsentModal } from '@/components/FavSyncConsentModal';
 import { NotifPrimerModal } from '@/components/NotifPrimerModal';
 import { EditionProvider } from '@/content/EditionProvider';
@@ -36,12 +37,14 @@ export default function RootLayout() {
               <FavoritesProvider>
                 <FavoritesSyncProvider>
                   <NotificationsProvider>
-                    <StatusBar style="dark" />
-                    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-                      <Stack.Screen name="(tabs)" />
-                    </Stack>
-                    <FavSyncConsentModal />
-                    <NotifPrimerModal />
+                    <ShareProvider>
+                      <StatusBar style="dark" />
+                      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+                        <Stack.Screen name="(tabs)" />
+                      </Stack>
+                      <FavSyncConsentModal />
+                      <NotifPrimerModal />
+                    </ShareProvider>
                   </NotificationsProvider>
                 </FavoritesSyncProvider>
               </FavoritesProvider>

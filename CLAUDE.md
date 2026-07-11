@@ -43,6 +43,12 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (accumulées + persistées). Affiché dans le Journal (`app/(tabs)/index.tsx`) et sur les
   cartes Favoris (`app/(tabs)/favoris.tsx`). Badge en claret pour le distinguer des
   badges secteur (texte accent) et série (fond encre).
+- **Partage (cartes)** : bouton « Partager » sur le Deal du jour, chaque Brève (icône) et
+  le Mot du jour. Génère à la volée une **carte carrée 1080×1080** (`src/components/ShareCard.tsx`,
+  d'après la maquette Claude Design « Vantage Share Cards ») rendue **hors-écran** puis
+  capturée en PNG (`react-native-view-shot`) et passée à la feuille de partage iOS
+  (`expo-sharing`). Orchestré par `ShareProvider` (`src/lib/useShareCard.tsx`) ; le mapping
+  données→carte est dans `src/lib/shareData.ts`. Rien n'est pré-généré ni stocké.
 - **Notification du matin** : **une notif locale générique/jour à 7h30**, programmée
   par le téléphone lui-même (`expo-notifications`, trigger `DAILY`) — **aucun backend**,
   aucun token, aucun serveur. Texte fixe (« l'édition du jour est en ligne ») : une notif
