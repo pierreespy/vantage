@@ -36,7 +36,7 @@ export type Tier = 'restricted' | 'extended';
 /** Favorites cap per tier. Extended is bounded too, to keep the feed focused and bound
  *  the distinct-startup set the morning generation has to research (and the anonymous
  *  report, whose backend rules cap the list — keep EXTENDED_LIMIT and
- *  backend/firestore.rules in lockstep). */
+ *  vantage-content/backend/firestore.rules in lockstep). */
 export const RESTRICTED_LIMIT = 1;
 export const EXTENDED_LIMIT = 6;
 
@@ -170,7 +170,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     (name: string): boolean => {
       const trimmed = name.trim();
       if (!trimmed) return false;
-      // Mirror backend/firestore.rules, which bounds each startup string to <= 80 chars.
+      // Mirror vantage-content/backend/firestore.rules, which bounds each startup string to <= 80 chars.
       // Rejecting here avoids a locally-accepted name whose report the rules would then
       // silently drop — which would quietly remove this install from the union.
       if (trimmed.length > 80) return false;

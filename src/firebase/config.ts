@@ -3,7 +3,7 @@
  *
  * These keys are the public project identifiers (apiKey, appId, …). They are NOT
  * secrets: they only name the Firebase project. What protects the data is the
- * Firestore security rules (see backend/firestore.rules) plus anonymous auth —
+ * Firestore security rules (see vantage-content/backend/firestore.rules) plus anonymous auth —
  * not the secrecy of these values. Safe to commit and ship in the app bundle.
  */
 export const firebaseConfig = {

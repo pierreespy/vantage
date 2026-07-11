@@ -74,7 +74,7 @@ le dépôt de contenu `vantage-content`. L'app lit ce fichier via `config.newsUr
 n'a **aucune** logique de rétention : elle affiche ce que la routine a publié.
 
 Étapes de la routine :
-1. **Lire l'union** des favoris depuis Firestore (`backend/union.mjs`) — startups
+1. **Lire l'union** des favoris depuis Firestore (`vantage-content/backend/union.mjs`) — startups
    réellement suivies, dédupliquées, non expirées.
 2. **Chercher du neuf** par startup (recherche web), en fournissant au modèle **les titres
    déjà en stock** pour cette startup, afin qu'il ne renvoie que des développements
@@ -132,7 +132,7 @@ Deux paliers côté app (`tier` dans `src/state/favorites.tsx`, persisté) :
 - **Déblocage permanent** : une fois le bon code saisi, `tier = 'extended'` est persisté. La
   rotation quotidienne du code ne **re-verrouille pas** — elle ne bloque que les *nouveaux*
   déblocages avec un vieux code.
-- **Cap backend en phase** : `EXTENDED_LIMIT` (app) **=** `size() <= 6` (`backend/firestore.rules`)
+- **Cap backend en phase** : `EXTENDED_LIMIT` (app) **=** `size() <= 6` (`vantage-content/backend/firestore.rules`)
   **=** `startups[<=6]` (payload). Les trois doivent rester synchronisés.
 
 ### Contrat `access.json` (à côté de `edition.json`, via `config.accessUrl`)

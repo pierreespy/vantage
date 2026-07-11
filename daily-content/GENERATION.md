@@ -153,7 +153,7 @@ ciblée**, mais **uniquement** sur l'**union suivie** (la watchlist), **jamais**
 
 - **Lire l'union suivie depuis le backend** : union **dédupliquée** des startups réellement
   suivies (favoris remontés anonymement, entrées non expirées à 30 j). Voir
-  `docs/perso-favoris.md` pour le chemin de lecture (`backend/union.mjs`). Liste plate de
+  `docs/perso-favoris.md` pour le chemin de lecture (`vantage-content/backend/union.mjs`). Liste plate de
   noms en casse catalogue.
 - Pour chaque startup, fournis au modèle **les titres déjà en stock** afin qu'il ne
   renvoie que des développements **nouveaux et distincts** (pas de re-publication).
@@ -232,7 +232,7 @@ plafonner la durée de vie d'un code partagé (~24 h), pour que chacun redemande
    qu'il le donne sur demande. **Ne committer que `access.json`.**
 
 > **Cap backend en phase :** le palier étendu autorise **6** favoris. Les règles Firestore
-> (`backend/firestore.rules`) et `EXTENDED_LIMIT` (`src/state/favorites.tsx`) plafonnent à 6 —
+> (`vantage-content/backend/firestore.rules`) et `EXTENDED_LIMIT` (`src/state/favorites.tsx`) plafonnent à 6 —
 > les garder synchronisés, sinon une remontée de 6 favoris est rejetée et l'appareil disparaît
 > de l'union.
 

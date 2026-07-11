@@ -6,7 +6,7 @@
  * (see src/state/favorites.tsx); this provider reports them anonymously so the
  * generation has a watchlist. Full contract: docs/perso-favoris.md + backend/README.md.
  *
- * Privacy shape (matches backend/firestore.rules EXACTLY):
+ * Privacy shape (matches vantage-content/backend/firestore.rules EXACTLY):
  *   - identity is a Firebase anonymous uid (a random per-install id) — no account,
  *     no Sign in with Apple, no IDFA/IDFV, no PII.
  *   - we write `follows/<uid>` with ONLY { startups, updatedAt: serverTimestamp() }.

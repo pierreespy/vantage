@@ -23,6 +23,11 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   les couleurs/polices en dur dans les écrans.
 - **Favoris** = état partagé et persisté via `src/state/favorites.tsx` (AsyncStorage) ;
   catalogue de startups dans `src/data/favoris.ts` (propre à l'utilisateur, hors édition).
+- **Ops / « boîte aux lettres » hors de ce dépôt** : les routines quotidiennes
+  (Journal + Favoris news), le code d'accès du jour et le backend de remontée anonyme
+  (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt
+  **`vantage-content`** (`DAILY_PROMPT.md`, `backend/routine/CCR_ROUTINE.md`, `gen-access.mjs`).
+  Ce dépôt-ci ne change que pour les vraies MàJ logicielles.
 
 ## Vérifier
 
