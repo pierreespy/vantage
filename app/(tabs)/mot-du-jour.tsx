@@ -97,23 +97,23 @@ export default function MotDuJourScreen() {
           <Text style={styles.whyText}>{word.why}</Text>
         </View>
 
-        {/* M&A */}
-        <SectionHeader label="M&A emblématiques" color={colors.ink60} rule="faint" />
-        <View style={{ marginBottom: 18 }}>
-          {word.deals.map((d, i) => (
-            <View key={d.buyer + i} style={styles.deal}>
-              <View style={styles.yearPill}>
-                <Text style={styles.yearText}>{d.year}</Text>
-              </View>
-              <Text style={styles.dealMid} numberOfLines={1}>
-                <Text style={styles.buyer}>{d.buyer}</Text>
-                <Text style={styles.arrow}>{'  →  '}</Text>
-                <Text style={styles.target}>{d.target}</Text>
-              </Text>
-              <Text style={styles.amount}>{d.amount}</Text>
+        {/* STARTUPS QUI L'UTILISENT */}
+        {(word.startups ?? []).length > 0 ? (
+          <>
+            <SectionHeader label="Startups qui l’utilisent" color={colors.claret} rule="faint" />
+            <View style={{ marginBottom: 18 }}>
+              {word.startups.map((s, i) => (
+                <View key={s.name + i} style={styles.startup}>
+                  <View style={styles.startupHead}>
+                    <Text style={styles.startupName}>{s.name}</Text>
+                    {s.place ? <Text style={styles.startupPlace}>{s.place}</Text> : null}
+                  </View>
+                  <Text style={styles.startupUse}>{s.use}</Text>
+                </View>
+              ))}
             </View>
-          ))}
-        </View>
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -242,30 +242,26 @@ const styles = StyleSheet.create({
   },
   whyText: { fontFamily: fonts.serif, fontSize: 14, lineHeight: 21.5, color: colors.ink90 },
 
-  // deals
-  deal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  // startups qui l'utilisent
+  startup: {
     paddingVertical: 10,
     borderBottomWidth: 1,
     borderBottomColor: border.light,
   },
-  yearPill: {
-    backgroundColor: colors.ink,
-    paddingHorizontal: 7,
-    paddingVertical: 3,
-    borderRadius: 2,
-  },
-  yearText: {
-    fontFamily: fonts.monoMed,
-    fontSize: 10,
+  startupHead: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
+  startupName: { fontFamily: fonts.serifBold, fontSize: 14.5, color: colors.ink, flexShrink: 1 },
+  startupPlace: {
+    fontFamily: fonts.mono,
+    fontSize: 9,
     letterSpacing: 0.6,
-    color: colors.paper,
+    textTransform: 'uppercase',
+    color: colors.ink50,
   },
-  dealMid: { flex: 1 },
-  buyer: { fontFamily: fonts.serifBold, fontSize: 14, color: colors.ink },
-  arrow: { fontFamily: fonts.mono, fontSize: 13, color: colors.accent },
-  target: { fontFamily: fonts.serifSemi, fontSize: 14, color: colors.ink90 },
-  amount: { fontFamily: fonts.monoSemi, fontSize: 13, color: colors.accent },
+  startupUse: {
+    fontFamily: fonts.serif,
+    fontSize: 13,
+    lineHeight: 18,
+    color: colors.ink70,
+    marginTop: 3,
+  },
 });

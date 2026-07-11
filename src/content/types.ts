@@ -54,8 +54,14 @@ export type Bref = {
 export type WordPart = { label: string; role: string };
 /** One mechanism step. */
 export type WordStep = { n: string; h: string; t: string };
-/** One flagship M&A row. */
-export type WordDeal = { buyer: string; target: string; amount: string; year: string };
+/** One startup currently using this technology/process. */
+export type WordStartup = {
+  name: string;
+  /** One short line: what they do with it. */
+  use: string;
+  /** Optional HQ city/country, shown as a small tag. */
+  place?: string;
+};
 
 /** The "Mot du jour" term explainer. */
 export type Word = {
@@ -67,7 +73,8 @@ export type Word = {
   parts: WordPart[];
   how: WordStep[];
   why: string;
-  deals: WordDeal[];
+  /** Real startups/companies currently using the term's tech or process. */
+  startups: WordStartup[];
 };
 
 /** Everything the app shows for a given day. */
