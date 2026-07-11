@@ -97,6 +97,7 @@ export const sampleEdition: Edition = {
       company: 'Abridge',
       place: 'San Francisco',
       sector: 'Digital Health',
+      ai: true,
       title: 'Abridge lève 90 M$ pour son copilote clinique',
       summary: 'Documentation médicale par IA, déjà déployée dans 40 hôpitaux américains ; Lightspeed en lead.',
       url: 'https://techcrunch.com',

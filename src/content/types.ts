@@ -29,6 +29,8 @@ export type Lead = {
    *  directly — the kicker already carries it — but recorded on the auto-discovered
    *  directory entry so a discovered lead startup keeps its type. */
   sector?: string;
+  /** True when the company's core product is AI-driven — drives the "IA" badge. */
+  ai?: boolean;
   /** Source article, opened in the system browser. */
   url: string;
 };
@@ -42,6 +44,8 @@ export type Deal = {
   /** Sector (Biotech / MedTech / Digital Health…) — recorded on the auto-discovered
    *  directory entry so a discovered deal startup keeps its type. */
   sector?: string;
+  /** True when the company's core product is AI-driven — drives the "IA" badge. */
+  ai?: boolean;
   url: string;
 };
 
@@ -52,6 +56,8 @@ export type Bref = {
   sector: string;
   /** Funding stage (e.g. "Series A", "Seed") — feeds the Favoris badge. */
   stage?: string;
+  /** True when the company's core product is AI-driven — drives the "IA" badge. */
+  ai?: boolean;
   title: string;
   summary: string;
   url: string;
@@ -131,6 +137,21 @@ export function editionCompanies(e: Edition): { name: string; sector: string; st
   for (const b of e.brefsEurope ?? []) put(b.company, b.sector, b.stage);
   for (const b of e.brefsIntl ?? []) put(b.company, b.sector, b.stage);
   return Array.from(map, ([name, v]) => ({ name, sector: v.sector, stage: v.stage }));
+}
+
+/** Companies an edition flags as AI-using (lead, deal, brefs) — the `ai` field set to
+ *  true. Accumulated app-wide so the "IA" badge sticks once the journal has flagged a
+ *  company, even after it leaves the news. */
+export function editionAiCompanies(e: Edition): string[] {
+  const out: string[] = [];
+  const put = (name?: string, ai?: boolean) => {
+    if (name && ai) out.push(name);
+  };
+  put(e.lead?.company, e.lead?.ai);
+  put(e.deal?.company, e.deal?.ai);
+  for (const b of e.brefsEurope ?? []) put(b.company, b.ai);
+  for (const b of e.brefsIntl ?? []) put(b.company, b.ai);
+  return out;
 }
 
 /** Minimal runtime check that a fetched object looks like an Edition. */

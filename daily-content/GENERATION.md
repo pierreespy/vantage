@@ -83,6 +83,12 @@ d'investissement, due diligence, actu de deal). Règles, dans l'ordre :
      et `deal` (optionnel) — `"Biotech"`, `"MedTech"`, `"Digital Health"`, `"Diagnostics"`,
      `"Oncologie"`, `"Pharma"`… Le `lead` ne l'affiche pas (le `kicker` porte déjà le
      secteur) mais l'app l'utilise pour la découverte ci-dessous. À remplir.
+   - **Champ `ai`** (optionnel, `lead` / `deal` / brèves) : mets `true` quand le **cœur du
+     produit** de l'entreprise est piloté par l'IA/ML (découverte de médicaments par IA,
+     imagerie médicale IA, copilote clinique… ex. Bioptimus, Aqemia, Owkin, Abridge).
+     L'app affiche alors un badge **« IA »** dans le Journal et sur la carte Favoris, et
+     mémorise l'info (le badge reste même quand l'entreprise quitte l'actu). Rester
+     **conservateur** : un badge IA à tort est pire qu'un badge manquant.
    - **Découverte automatique de startups** : l'app **enregistre tout seul** dans son
      répertoire toute `company` de l'édition (`lead`, `deal`, brèves) qu'elle ne connaît pas
      encore — avec son **secteur** et sa **série** — pour la rendre recherchable/suivable dans

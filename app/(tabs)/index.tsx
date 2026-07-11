@@ -31,7 +31,7 @@ const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {
 
 export default function JournalScreen() {
   const insets = useSafeAreaInsets();
-  const { edition, loading, refresh } = useEdition();
+  const { edition, loading, refresh, usesAI } = useEdition();
   const { isFollowed, toggle } = useFavorites();
   const { lead, deal, ticker, brefsEurope, brefsIntl } = edition;
 
@@ -84,7 +84,10 @@ export default function JournalScreen() {
         </View>
 
         {/* LEAD */}
-        <Text style={styles.kicker}>{lead.kicker}</Text>
+        <View style={styles.kickerRow}>
+          <Text style={styles.kicker}>{lead.kicker}</Text>
+          {lead.ai || usesAI(lead.company) ? <AiBadge /> : null}
+        </View>
         <View style={styles.leadRow}>
           <Pressable style={{ flex: 1 }} onPress={() => openLink(lead.url)} accessibilityRole="link">
             <Text style={styles.leadTitle}>{lead.title}</Text>
@@ -114,6 +117,7 @@ export default function JournalScreen() {
               <View style={styles.roundBadge}>
                 <Text style={styles.roundText}>{deal.round}</Text>
               </View>
+              {deal.ai || usesAI(deal.company) ? <AiBadge /> : null}
             </View>
             <Text style={styles.dealThesis}>{deal.thesis}</Text>
           </View>
@@ -125,7 +129,14 @@ export default function JournalScreen() {
           <View style={styles.ruleStrong} />
         </View>
         {brefsEurope.map((b, i) => (
-          <BrefRow key={b.url + i} bref={b} accent starColor={starColor(b.company)} onFav={() => onToggleFav(b.company)} />
+          <BrefRow
+            key={b.url + i}
+            bref={b}
+            accent
+            ai={b.ai || usesAI(b.company)}
+            starColor={starColor(b.company)}
+            onFav={() => onToggleFav(b.company)}
+          />
         ))}
 
         {/* BRÈVES INTERNATIONAL */}
@@ -134,9 +145,23 @@ export default function JournalScreen() {
           <View style={styles.ruleFaint} />
         </View>
         {brefsIntl.map((b, i) => (
-          <BrefRow key={b.url + i} bref={b} starColor={starColor(b.company)} onFav={() => onToggleFav(b.company)} />
+          <BrefRow
+            key={b.url + i}
+            bref={b}
+            ai={b.ai || usesAI(b.company)}
+            starColor={starColor(b.company)}
+            onFav={() => onToggleFav(b.company)}
+          />
         ))}
       </ScrollView>
+    </View>
+  );
+}
+
+function AiBadge() {
+  return (
+    <View style={styles.aiBadge} accessibilityLabel="Utilise l’IA">
+      <Text style={styles.aiText}>IA</Text>
     </View>
   );
 }
@@ -144,19 +169,24 @@ export default function JournalScreen() {
 function BrefRow({
   bref,
   accent = false,
+  ai = false,
   starColor,
   onFav,
 }: {
   bref: Bref;
   accent?: boolean;
+  ai?: boolean;
   starColor: string;
   onFav: () => void;
 }) {
   return (
     <View style={styles.bref}>
-      <Text style={[styles.brefMeta, { color: accent ? colors.accent : colors.ink60 }]}>
-        {bref.place} · {bref.sector}
-      </Text>
+      <View style={styles.brefMetaRow}>
+        <Text style={[styles.brefMeta, { color: accent ? colors.accent : colors.ink60 }]}>
+          {bref.place} · {bref.sector}
+        </Text>
+        {ai ? <AiBadge /> : null}
+      </View>
       <View style={styles.brefTitleRow}>
         <Pressable style={{ flex: 1 }} onPress={() => openLink(bref.url)} accessibilityRole="link">
           <Text style={styles.brefTitle}>{bref.title}</Text>
@@ -225,13 +255,13 @@ const styles = StyleSheet.create({
   },
 
   // lead
+  kickerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 6 },
   kicker: {
     fontFamily: fonts.archivoBold,
     fontSize: 10,
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: colors.accent,
-    marginBottom: 6,
   },
   leadRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 8 },
   leadTitle: {
@@ -293,15 +323,29 @@ const styles = StyleSheet.create({
 
   // brèves
   bref: { paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: border.soft },
+  brefMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 3 },
   brefMeta: {
     fontFamily: fonts.mono,
     fontSize: 9,
     letterSpacing: 0.7,
     textTransform: 'uppercase',
-    marginBottom: 3,
   },
   brefTitleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 4 },
   brefTitle: { fontFamily: fonts.serifSemi, fontSize: 14.5, lineHeight: 18, color: colors.ink },
   starSmall: { fontSize: 16, lineHeight: 18 },
   brefSummary: { fontFamily: fonts.serif, fontSize: 12.5, lineHeight: 17.8, color: colors.ink70 },
+
+  // "IA" badge — claret fill, distinct from the accent sector text / ink stage badge.
+  aiBadge: {
+    backgroundColor: colors.claret,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 3,
+  },
+  aiText: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 9,
+    letterSpacing: 0.7,
+    color: colors.paper,
+  },
 });

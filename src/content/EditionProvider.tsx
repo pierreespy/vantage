@@ -16,6 +16,10 @@
  * without being known to the app, it's remembered here so it joins the searchable
  * directory in "Ajouter un favori" — never auto-followed, just made findable.
  *
+ * It likewise accumulates which companies use AI (`usesAI`): the curated `aiStartups`
+ * list plus every company an edition flags with `ai: true`, so the "IA" badge shows in
+ * the Journal and on Favoris cards and sticks once flagged.
+ *
  * Exposed app-wide so every screen reads the same edition.
  */
 import React, {
@@ -29,12 +33,14 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { config } from '@/config';
 import { catalog } from '@/data/favoris';
+import { isAiStartup } from '@/data/aiStartups';
 import { sampleEdition } from './sampleEdition';
-import { editionCompanies, editionStages, isEdition, type Edition } from './types';
+import { editionAiCompanies, editionCompanies, editionStages, isEdition, type Edition } from './types';
 
 const CACHE_KEY = 'vantage.edition.v1';
 const STAGES_KEY = 'vantage.stages.v1';
 const DISCOVERED_KEY = 'vantage.discoveredStartups.v2';
+const AI_KEY = 'vantage.aiCompanies.v1';
 
 /** Names the app already knows statically — a company in here is NOT a discovery. */
 const KNOWN = new Set(catalog.map((s) => s.name.toLowerCase()));
@@ -79,6 +85,9 @@ type EditionContextValue = {
    *  across every edition seen — each with its sector and funding stage. They extend the
    *  searchable directory. */
   discoveredStartups: DirectoryStartup[];
+  /** True when a company is AI-driven — from the curated list or any edition that flagged
+   *  it. Drives the "IA" badge in the Journal and on Favoris cards. */
+  usesAI: (name: string) => boolean;
 };
 
 const EditionContext = createContext<EditionContextValue | null>(null);
@@ -94,6 +103,10 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
   // Startups discovered via the journal (name → {sector, stage}), accumulated across editions.
   const [discovered, setDiscovered] = useState<Record<string, Discovery>>({});
   const [discoveredHydrated, setDiscoveredHydrated] = useState(false);
+
+  // Companies the journal has flagged as AI-using (lowercased name → true), accumulated.
+  const [aiCompanies, setAiCompanies] = useState<Record<string, true>>({});
+  const [aiHydrated, setAiHydrated] = useState(false);
 
   // Warm up edition from cache immediately, so a cold offline start shows the last edition.
   useEffect(() => {
@@ -202,6 +215,44 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(DISCOVERED_KEY, JSON.stringify(discovered)).catch(() => {});
   }, [discovered, discoveredHydrated]);
 
+  // Load the accumulated AI-companies set once.
+  useEffect(() => {
+    AsyncStorage.getItem(AI_KEY)
+      .then((raw) => {
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') setAiCompanies(parsed);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setAiHydrated(true));
+  }, []);
+
+  // Fold each edition's AI-flagged companies into the set (keyed by lowercased name).
+  useEffect(() => {
+    if (!aiHydrated) return;
+    const names = editionAiCompanies(edition);
+    if (names.length === 0) return;
+    setAiCompanies((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const name of names) {
+        const key = name.toLowerCase();
+        if (!next[key]) {
+          next[key] = true;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [edition, aiHydrated]);
+
+  // Persist the AI-companies set when it changes.
+  useEffect(() => {
+    if (!aiHydrated) return;
+    AsyncStorage.setItem(AI_KEY, JSON.stringify(aiCompanies)).catch(() => {});
+  }, [aiCompanies, aiHydrated]);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -231,9 +282,14 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     [discovered]
   );
 
+  const usesAI = useCallback(
+    (name: string) => isAiStartup(name) || !!aiCompanies[name.trim().toLowerCase()],
+    [aiCompanies]
+  );
+
   const value = useMemo<EditionContextValue>(
-    () => ({ edition, source, loading, refresh, stageOf, discoveredStartups }),
-    [edition, source, loading, refresh, stageOf, discoveredStartups]
+    () => ({ edition, source, loading, refresh, stageOf, discoveredStartups, usesAI }),
+    [edition, source, loading, refresh, stageOf, discoveredStartups, usesAI]
   );
 
   return <EditionContext.Provider value={value}>{children}</EditionContext.Provider>;

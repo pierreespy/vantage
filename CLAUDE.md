@@ -29,6 +29,11 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   d'office. Les brèves de secteur `Fonds`/`Réglementaire` (investisseurs, régulateurs) sont
   exclues. Le secteur du lead/deal vient de leur champ `sector` (`Lead`/`Deal` dans
   `types.ts`), le kicker ne servant qu'à l'affichage.
+- **Badge « IA »** : `useEdition().usesAI(name)` (dans `EditionProvider`) combine la liste
+  curée `src/data/aiStartups.ts` et les sociétés qu'une édition marque `ai: true`
+  (accumulées + persistées). Affiché dans le Journal (`app/(tabs)/index.tsx`) et sur les
+  cartes Favoris (`app/(tabs)/favoris.tsx`). Badge en claret pour le distinguer des
+  badges secteur (texte accent) et série (fond encre).
 - **Ops / « boîte aux lettres » hors de ce dépôt** : les routines quotidiennes
   (Journal + Favoris news), le code d'accès du jour et le backend de remontée anonyme
   (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt

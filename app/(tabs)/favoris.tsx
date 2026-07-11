@@ -283,7 +283,9 @@ export default function FavorisScreen() {
 
 function FavoriteCard({ startup }: { startup: Startup }) {
   const { newsFor } = useStartupNews();
+  const { usesAI } = useEdition();
   const { toggle } = useFavorites();
+  const ai = usesAI(startup.name);
   // Live per-startup news takes precedence; fall back to any seeded news for that
   // startup so a followed catalog entry still shows something until live news exists.
   const live = newsFor(startup.name);
@@ -322,12 +324,17 @@ function FavoriteCard({ startup }: { startup: Startup }) {
         </View>
       </View>
 
-      {startup.sector || startup.stage ? (
+      {startup.sector || startup.stage || ai ? (
         <View style={styles.metaRow}>
           {startup.sector ? <Text style={styles.sector}>{startup.sector}</Text> : null}
           {startup.stage ? (
             <View style={styles.stageBadge}>
               <Text style={styles.stageText}>{startup.stage}</Text>
+            </View>
+          ) : null}
+          {ai ? (
+            <View style={[styles.stageBadge, styles.aiBadge]}>
+              <Text style={styles.stageText}>IA</Text>
             </View>
           ) : null}
         </View>
@@ -528,7 +535,7 @@ function AddFavoriteSheet({
   tier: Tier;
 }) {
   const { translateY, panHandlers } = useSheetDrag(visible, onClose);
-  const { discoveredStartups } = useEdition();
+  const { discoveredStartups, usesAI } = useEdition();
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
 
@@ -634,12 +641,17 @@ function AddFavoriteSheet({
                 <View key={c.name} style={styles.candRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.candName}>{c.name}</Text>
-                    {c.sector || c.stage ? (
+                    {c.sector || c.stage || usesAI(c.name) ? (
                       <View style={styles.candMeta}>
                         {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
                         {c.stage ? (
                           <View style={styles.candStageBadge}>
                             <Text style={styles.candStageText}>{c.stage}</Text>
+                          </View>
+                        ) : null}
+                        {usesAI(c.name) ? (
+                          <View style={[styles.candStageBadge, styles.aiBadge]}>
+                            <Text style={styles.candStageText}>IA</Text>
                           </View>
                         ) : null}
                       </View>
@@ -844,6 +856,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     color: colors.paper,
   },
+  // "IA" badge — reuses the stage-badge sizing, only swapping in the claret fill so it
+  // reads as distinct from the ink stage badge and the accent sector text.
+  aiBadge: { backgroundColor: colors.claret },
   cardDivider: { height: 1, backgroundColor: border.faint, marginVertical: 14 },
   noNews: {
     fontFamily: fonts.serifItalic,
