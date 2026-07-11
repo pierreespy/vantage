@@ -84,6 +84,12 @@ MOT DU JOUR (word)
   startups (3-4 startups RÉELLES et ACTUELLES qui utilisent la techno/le process du jour ;
   chacune : name + use (une ligne concrète) + place optionnel (ville/pays)). Noms précis et
   vérifiés, pas d'invention ; early-stage → growth, Europe d'abord.
+  VÉRIFICATION OBLIGATOIRE — recherche web pour CHAQUE startup, à chaque édition :
+    (a) elle existe et utilise RÉELLEMENT cette techno ;
+    (b) elle est ENCORE INDÉPENDANTE — si rachetée/absorbée par une pharma (ex. Tubulis→Gilead,
+        Mersana→Day One, Myricx→Novartis), NE la présente PAS comme startup : remplace-la ;
+    (c) le `use` reflète un FAIT vérifié (plateforme, cible, tour, stade), jamais une généralité.
+        En cas de doute non levé, retire la startup.
 
 SCHÉMA de edition.json (mêmes clés, mêmes types — JSON strict, parseable tel quel) :
 
