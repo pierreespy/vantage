@@ -41,12 +41,11 @@ export default function JournalScreen() {
 
   const starColor = (name: string) => (isFollowed(name) ? colors.accent : border.starIdle);
 
-  // ★ toggle with haptics: "ok" when a favorite is actually added, "non" when the add
-  // is refused (already at the max). Removing a favorite stays silent.
+  // ★ toggle with haptics: same "ok" cue on every successful tap (add OR remove),
+  // and "non" when the add is refused (already at the max).
   const onToggleFav = (name: string) => {
-    const wasFollowed = isFollowed(name);
     if (!toggle(name)) hapticError();
-    else if (!wasFollowed) hapticSuccess();
+    else hapticSuccess();
   };
 
   return (

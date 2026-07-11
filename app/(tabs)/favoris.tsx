@@ -12,6 +12,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  Animated,
   KeyboardAvoidingView,
   Linking,
   Modal,
@@ -40,6 +41,7 @@ import { config } from '@/config';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 import { hapticError, hapticSuccess } from '@/lib/haptics';
+import { useSheetDrag } from '@/lib/useSheetDrag';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
@@ -293,7 +295,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
         style: 'destructive',
         onPress: () => {
           toggle(startup.name);
-          hapticSuccess();
+          hapticError();
         },
       },
     ]);
@@ -304,7 +306,10 @@ function FavoriteCard({ startup }: { startup: Startup }) {
       <View style={styles.cardHead}>
         <View style={styles.nameRow}>
           <Pressable
-            onPress={confirmRemove}
+            onPress={() => {
+              hapticSuccess();
+              confirmRemove();
+            }}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={`Retirer ${startup.name} des favoris`}
@@ -393,6 +398,7 @@ function UnlockSheet({
   onUnlocked: () => void;
 }) {
   const insets = useSafeAreaInsets();
+  const { translateY, panHandlers } = useSheetDrag(visible, onClose);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -433,8 +439,12 @@ function UnlockSheet({
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
-        <View style={[styles.sheet, { paddingBottom: 28 + insets.bottom }]}>
-          <View style={styles.grabber} />
+        <Animated.View
+          style={[styles.sheet, { paddingBottom: 28 + insets.bottom, transform: [{ translateY }] }]}
+        >
+          <View {...panHandlers} style={styles.grabZone}>
+            <View style={styles.grabber} />
+          </View>
 
           <Text style={styles.unlockTitle}>Version étendue</Text>
           <Text style={styles.unlockCopy}>
@@ -486,7 +496,7 @@ function UnlockSheet({
           >
             <Text style={styles.unlockBtnText}>DÉBLOQUER</Text>
           </Pressable>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -515,6 +525,7 @@ function AddFavoriteSheet({
   limit: number;
   tier: Tier;
 }) {
+  const { translateY, panHandlers } = useSheetDrag(visible, onClose);
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
 
@@ -573,8 +584,10 @@ function AddFavoriteSheet({
         {/* Tap the dimmed area (behind the sheet) to close. The sheet is a sibling
             View on top, so taps inside it — and TextInput focus — are unaffected. */}
         <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
-        <View style={styles.sheet}>
-          <View style={styles.grabber} />
+        <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
+          <View {...panHandlers} style={styles.grabZone}>
+            <View style={styles.grabber} />
+          </View>
 
           <View style={styles.sheetHead}>
             <Text style={styles.sheetTitle}>Ajouter un favori</Text>
@@ -652,7 +665,7 @@ function AddFavoriteSheet({
               </View>
             ) : null}
           </ScrollView>
-        </View>
+        </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -919,14 +932,13 @@ const styles = StyleSheet.create({
     paddingBottom: 28,
     maxHeight: '88%',
   },
+  // Wide touch zone around the grabber so it's easy to grab and drag the sheet down.
+  grabZone: { alignSelf: 'stretch', alignItems: 'center', paddingTop: 6, paddingBottom: 16 },
   grabber: {
     width: 38,
     height: 5,
     borderRadius: 3,
     backgroundColor: border.firm,
-    alignSelf: 'center',
-    marginTop: 4,
-    marginBottom: 20,
   },
 
   // unlock sheet
