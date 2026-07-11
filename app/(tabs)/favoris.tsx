@@ -39,6 +39,7 @@ import { useAccess } from '@/content/AccessProvider';
 import { config } from '@/config';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
+import { hapticError, hapticSuccess } from '@/lib/haptics';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
@@ -535,7 +536,10 @@ function AddFavoriteSheet({
           text: 'Confirmer',
           onPress: () => {
             if (!addCustomStartup(trimmed)) {
+              hapticError();
               Alert.alert('Limite atteinte', limitReachedMessage(tier, limit));
+            } else {
+              hapticSuccess();
             }
           },
         },
@@ -595,7 +599,10 @@ function AddFavoriteSheet({
                   <Pressable
                     onPress={() => {
                       if (!toggle(c.name)) {
+                        hapticError();
                         Alert.alert('Limite atteinte', limitReachedMessage(tier, limit));
+                      } else if (!on) {
+                        hapticSuccess();
                       }
                     }}
                     style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}

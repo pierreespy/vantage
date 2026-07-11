@@ -25,6 +25,7 @@ import type { Bref } from '@/content/types';
 import { Ticker } from '@/components/Ticker';
 import { colors, border } from '@/theme';
 import { fonts } from '@/fonts';
+import { hapticError, hapticSuccess } from '@/lib/haptics';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
@@ -39,6 +40,14 @@ export default function JournalScreen() {
   }, [refresh]);
 
   const starColor = (name: string) => (isFollowed(name) ? colors.accent : border.starIdle);
+
+  // ★ toggle with haptics: "ok" when a favorite is actually added, "non" when the add
+  // is refused (already at the max). Removing a favorite stays silent.
+  const onToggleFav = (name: string) => {
+    const wasFollowed = isFollowed(name);
+    if (!toggle(name)) hapticError();
+    else if (!wasFollowed) hapticSuccess();
+  };
 
   return (
     <View style={styles.root}>
@@ -82,7 +91,7 @@ export default function JournalScreen() {
             <Text style={styles.leadTitle}>{lead.title}</Text>
           </Pressable>
           <Pressable
-            onPress={() => toggle(lead.company)}
+            onPress={() => onToggleFav(lead.company)}
             accessibilityRole="button"
             accessibilityLabel="Ajouter aux favoris"
             hitSlop={8}
@@ -117,7 +126,7 @@ export default function JournalScreen() {
           <View style={styles.ruleStrong} />
         </View>
         {brefsEurope.map((b, i) => (
-          <BrefRow key={b.url + i} bref={b} accent starColor={starColor(b.company)} onFav={() => toggle(b.company)} />
+          <BrefRow key={b.url + i} bref={b} accent starColor={starColor(b.company)} onFav={() => onToggleFav(b.company)} />
         ))}
 
         {/* BRÈVES INTERNATIONAL */}
@@ -126,7 +135,7 @@ export default function JournalScreen() {
           <View style={styles.ruleFaint} />
         </View>
         {brefsIntl.map((b, i) => (
-          <BrefRow key={b.url + i} bref={b} starColor={starColor(b.company)} onFav={() => toggle(b.company)} />
+          <BrefRow key={b.url + i} bref={b} starColor={starColor(b.company)} onFav={() => onToggleFav(b.company)} />
         ))}
       </ScrollView>
     </View>
