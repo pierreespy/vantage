@@ -128,10 +128,10 @@ export const sampleEdition: Edition = {
     ],
     why: 'Après des décennies de faux départs, les linkers de nouvelle génération ont rendu les ADC à la fois efficaces et tolérables. Résultat : la plus grosse vague de M&A oncologique de la décennie, et une course aux cibles au-delà d’HER2. L’un des terrains de chasse les plus actifs pour les fonds biotech.',
     startups: [
-      { name: 'Tubulis', place: 'Munich', use: 'Plateforme d’ADC à linkers et charges propriétaires (Tubutecan) pour élargir la fenêtre thérapeutique.' },
-      { name: 'ADC Therapeutics', place: 'Lausanne', use: 'ADCs en oncologie ; son Zynlonta (lymphome) est déjà approuvé par la FDA.' },
-      { name: 'Mersana Therapeutics', place: 'Boston', use: 'ADCs à charges immunostimulantes, pensés pour recruter aussi le système immunitaire.' },
-      { name: 'Iksuda Therapeutics', place: 'Newcastle', use: 'ADCs à linkers stables visant des cibles tumorales difficiles.' },
+      { name: 'Adcytherix', place: 'France', use: 'Startup ADC française ; plus grosse Série A ADC d’Europe (105 M€, 2025), entrée en clinique visée en 2026.' },
+      { name: 'Iksuda Therapeutics', place: 'Newcastle', use: 'Linkers stables (techno PermaLink) pour viser des cibles tumorales difficiles.' },
+      { name: 'VALANX Biotech', place: 'Vienne', use: 'Plateforme de conjugaison GoldenSite ; ADC anti-LIV-1 pour le cancer du sein triple négatif.' },
+      { name: 'Sidewinder', place: 'États-Unis', use: 'ADCs bispécifiques « de précision » ; 137 M$ levés (OrbiMed).' },
     ],
   },
 };
