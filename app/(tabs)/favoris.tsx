@@ -13,6 +13,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -40,6 +41,30 @@ import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
+
+/**
+ * Open the "day's code" contact on LinkedIn with the least friction:
+ *  - if the LinkedIn app is installed → open it directly on the profile (the user is
+ *    already signed in there, so no web login wall);
+ *  - otherwise → send them to the App Store to get the app;
+ *  - last resort → the web profile in the in-app browser.
+ * (Detecting the app requires `linkedin` in ios.infoPlist.LSApplicationQueriesSchemes.)
+ */
+async function openContactLinkedIn() {
+  try {
+    if (await Linking.canOpenURL('linkedin://')) {
+      await Linking.openURL(config.contactLinkedInApp);
+      return;
+    }
+  } catch {
+    // fall through to the App Store / web
+  }
+  try {
+    await Linking.openURL(config.linkedInAppStoreUrl);
+  } catch {
+    WebBrowser.openBrowserAsync(config.contactLinkedInUrl).catch(() => {});
+  }
+}
 
 /** The message shown when an add is blocked by the cap — tier-aware. */
 function limitReachedMessage(tier: Tier, limit: number): string {
@@ -403,7 +428,7 @@ function UnlockSheet({
           </Text>
 
           <Pressable
-            onPress={() => openLink(config.contactLinkedInUrl)}
+            onPress={openContactLinkedIn}
             style={styles.linkedinBtn}
             accessibilityRole="link"
           >

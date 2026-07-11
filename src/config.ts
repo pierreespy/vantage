@@ -20,6 +20,12 @@ export const config = {
   /** URL of the daily access-code manifest (sibling of contentUrl). Gates the
    *  extended favorites tier; see src/content/accessTypes.ts. */
   accessUrl: 'https://pierreespy.github.io/vantage-content/access.json',
-  /** Where users are sent to request the day's access code. */
+  /** Where users are sent to request the day's access code (LinkedIn).
+   *  - `contactLinkedInApp`: deep link opened when the LinkedIn app is installed
+   *    (user is already signed in there — no login wall).
+   *  - `contactLinkedInUrl`: https profile, used as the web fallback.
+   *  - `linkedInAppStoreUrl`: App Store page, opened when the app isn't installed. */
+  contactLinkedInApp: 'linkedin://in/pierre-espy',
   contactLinkedInUrl: 'https://www.linkedin.com/in/pierre-espy',
+  linkedInAppStoreUrl: 'https://apps.apple.com/app/linkedin/id288429040',
 } as const;
