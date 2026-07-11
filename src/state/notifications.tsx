@@ -35,7 +35,7 @@ const NOTIF_HOUR = 7;
 const NOTIF_MINUTE = 30;
 
 const NOTIF_TITLE = 'The Vantage Chronicle';
-const NOTIF_BODY = 'L’édition du jour est en ligne — la une santé vous attend.';
+const NOTIF_BODY = 'Ne manquez pas la nouvelle édition !';
 
 /** unset = not decided yet, granted = scheduled, declined = off (re-enable via iOS). */
 export type NotifConsent = 'unset' | 'granted' | 'declined';
