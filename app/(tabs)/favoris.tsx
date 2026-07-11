@@ -435,7 +435,7 @@ function UnlockSheet({
             <View style={styles.linkedinBadge}>
               <Text style={styles.linkedinBadgeText}>in</Text>
             </View>
-            <Text style={styles.linkedinText}>Me contacter sur LinkedIn</Text>
+            <Text style={styles.linkedinText}>Me contacter sur LinkedIn (Pierre Espy)</Text>
           </Pressable>
 
           <Text style={styles.codeLabel}>Code</Text>
@@ -445,8 +445,6 @@ function UnlockSheet({
               setCode(v);
               if (error) setError(null);
             }}
-            placeholder="ex. mot-mot-nombre"
-            placeholderTextColor={colors.ink40}
             style={[styles.codeInput, error ? styles.codeInputError : null]}
             autoCorrect={false}
             autoCapitalize="none"
