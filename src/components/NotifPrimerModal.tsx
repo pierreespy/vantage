@@ -35,8 +35,8 @@ export function NotifPrimerModal() {
           <Text style={styles.title}>La une, chaque matin</Text>
 
           <Text style={styles.body}>
-            Recevez chaque matin à <Text style={styles.em}>7 h 30</Text> l’essentiel de la
-            une santé — une seule notification, la meilleure histoire du jour.
+            Recevez chaque matin à <Text style={styles.em}>7 h 30</Text> un rappel dès que la
+            nouvelle édition santé est en ligne.
           </Text>
           <Text style={styles.body}>
             Une par jour, jamais plus. Vous pouvez la désactiver à tout moment depuis les

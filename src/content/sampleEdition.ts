@@ -112,11 +112,6 @@ export const sampleEdition: Edition = {
     },
   ],
 
-  pushTeaser: {
-    title: 'La une du jour',
-    body: 'Alderaan Bio décroche 120 M€ (Sofinnova, Jeito) — le tour onco de l’année en Europe.',
-  },
-
   word: {
     term: 'ADC',
     full: 'Antibody-Drug Conjugate',

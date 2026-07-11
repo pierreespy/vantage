@@ -34,14 +34,14 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (accumulées + persistées). Affiché dans le Journal (`app/(tabs)/index.tsx`) et sur les
   cartes Favoris (`app/(tabs)/favoris.tsx`). Badge en claret pour le distinguer des
   badges secteur (texte accent) et série (fond encre).
-- **Notifications du matin** : une seule notif/jour à **7h30** sur **la une** (jamais le
-  mot du jour). Le texte est écrit à la génération dans `Edition.pushTeaser`
-  (`{title, body}` — règle « noms précis ») ; l'envoi se fait côté `vantage-content`
-  (job 7h30 lisant les tokens). Côté app : `NotificationsProvider`
-  (`src/state/notifications.tsx`) demande la permission **après la 1re lecture** (via
-  `noteRead()`, appelé à l'ouverture d'un article dans le Journal), pré-amorcée par
-  `NotifPrimerModal` (calqué sur `FavSyncConsentModal`). Le token Expo est écrit
-  anonymement dans Firestore `pushTokens/<uid>` (même uid anonyme que les favoris).
+- **Notification du matin** : **une notif locale générique/jour à 7h30**, programmée
+  par le téléphone lui-même (`expo-notifications`, trigger `DAILY`) — **aucun backend**,
+  aucun token, aucun serveur. Texte fixe (« l'édition du jour est en ligne ») : une notif
+  locale ne peut pas citer la une du jour (contenu écrit la nuit côté serveur). Côté app :
+  `NotificationsProvider` (`src/state/notifications.tsx`) demande la permission **après la
+  1re lecture** (via `noteRead()`, appelé à l'ouverture d'un article dans le Journal),
+  pré-amorcée par `NotifPrimerModal` (calqué sur `FavSyncConsentModal`). Passer à une notif
+  qui nomme la une demanderait un push serveur (registre de tokens + envoi 7h30).
 - **Ops / « boîte aux lettres » hors de ce dépôt** : les routines quotidiennes
   (Journal + Favoris news), le code d'accès du jour et le backend de remontée anonyme
   (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt

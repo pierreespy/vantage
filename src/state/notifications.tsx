@@ -1,24 +1,20 @@
 /**
- * Morning push notifications — the app-side "opt-in + register" half.
+ * Morning notification — a single LOCAL daily reminder, no backend.
  *
- * Why: Vantage is a daily-content app; the single biggest retention lever is a
- * punchy morning notification about the day's lead story (la une). The teaser text
- * is written by the generation task (`Edition.pushTeaser`) and sent at 07:30 by a
- * job in vantage-content. This provider only handles the CLIENT half: asking
- * permission at the right moment, and registering the device's Expo push token so
- * the sender knows where to deliver.
+ * Why local (not server push): Vantage's edition is a static JSON on GitHub Pages,
+ * and we only need a generic "the day's edition is live" nudge at a fixed time — not
+ * a headline-specific message. A local notification the device schedules itself needs
+ * no push token, no Firestore, no sender job. Simpler, and the app stays server-light.
+ *   (Trade-off, on purpose: the text is generic — it can't name today's lead, because
+ *    the device doesn't have that content when the reminder is scheduled. Upgrading to
+ *    a headline-specific push later would require a token registry + a 07:30 sender.)
  *
- * Design (mirrors src/state/favoritesSync.tsx on purpose):
- *   - PERMISSION IS ASKED AFTER THE FIRST READ, never cold on launch. `noteRead()`
- *     is called when the user opens their first article; only then does the in-app
- *     primer surface. On iOS a permission refusal is near-permanent, so we prime
- *     with our own on-brand modal first and only trigger the OS dialog on « Activer ».
- *   - CONSENT is persisted ('unset' | 'granted' | 'declined'). Declining keeps the
- *     app silent; the user can still enable notifications later from iOS Settings.
- *   - IDENTITY reuses the Firebase anonymous uid (same as favorites reporting): the
- *     token doc id == uid, so an install can only ever write its own row. No account,
- *     no PII. Everything is best-effort and never throws — a failure just means no
- *     push, the app keeps working.
+ * UX (kept from the opt-in design):
+ *   - PERMISSION IS ASKED AFTER THE FIRST READ, never cold on launch. `noteRead()` is
+ *     called when the user opens their first article; only then does the in-app primer
+ *     surface. On « Activer » we trigger the OS dialog and schedule the 07:30 reminder.
+ *   - CONSENT is persisted ('unset' | 'granted' | 'declined'). Declining cancels any
+ *     schedule; the user can re-enable from iOS Settings. Everything is best-effort.
  */
 import React, {
   createContext,
@@ -28,19 +24,20 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Constants from 'expo-constants';
-import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { signInAnonymously } from '@firebase/auth';
-import { getFirebaseAuth, getFirebaseDb } from '@/firebase/app';
 
 const CONSENT_KEY = 'vantage.notifConsent.v1';
 const HAS_READ_KEY = 'vantage.notifHasRead.v1';
 
-/** unset = not decided yet, granted = registered, declined = off (re-enable via iOS). */
+/** The fixed morning slot for the reminder (device local time). */
+const NOTIF_HOUR = 7;
+const NOTIF_MINUTE = 30;
+
+const NOTIF_TITLE = 'The Vantage Chronicle';
+const NOTIF_BODY = 'L’édition du jour est en ligne — la une santé vous attend.';
+
+/** unset = not decided yet, granted = scheduled, declined = off (re-enable via iOS). */
 export type NotifConsent = 'unset' | 'granted' | 'declined';
 
 type NotificationsContextValue = {
@@ -51,16 +48,16 @@ type NotificationsContextValue = {
   primerVisible: boolean;
   /** Signal that the user just read something — arms the "ask after first read" flow. */
   noteRead: () => void;
-  /** Opt in: trigger the OS permission dialog and register the push token.
-   *  Returns true only if permission was granted and a token was obtained. */
+  /** Opt in: trigger the OS permission dialog and schedule the daily 07:30 reminder.
+   *  Returns true only if permission was granted and the reminder was scheduled. */
   grant: () => Promise<boolean>;
-  /** Opt out: no push; the user can still enable it later from iOS Settings. */
+  /** Opt out: cancel the reminder; re-enable later from iOS Settings. */
   decline: () => void;
 };
 
 const NotificationsContext = createContext<NotificationsContextValue | null>(null);
 
-// Foreground behaviour: if a push lands while the app is open, still show the banner.
+// Foreground behaviour: if the reminder fires while the app is open, still show it.
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowBanner: true,
@@ -70,23 +67,10 @@ Notifications.setNotificationHandler({
   }),
 });
 
-/** Ensure an anonymous session and return its uid, or null on any failure. */
-async function currentUid(): Promise<string | null> {
-  const auth = getFirebaseAuth();
-  if (!auth) return null;
-  try {
-    if (auth.currentUser) return auth.currentUser.uid;
-    const cred = await signInAnonymously(auth);
-    return cred.user.uid;
-  } catch {
-    return null;
-  }
-}
-
-/** Request permission (if needed) and return the Expo push token, or null. */
-async function registerForPush(): Promise<string | null> {
-  // Simulators / web can't receive a real push token.
-  if (!Device.isDevice) return null;
+/** Request permission (if needed) and (re)schedule the single daily reminder.
+ *  Idempotent: clears any prior schedule first so relaunches never stack duplicates.
+ *  Returns true only if permission is granted. Never throws. */
+async function scheduleDailyReminder(): Promise<boolean> {
   try {
     const existing = await Notifications.getPermissionsAsync();
     let status = existing.status;
@@ -94,33 +78,31 @@ async function registerForPush(): Promise<string | null> {
       const req = await Notifications.requestPermissionsAsync();
       status = req.status;
     }
-    if (status !== 'granted') return null;
+    if (status !== 'granted') return false;
 
-    const projectId =
-      Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId;
-    const token = await Notifications.getExpoPushTokenAsync(
-      projectId ? { projectId } : undefined
-    );
-    return token.data;
+    // We only ever schedule this one reminder, so clearing all is safe and keeps the
+    // schedule from stacking across launches / re-grants.
+    await Notifications.cancelAllScheduledNotificationsAsync();
+    await Notifications.scheduleNotificationAsync({
+      content: { title: NOTIF_TITLE, body: NOTIF_BODY },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: NOTIF_HOUR,
+        minute: NOTIF_MINUTE,
+      },
+    });
+    return true;
   } catch {
-    return null;
+    return false;
   }
 }
 
-/** Write `pushTokens/<uid> = { token, platform, updatedAt }`. Never throws. */
-async function writeToken(token: string): Promise<void> {
-  const db = getFirebaseDb();
-  if (!db) return;
-  const uid = await currentUid();
-  if (!uid) return;
+/** Cancel the reminder. Best-effort, never throws. */
+async function cancelReminder(): Promise<void> {
   try {
-    await setDoc(doc(db, 'pushTokens', uid), {
-      token,
-      platform: Platform.OS,
-      updatedAt: serverTimestamp(),
-    });
+    await Notifications.cancelAllScheduledNotificationsAsync();
   } catch {
-    // Offline / rules — the app keeps working; we just won't get a morning push.
+    // Nothing scheduled / unsupported — nothing to do.
   }
 }
 
@@ -159,15 +141,14 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   }, []);
 
   const grant = useCallback(async () => {
-    const token = await registerForPush();
-    if (!token) {
-      // Permission refused (or no device token) — record as declined so the primer
-      // doesn't reappear. The user can still flip it on later from iOS Settings.
+    const ok = await scheduleDailyReminder();
+    if (!ok) {
+      // Permission refused — record as declined so the primer doesn't reappear. The
+      // user can still flip it on later from iOS Settings.
       setConsent('declined');
       AsyncStorage.setItem(CONSENT_KEY, 'declined').catch(() => {});
       return false;
     }
-    await writeToken(token);
     setConsent('granted');
     AsyncStorage.setItem(CONSENT_KEY, 'granted').catch(() => {});
     return true;
@@ -176,20 +157,15 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   const decline = useCallback(() => {
     setConsent('declined');
     AsyncStorage.setItem(CONSENT_KEY, 'declined').catch(() => {});
+    cancelReminder();
   }, []);
 
-  // Re-register the token on later launches once already granted, so it stays fresh
-  // (Expo push tokens can rotate). Best-effort, silent.
+  // Once granted, re-assert the schedule on launch (idempotent) so the reminder
+  // survives edge cases like a cleared schedule. Permission is already granted here,
+  // so this triggers no dialog.
   useEffect(() => {
-    if (consent !== 'granted') return;
-    let active = true;
-    registerForPush().then((token) => {
-      if (active && token) writeToken(token);
-    });
-    return () => {
-      active = false;
-    };
-  }, [consent]);
+    if (consentResolved && consent === 'granted') scheduleDailyReminder();
+  }, [consentResolved, consent]);
 
   const primerVisible = consentResolved && consent === 'unset' && hasRead;
 
