@@ -14,6 +14,7 @@ import { NotificationsProvider } from '@/state/notifications';
 import { FavSyncConsentModal } from '@/components/FavSyncConsentModal';
 import { NotifPrimerModal } from '@/components/NotifPrimerModal';
 import { EditionProvider } from '@/content/EditionProvider';
+import { GlossaryProvider } from '@/content/GlossaryProvider';
 import { NewsProvider } from '@/content/NewsProvider';
 import { AccessProvider } from '@/content/AccessProvider';
 
@@ -29,22 +30,24 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <EditionProvider>
-        <NewsProvider>
-          <AccessProvider>
-            <FavoritesProvider>
-              <FavoritesSyncProvider>
-                <NotificationsProvider>
-                  <StatusBar style="dark" />
-                  <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-                    <Stack.Screen name="(tabs)" />
-                  </Stack>
-                  <FavSyncConsentModal />
-                  <NotifPrimerModal />
-                </NotificationsProvider>
-              </FavoritesSyncProvider>
-            </FavoritesProvider>
-          </AccessProvider>
-        </NewsProvider>
+        <GlossaryProvider>
+          <NewsProvider>
+            <AccessProvider>
+              <FavoritesProvider>
+                <FavoritesSyncProvider>
+                  <NotificationsProvider>
+                    <StatusBar style="dark" />
+                    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+                      <Stack.Screen name="(tabs)" />
+                    </Stack>
+                    <FavSyncConsentModal />
+                    <NotifPrimerModal />
+                  </NotificationsProvider>
+                </FavoritesSyncProvider>
+              </FavoritesProvider>
+            </AccessProvider>
+          </NewsProvider>
+        </GlossaryProvider>
       </EditionProvider>
     </SafeAreaProvider>
   );

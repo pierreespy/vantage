@@ -17,6 +17,9 @@ export const config = {
   contentUrl: 'https://pierreespy.github.io/vantage-content/edition.json',
   /** URL of the per-startup news JSON (sibling of contentUrl). */
   newsUrl: 'https://pierreespy.github.io/vantage-content/startup-news.json',
+  /** URL of the growing glossary JSON (sibling of contentUrl): every past "mot du
+   *  jour" with its full explainer. Accumulated by the generation task. */
+  wordsUrl: 'https://pierreespy.github.io/vantage-content/words.json',
   /** URL of the daily access-code manifest (sibling of contentUrl). Gates the
    *  extended favorites tier; see src/content/accessTypes.ts. */
   accessUrl: 'https://pierreespy.github.io/vantage-content/access.json',

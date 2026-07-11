@@ -18,6 +18,15 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
 - **Mot du jour** : le choix se fait à la génération (voir `daily-content/GENERATION.md`) :
   terme HealthTech/MedTech/Biotech utile en VC santé, **jamais un terme présent dans
   `recent-words.json`** (mémoire des ~30 derniers jours, mise à jour chaque matin).
+  Le rendu de l'explication est factorisé dans `src/components/WordView.tsx`, partagé par
+  l'onglet Mot du jour et le détail du Glossaire.
+- **Glossaire** : lexique cherchable de **tous** les mots du jour passés (avec explication
+  complète), ouvert via un bouton dans l'en-tête de l'onglet Mot du jour
+  (`GlossaireModal`). Les données viennent de `config.wordsUrl` (`words.json`) via
+  `GlossaryProvider` (fetch + cache + graine) ; le mot du jour courant est fusionné en tête
+  pour apparaître avant même que la routine ne l'ajoute. Côté `vantage-content` :
+  `remember-word.mjs` accumule le `word` complet dans `words.json` (dédup par terme, **sans
+  rétention**) — distinct de `recent-words.json` (anti-répétition, 30 j).
 - **Design tokens** : toujours passer par `src/theme.ts` (couleurs/bordures) et
   `src/fonts.ts` (alias de polices `fonts.serifBold`, `fonts.mono`, …). Ne pas coder
   les couleurs/polices en dur dans les écrans.

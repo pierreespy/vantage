@@ -90,6 +90,49 @@ export type Word = {
   startups: WordStartup[];
 };
 
+/** One dated entry in the growing glossary: a past "mot du jour" with its full
+ *  explainer plus the day it ran. Served in `words.json`, newest first. */
+export type GlossaryWord = Word & {
+  /** ISO day it was the mot du jour, e.g. "2026-07-11". */
+  date: string;
+  /** Human date, e.g. "11 juil. 2026". */
+  dateLong: string;
+};
+
+/** The published glossary file: every term ever explained, newest first. */
+export type Glossary = {
+  generatedAt: string;
+  words: GlossaryWord[];
+};
+
+/** Minimal runtime check that a value is a well-formed Word (the fields screens read). */
+export function isWord(value: unknown): value is Word {
+  if (!value || typeof value !== 'object') return false;
+  const w = value as Record<string, unknown>;
+  return (
+    typeof w.term === 'string' &&
+    typeof w.full === 'string' &&
+    typeof w.definition === 'string' &&
+    Array.isArray(w.parts) &&
+    Array.isArray(w.how)
+  );
+}
+
+/** Minimal runtime check that a fetched object looks like a Glossary. Filters to the
+ *  well-formed, dated entries so a partially-malformed file still yields a usable list. */
+export function parseGlossary(value: unknown): GlossaryWord[] | null {
+  if (!value || typeof value !== 'object') return null;
+  const g = value as Record<string, unknown>;
+  if (!Array.isArray(g.words)) return null;
+  const out: GlossaryWord[] = [];
+  for (const w of g.words) {
+    if (isWord(w) && typeof (w as GlossaryWord).dateLong === 'string') {
+      out.push(w as GlossaryWord);
+    }
+  }
+  return out;
+}
+
 /** Everything the app shows for a given day. */
 export type Edition = {
   /** Human date shown in headers, e.g. "8 juil. 2026". */
