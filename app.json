@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Vantage",
+    "name": "Vantage Chronicle",
     "slug": "vantage",
     "scheme": "vantage",
     "version": "1.0.0",
@@ -14,7 +14,8 @@
       "bundleIdentifier": "com.vantagechronicle.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "LSApplicationQueriesSchemes": ["linkedin"]
+        "LSApplicationQueriesSchemes": ["linkedin"],
+        "CFBundleDisplayName": "Vantage"
       }
     },
     "android": {
