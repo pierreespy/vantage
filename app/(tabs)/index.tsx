@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   },
 
   // deal
-  dealCard: { borderWidth: 1.5, borderColor: colors.ink, marginBottom: 16 },
+  dealCard: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 8, overflow: 'hidden', marginBottom: 16 },
   dealBar: { backgroundColor: colors.ink, paddingVertical: 7, paddingHorizontal: 12 },
   dealBarText: {
     fontFamily: fonts.archivoBold,
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   dealHead: { flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 8, marginBottom: 6 },
   dealCompany: { fontFamily: fonts.serifBold, fontSize: 18, color: colors.ink },
   dealAmount: { fontFamily: fonts.monoSemi, fontSize: 16, color: colors.accent },
-  roundBadge: { backgroundColor: colors.accent, paddingHorizontal: 6, paddingVertical: 2 },
+  roundBadge: { backgroundColor: colors.accent, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
   roundText: {
     fontFamily: fonts.archivoBold,
     fontSize: 9,

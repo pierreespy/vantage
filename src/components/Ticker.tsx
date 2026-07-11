@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 3,
+    borderRadius: 5,
     marginRight: 8,
   },
   chipText: { fontFamily: fonts.mono, fontSize: 11, color: colors.paper },

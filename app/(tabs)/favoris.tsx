@@ -788,7 +788,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.ink,
     paddingHorizontal: 7,
     paddingVertical: 4,
-    borderRadius: 2,
+    borderRadius: 3,
   },
   stageText: {
     fontFamily: fonts.mono,

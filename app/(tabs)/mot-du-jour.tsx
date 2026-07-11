@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 132 },
 
   // hero
-  hero: { borderWidth: 1.5, borderColor: colors.ink, marginBottom: 18 },
+  hero: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 8, overflow: 'hidden', marginBottom: 18 },
   heroBar: {
     backgroundColor: colors.ink,
     paddingVertical: 7,
@@ -205,6 +205,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: border.strong,
     borderTopWidth: 3,
+    borderRadius: 8,
     paddingVertical: 10,
     paddingHorizontal: 8,
     alignItems: 'center',
