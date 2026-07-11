@@ -967,7 +967,7 @@ const styles = StyleSheet.create({
     maxHeight: '88%',
   },
   // Wide touch zone around the grabber so it's easy to grab and drag the sheet down.
-  grabZone: { alignSelf: 'stretch', alignItems: 'center', paddingTop: 6, paddingBottom: 16 },
+  grabZone: { alignSelf: 'stretch', alignItems: 'center', paddingTop: 14, paddingBottom: 18 },
   grabber: {
     width: 38,
     height: 5,
