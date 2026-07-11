@@ -136,11 +136,13 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingTop: 4, paddingBottom: 132 },
 
   // hero
-  hero: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 8, overflow: 'hidden', marginBottom: 18 },
+  hero: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 8, marginBottom: 18 },
   heroBar: {
     backgroundColor: colors.ink,
     paddingVertical: 7,
     paddingHorizontal: 14,
+    borderTopLeftRadius: 6.5,
+    borderTopRightRadius: 6.5,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

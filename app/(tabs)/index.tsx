@@ -251,8 +251,14 @@ const styles = StyleSheet.create({
   },
 
   // deal
-  dealCard: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 8, overflow: 'hidden', marginBottom: 16 },
-  dealBar: { backgroundColor: colors.ink, paddingVertical: 7, paddingHorizontal: 12 },
+  dealCard: { borderWidth: 1.5, borderColor: colors.ink, borderRadius: 8, marginBottom: 16 },
+  dealBar: {
+    backgroundColor: colors.ink,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderTopLeftRadius: 6.5,
+    borderTopRightRadius: 6.5,
+  },
   dealBarText: {
     fontFamily: fonts.archivoBold,
     fontSize: 10,
