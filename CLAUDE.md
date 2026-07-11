@@ -1,4 +1,4 @@
-# Vantage — mémoire projet (Claude Code)
+# Vantage Chronicle — mémoire projet (Claude Code)
 
 App iOS Expo (React Native + TypeScript + expo-router). Coquille à onglets d'après les
 maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le détail complet.

@@ -1,4 +1,4 @@
-# Vantage — app iOS
+# Vantage Chronicle — app iOS
 
 Application iOS privée de veille VC HealthTech pour un futur analyste. App **entièrement
 native**, à onglets, construite d'après les maquettes « Vantage App iOS » (Claude Design),

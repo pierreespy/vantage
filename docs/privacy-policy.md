@@ -1,8 +1,8 @@
-# Politique de confidentialité — Vantage
+# Politique de confidentialité — Vantage Chronicle
 
 _Dernière mise à jour : 9 juillet 2026_
 
-Vantage est une application **quasi entièrement locale** : la lecture du Journal, des
+Vantage Chronicle est une application **quasi entièrement locale** : la lecture du Journal, des
 Favoris et du Mot du jour se fait sur votre téléphone. La seule donnée qui quitte
 l'appareil sert à savoir **quelles startups sont suivies**, afin de vous apporter des
 actualités les concernant.
@@ -69,7 +69,7 @@ pierre.comelait@gmail.com
 
 ## English summary (note)
 
-Vantage is almost entirely on-device. The **only** data leaving your phone — and only
+Vantage Chronicle is almost entirely on-device. The **only** data leaving your phone — and only
 when you follow at least one startup — is: a **random anonymous id** generated on your
 device (never IDFA/IDFV, never shared across apps, not linked to any personal
 information), the **names of the startups you follow** (max **5**), and a server
