@@ -25,6 +25,10 @@ export type Lead = {
   company: string;
   /** Funding stage of this deal (e.g. "Series B", "Seed") — feeds the Favoris badge. */
   stage?: string;
+  /** Sector (Biotech / MedTech / Digital Health / Diagnostics / Oncologie…). Not shown
+   *  directly — the kicker already carries it — but recorded on the auto-discovered
+   *  directory entry so a discovered lead startup keeps its type. */
+  sector?: string;
   /** Source article, opened in the system browser. */
   url: string;
 };
@@ -35,6 +39,9 @@ export type Deal = {
   amount: string;
   round: string;
   thesis: string;
+  /** Sector (Biotech / MedTech / Digital Health…) — recorded on the auto-discovered
+   *  directory entry so a discovered deal startup keeps its type. */
+  sector?: string;
   url: string;
 };
 
@@ -102,22 +109,28 @@ export function editionStages(e: Edition): Record<string, string> {
   return out;
 }
 
-/** Every company mentioned in one edition (lead, deal, brefs), with its sector when
- *  known. Only the brèves carry a sector; the lead and deal don't, so those come back
- *  with `''`. When the same company appears twice, the non-empty sector wins. Feeds the
- *  "startups the journal introduced" discovery into the searchable directory. */
-export function editionCompanies(e: Edition): { name: string; sector: string }[] {
-  const bySector = new Map<string, string>();
-  const put = (name?: string, sector = '') => {
+/** Every company mentioned in one edition (lead, deal, brefs), with its sector and
+ *  funding stage when known. `sector` is `''` when unknown; `stage` is undefined when
+ *  unknown. When the same company appears twice, the non-empty sector/stage wins (they're
+ *  filled independently). Feeds the "startups the journal introduced" discovery into the
+ *  searchable directory — so a discovered startup records its type AND its round. */
+export function editionCompanies(e: Edition): { name: string; sector: string; stage?: string }[] {
+  const map = new Map<string, { sector: string; stage?: string }>();
+  const put = (name?: string, sector = '', stage?: string) => {
     if (!name) return;
-    const prev = bySector.get(name);
-    if (prev === undefined || (!prev && sector)) bySector.set(name, sector);
+    const prev = map.get(name);
+    if (!prev) {
+      map.set(name, { sector, stage: stage || undefined });
+      return;
+    }
+    if (!prev.sector && sector) prev.sector = sector;
+    if (!prev.stage && stage) prev.stage = stage;
   };
-  put(e.lead?.company);
-  put(e.deal?.company);
-  for (const b of e.brefsEurope ?? []) put(b.company, b.sector);
-  for (const b of e.brefsIntl ?? []) put(b.company, b.sector);
-  return Array.from(bySector, ([name, sector]) => ({ name, sector }));
+  put(e.lead?.company, e.lead?.sector ?? '', e.lead?.stage);
+  put(e.deal?.company, e.deal?.sector ?? '', e.deal?.round);
+  for (const b of e.brefsEurope ?? []) put(b.company, b.sector, b.stage);
+  for (const b of e.brefsIntl ?? []) put(b.company, b.sector, b.stage);
+  return Array.from(map, ([name, v]) => ({ name, sector: v.sector, stage: v.stage }));
 }
 
 /** Minimal runtime check that a fetched object looks like an Edition. */

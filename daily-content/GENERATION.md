@@ -77,15 +77,20 @@ d'investissement, due diligence, actu de deal). Règles, dans l'ordre :
      (`"Pre-seed"`, `"Seed"`, `"Series A"`, `"Series B"`, `"Series C"`, `"Growth"`,
      `"IPO"`…). L'app **mémorise** ce stade par société et l'affiche sur la carte Favoris.
      Ainsi le stade reste **dynamique et exact** (mis à jour à chaque nouvelle levée),
-     plutôt que gravé en dur. À remplir dès que le round est connu.
-   - **Champ `company` + `sector`** (brèves) : l'app **enregistre automatiquement** dans son
-     répertoire de startups toute `company` qui apparaît dans l'édition et qu'elle ne connaît
-     pas encore — elle devient recherchable/suivable dans « Ajouter un favori ». Pour éviter
-     d'y faire entrer un **investisseur ou un régulateur** (une brève sur le nouveau véhicule
-     d'un fonds, une décision réglementaire), donne à ces brèves un `sector` honnête
-     (`"Fonds"`, `"Réglementaire"`) plutôt qu'un secteur de startup : l'app exclut ces
-     catégories de la découverte. `lead` et `deal` sont, eux, toujours considérés comme la
-     startup vedette du jour.
+     plutôt que gravé en dur. À remplir dès que le round est connu. Pour le `deal`, le
+     round vit dans le champ `round` (déjà obligatoire) — pas de `stage` séparé.
+   - **Champ `sector`** : sur chaque **brève** (déjà présent) **et** désormais sur `lead`
+     et `deal` (optionnel) — `"Biotech"`, `"MedTech"`, `"Digital Health"`, `"Diagnostics"`,
+     `"Oncologie"`, `"Pharma"`… Le `lead` ne l'affiche pas (le `kicker` porte déjà le
+     secteur) mais l'app l'utilise pour la découverte ci-dessous. À remplir.
+   - **Découverte automatique de startups** : l'app **enregistre tout seul** dans son
+     répertoire toute `company` de l'édition (`lead`, `deal`, brèves) qu'elle ne connaît pas
+     encore — avec son **secteur** et sa **série** — pour la rendre recherchable/suivable dans
+     « Ajouter un favori » (jamais suivie d'office). Pour ne pas y faire entrer un
+     **investisseur ou un régulateur** (brève sur le nouveau véhicule d'un fonds, décision
+     réglementaire), donne à ces brèves un `sector` honnête (`"Fonds"`, `"Réglementaire"`)
+     plutôt qu'un secteur de startup : l'app exclut ces catégories. `lead` et `deal` sont
+     toujours considérés comme la startup vedette du jour — renseigne donc bien leur `sector`.
 5. **Écrire les deux fichiers** :
    - `edition.json` (l'édition du jour) ;
    - `recent-words.json` **mis à jour** : ajouter `{ "term", "full", "date" }` (date du

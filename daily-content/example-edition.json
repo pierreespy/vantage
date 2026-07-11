@@ -38,13 +38,15 @@
     "deck": "Le tour, mené par Sofinnova avec Jeito Capital et l'EIC Fund, place la biotech parisienne parmi les mieux financées d'Europe en oncologie.",
     "company": "Alderaan Bio",
     "url": "https://sifted.eu/articles/alderaan-bio-series-b-oncologie",
-    "stage": "Series B"
+    "stage": "Series B",
+    "sector": "Oncologie"
   },
   "deal": {
     "company": "CureVac",
     "amount": "$1,3 Md",
     "round": "M&A",
     "thesis": "GSK rachète le pionnier allemand de l'ARNm pour internaliser sa plateforme — cas d'école de consolidation post-Covid.",
+    "sector": "Biotech",
     "url": "https://endpts.com/gsk-acquires-curevac-mrna-deal"
   },
   "brefsEurope": [

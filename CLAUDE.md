@@ -24,9 +24,11 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
 - **Favoris** = état partagé et persisté via `src/state/favorites.tsx` (AsyncStorage) ;
   catalogue de startups dans `src/data/favoris.ts` (propre à l'utilisateur, hors édition).
   Le répertoire recherchable s'enrichit tout seul : toute société du Journal absente du
-  catalogue est mémorisée par `EditionProvider` (`discoveredStartups`, persisté) et
-  fusionnée dans « Ajouter un favori » — jamais suivie d'office. Les brèves de secteur
-  `Fonds`/`Réglementaire` (investisseurs, régulateurs) sont exclues de cette découverte.
+  catalogue est mémorisée par `EditionProvider` (`discoveredStartups`, persisté) avec son
+  **secteur et sa série**, puis fusionnée dans « Ajouter un favori » — jamais suivie
+  d'office. Les brèves de secteur `Fonds`/`Réglementaire` (investisseurs, régulateurs) sont
+  exclues. Le secteur du lead/deal vient de leur champ `sector` (`Lead`/`Deal` dans
+  `types.ts`), le kicker ne servant qu'à l'affichage.
 - **Ops / « boîte aux lettres » hors de ce dépôt** : les routines quotidiennes
   (Journal + Favoris news), le code d'accès du jour et le backend de remontée anonyme
   (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt

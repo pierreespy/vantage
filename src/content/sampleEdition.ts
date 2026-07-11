@@ -25,6 +25,7 @@ export const sampleEdition: Edition = {
     deck: 'Le tour, mené par Sofinnova avec Jeito Capital et l’EIC Fund, place la biotech parisienne parmi les mieux financées d’Europe en oncologie.',
     company: 'Alderaan Bio',
     stage: 'Series B',
+    sector: 'Oncologie',
     url: 'https://sifted.eu',
   },
 
@@ -33,6 +34,7 @@ export const sampleEdition: Edition = {
     amount: '$1,3 Md',
     round: 'M&A',
     thesis: 'GSK rachète le pionnier allemand de l’ARNm pour internaliser sa plateforme — cas d’école de consolidation post-Covid.',
+    sector: 'Biotech',
     url: 'https://endpts.com',
   },
 

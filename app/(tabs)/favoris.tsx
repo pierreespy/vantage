@@ -151,7 +151,7 @@ export default function FavorisScreen() {
       .map((name) => {
         const disc = discoveredStartups.find((d) => d.name === name);
         const base = startupByName(name) ?? { name, sector: disc?.sector ?? '', news: [] };
-        return { ...base, stage: base.stage ?? stageOf(name) };
+        return { ...base, stage: base.stage ?? disc?.stage ?? stageOf(name) };
       })
       .filter((s) => sector === 'Toutes' || s.sector === sector);
   }, [followed, sector, stageOf, discoveredStartups]);
@@ -534,12 +534,13 @@ function AddFavoriteSheet({
 
   // Searchable set = built-in catalog + startups the journal introduced (discovered) +
   // the user's manually-added startups. First writer wins per name, so the catalog's
-  // sector is authoritative; discoveries only ever add startups the catalog lacks.
+  // data is authoritative; discoveries only ever add startups the catalog lacks. Each
+  // entry carries its sector and funding stage when known.
   const allStartups = useMemo(() => {
-    const byKey = new Map<string, { name: string; sector: string }>();
-    const add = (c: { name: string; sector: string }) => {
+    const byKey = new Map<string, { name: string; sector: string; stage?: string }>();
+    const add = (c: { name: string; sector: string; stage?: string }) => {
       const key = c.name.toLowerCase();
-      if (!byKey.has(key)) byKey.set(key, { name: c.name, sector: c.sector });
+      if (!byKey.has(key)) byKey.set(key, { name: c.name, sector: c.sector, stage: c.stage });
     };
     for (const c of catalog) add(c);
     for (const c of discoveredStartups) add(c);
@@ -633,7 +634,16 @@ function AddFavoriteSheet({
                 <View key={c.name} style={styles.candRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.candName}>{c.name}</Text>
-                    {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
+                    {c.sector || c.stage ? (
+                      <View style={styles.candMeta}>
+                        {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
+                        {c.stage ? (
+                          <View style={styles.candStageBadge}>
+                            <Text style={styles.candStageText}>{c.stage}</Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    ) : null}
                   </View>
                   <Pressable
                     onPress={() => {
@@ -1133,13 +1143,26 @@ const styles = StyleSheet.create({
     color: colors.ink,
     lineHeight: 17,
   },
+  candMeta: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 3 },
   candSector: {
     fontFamily: fonts.archivoSemi,
     fontSize: 10,
     letterSpacing: 0.3,
     textTransform: 'uppercase',
     color: colors.accent,
-    marginTop: 2,
+  },
+  candStageBadge: {
+    backgroundColor: colors.ink,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 3,
+  },
+  candStageText: {
+    fontFamily: fonts.mono,
+    fontSize: 8.5,
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+    color: colors.paper,
   },
   followBtn: {
     paddingHorizontal: 15,

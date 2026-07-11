@@ -34,7 +34,7 @@ import { editionCompanies, editionStages, isEdition, type Edition } from './type
 
 const CACHE_KEY = 'vantage.edition.v1';
 const STAGES_KEY = 'vantage.stages.v1';
-const DISCOVERED_KEY = 'vantage.discoveredStartups.v1';
+const DISCOVERED_KEY = 'vantage.discoveredStartups.v2';
 
 /** Names the app already knows statically — a company in here is NOT a discovery. */
 const KNOWN = new Set(catalog.map((s) => s.name.toLowerCase()));
@@ -56,8 +56,12 @@ const NON_STARTUP_SECTORS = new Set([
   'regulateur',
 ]);
 
-/** A startup the app knows about: name + sector (sector may be '' when unknown). */
-export type DirectoryStartup = { name: string; sector: string };
+/** A startup the app knows about: name + sector + funding stage. `sector` may be '' and
+ *  `stage` undefined when the journal didn't say. */
+export type DirectoryStartup = { name: string; sector: string; stage?: string };
+
+/** What we persist per discovered startup: its sector and funding stage as last seen. */
+type Discovery = { sector: string; stage?: string };
 
 export type EditionSource = 'sample' | 'cache' | 'live';
 
@@ -72,7 +76,8 @@ type EditionContextValue = {
   /** Funding stage known for a company (from any edition seen), or undefined. */
   stageOf: (name: string) => string | undefined;
   /** Startups the journal introduced that aren't in the built-in catalog, accumulated
-   *  across every edition seen. They extend the searchable directory. */
+   *  across every edition seen — each with its sector and funding stage. They extend the
+   *  searchable directory. */
   discoveredStartups: DirectoryStartup[];
 };
 
@@ -86,8 +91,8 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
   const [stages, setStages] = useState<Record<string, string>>({});
   const [stagesHydrated, setStagesHydrated] = useState(false);
 
-  // Startups discovered via the journal (name → sector), accumulated across editions.
-  const [discovered, setDiscovered] = useState<Record<string, string>>({});
+  // Startups discovered via the journal (name → {sector, stage}), accumulated across editions.
+  const [discovered, setDiscovered] = useState<Record<string, Discovery>>({});
   const [discoveredHydrated, setDiscoveredHydrated] = useState(false);
 
   // Warm up edition from cache immediately, so a cold offline start shows the last edition.
@@ -132,22 +137,36 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(STAGES_KEY, JSON.stringify(stages)).catch(() => {});
   }, [stages, stagesHydrated]);
 
-  // Load the accumulated discovered-startups map once.
+  // Load the accumulated discovered-startups map once. Normalize each entry to
+  // { sector, stage } — tolerating a legacy bare-string sector — so a malformed store
+  // can't poison the directory.
   useEffect(() => {
     AsyncStorage.getItem(DISCOVERED_KEY)
       .then((raw) => {
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === 'object') setDiscovered(parsed);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return;
+        const out: Record<string, Discovery> = {};
+        for (const [name, v] of Object.entries(parsed)) {
+          if (typeof v === 'string') out[name] = { sector: v };
+          else if (v && typeof v === 'object') {
+            const o = v as Record<string, unknown>;
+            out[name] = {
+              sector: typeof o.sector === 'string' ? o.sector : '',
+              stage: typeof o.stage === 'string' ? o.stage : undefined,
+            };
+          }
         }
+        setDiscovered(out);
       })
       .catch(() => {})
       .finally(() => setDiscoveredHydrated(true));
   }, []);
 
   // Fold each edition's companies into the discovered map: keep any name the journal
-  // mentions that the built-in catalog doesn't already have. A stored non-empty sector
-  // is never overwritten by a later edition that mentions the company without one.
+  // mentions that the built-in catalog doesn't already have, recording its sector AND
+  // funding stage. A stored non-empty sector/stage is never overwritten by a later
+  // edition that mentions the company without one (the two fields fill independently).
   useEffect(() => {
     if (!discoveredHydrated) return;
     const companies = editionCompanies(edition);
@@ -155,14 +174,21 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     setDiscovered((prev) => {
       let changed = false;
       const next = { ...prev };
-      for (const { name, sector } of companies) {
+      for (const { name, sector, stage } of companies) {
         if (KNOWN.has(name.toLowerCase())) continue; // already a catalog startup
         if (NON_STARTUP_SECTORS.has(sector.trim().toLowerCase())) continue; // fund/regulator, not a startup
         // Mirror the backend's 80-char cap so a discovered name stays reportable if followed.
         if (name.length > 80) continue;
         const existing = next[name];
-        if (existing === undefined || (!existing && sector)) {
-          next[name] = sector;
+        if (!existing) {
+          next[name] = { sector, stage };
+          changed = true;
+          continue;
+        }
+        const mergedSector = !existing.sector && sector ? sector : existing.sector;
+        const mergedStage = !existing.stage && stage ? stage : existing.stage;
+        if (mergedSector !== existing.sector || mergedStage !== existing.stage) {
+          next[name] = { sector: mergedSector, stage: mergedStage };
           changed = true;
         }
       }
@@ -201,7 +227,7 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
   const stageOf = useCallback((name: string) => stages[name], [stages]);
 
   const discoveredStartups = useMemo<DirectoryStartup[]>(
-    () => Object.entries(discovered).map(([name, sector]) => ({ name, sector })),
+    () => Object.entries(discovered).map(([name, v]) => ({ name, sector: v.sector, stage: v.stage })),
     [discovered]
   );
 
