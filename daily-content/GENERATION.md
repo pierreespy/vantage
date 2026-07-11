@@ -78,6 +78,14 @@ d'investissement, due diligence, actu de deal). Règles, dans l'ordre :
      `"IPO"`…). L'app **mémorise** ce stade par société et l'affiche sur la carte Favoris.
      Ainsi le stade reste **dynamique et exact** (mis à jour à chaque nouvelle levée),
      plutôt que gravé en dur. À remplir dès que le round est connu.
+   - **Champ `company` + `sector`** (brèves) : l'app **enregistre automatiquement** dans son
+     répertoire de startups toute `company` qui apparaît dans l'édition et qu'elle ne connaît
+     pas encore — elle devient recherchable/suivable dans « Ajouter un favori ». Pour éviter
+     d'y faire entrer un **investisseur ou un régulateur** (une brève sur le nouveau véhicule
+     d'un fonds, une décision réglementaire), donne à ces brèves un `sector` honnête
+     (`"Fonds"`, `"Réglementaire"`) plutôt qu'un secteur de startup : l'app exclut ces
+     catégories de la découverte. `lead` et `deal` sont, eux, toujours considérés comme la
+     startup vedette du jour.
 5. **Écrire les deux fichiers** :
    - `edition.json` (l'édition du jour) ;
    - `recent-words.json` **mis à jour** : ajouter `{ "term", "full", "date" }` (date du

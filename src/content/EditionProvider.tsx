@@ -11,6 +11,11 @@
  * followed startup keeps showing its round (Series A/B…) even after it leaves the
  * news — the "dynamic stage via the journal" model.
  *
+ * In the same spirit it accumulates the startups the journal introduces that aren't in
+ * the built-in catalog (`discoveredStartups`): whenever a company appears in an edition
+ * without being known to the app, it's remembered here so it joins the searchable
+ * directory in "Ajouter un favori" — never auto-followed, just made findable.
+ *
  * Exposed app-wide so every screen reads the same edition.
  */
 import React, {
@@ -23,11 +28,36 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { config } from '@/config';
+import { catalog } from '@/data/favoris';
 import { sampleEdition } from './sampleEdition';
-import { editionStages, isEdition, type Edition } from './types';
+import { editionCompanies, editionStages, isEdition, type Edition } from './types';
 
 const CACHE_KEY = 'vantage.edition.v1';
 const STAGES_KEY = 'vantage.stages.v1';
+const DISCOVERED_KEY = 'vantage.discoveredStartups.v1';
+
+/** Names the app already knows statically — a company in here is NOT a discovery. */
+const KNOWN = new Set(catalog.map((s) => s.name.toLowerCase()));
+
+/** A brève's `company` is the subject of the story — usually a startup, but sometimes an
+ *  investor or a regulator (a fund's new vehicle, a regulatory ruling). We only want
+ *  startups in the directory, so we drop the subjects whose sector marks them as not one.
+ *  This is a best-effort filter on the structured sector; a non-startup mislabeled with a
+ *  startup sector can still slip through. The lead and deal carry no sector and are always
+ *  kept (they're the day's featured startup). */
+const NON_STARTUP_SECTORS = new Set([
+  'fonds',
+  'fund',
+  'réglementaire',
+  'reglementaire',
+  'réglementation',
+  'reglementation',
+  'régulateur',
+  'regulateur',
+]);
+
+/** A startup the app knows about: name + sector (sector may be '' when unknown). */
+export type DirectoryStartup = { name: string; sector: string };
 
 export type EditionSource = 'sample' | 'cache' | 'live';
 
@@ -41,6 +71,9 @@ type EditionContextValue = {
   refresh: () => Promise<void>;
   /** Funding stage known for a company (from any edition seen), or undefined. */
   stageOf: (name: string) => string | undefined;
+  /** Startups the journal introduced that aren't in the built-in catalog, accumulated
+   *  across every edition seen. They extend the searchable directory. */
+  discoveredStartups: DirectoryStartup[];
 };
 
 const EditionContext = createContext<EditionContextValue | null>(null);
@@ -52,6 +85,10 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
 
   const [stages, setStages] = useState<Record<string, string>>({});
   const [stagesHydrated, setStagesHydrated] = useState(false);
+
+  // Startups discovered via the journal (name → sector), accumulated across editions.
+  const [discovered, setDiscovered] = useState<Record<string, string>>({});
+  const [discoveredHydrated, setDiscoveredHydrated] = useState(false);
 
   // Warm up edition from cache immediately, so a cold offline start shows the last edition.
   useEffect(() => {
@@ -95,6 +132,50 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(STAGES_KEY, JSON.stringify(stages)).catch(() => {});
   }, [stages, stagesHydrated]);
 
+  // Load the accumulated discovered-startups map once.
+  useEffect(() => {
+    AsyncStorage.getItem(DISCOVERED_KEY)
+      .then((raw) => {
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === 'object') setDiscovered(parsed);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setDiscoveredHydrated(true));
+  }, []);
+
+  // Fold each edition's companies into the discovered map: keep any name the journal
+  // mentions that the built-in catalog doesn't already have. A stored non-empty sector
+  // is never overwritten by a later edition that mentions the company without one.
+  useEffect(() => {
+    if (!discoveredHydrated) return;
+    const companies = editionCompanies(edition);
+    if (companies.length === 0) return;
+    setDiscovered((prev) => {
+      let changed = false;
+      const next = { ...prev };
+      for (const { name, sector } of companies) {
+        if (KNOWN.has(name.toLowerCase())) continue; // already a catalog startup
+        if (NON_STARTUP_SECTORS.has(sector.trim().toLowerCase())) continue; // fund/regulator, not a startup
+        // Mirror the backend's 80-char cap so a discovered name stays reportable if followed.
+        if (name.length > 80) continue;
+        const existing = next[name];
+        if (existing === undefined || (!existing && sector)) {
+          next[name] = sector;
+          changed = true;
+        }
+      }
+      return changed ? next : prev;
+    });
+  }, [edition, discoveredHydrated]);
+
+  // Persist the discovered map when it changes.
+  useEffect(() => {
+    if (!discoveredHydrated) return;
+    AsyncStorage.setItem(DISCOVERED_KEY, JSON.stringify(discovered)).catch(() => {});
+  }, [discovered, discoveredHydrated]);
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
@@ -119,9 +200,14 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
 
   const stageOf = useCallback((name: string) => stages[name], [stages]);
 
+  const discoveredStartups = useMemo<DirectoryStartup[]>(
+    () => Object.entries(discovered).map(([name, sector]) => ({ name, sector })),
+    [discovered]
+  );
+
   const value = useMemo<EditionContextValue>(
-    () => ({ edition, source, loading, refresh, stageOf }),
-    [edition, source, loading, refresh, stageOf]
+    () => ({ edition, source, loading, refresh, stageOf, discoveredStartups }),
+    [edition, source, loading, refresh, stageOf, discoveredStartups]
   );
 
   return <EditionContext.Provider value={value}>{children}</EditionContext.Provider>;

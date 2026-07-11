@@ -102,6 +102,24 @@ export function editionStages(e: Edition): Record<string, string> {
   return out;
 }
 
+/** Every company mentioned in one edition (lead, deal, brefs), with its sector when
+ *  known. Only the brèves carry a sector; the lead and deal don't, so those come back
+ *  with `''`. When the same company appears twice, the non-empty sector wins. Feeds the
+ *  "startups the journal introduced" discovery into the searchable directory. */
+export function editionCompanies(e: Edition): { name: string; sector: string }[] {
+  const bySector = new Map<string, string>();
+  const put = (name?: string, sector = '') => {
+    if (!name) return;
+    const prev = bySector.get(name);
+    if (prev === undefined || (!prev && sector)) bySector.set(name, sector);
+  };
+  put(e.lead?.company);
+  put(e.deal?.company);
+  for (const b of e.brefsEurope ?? []) put(b.company, b.sector);
+  for (const b of e.brefsIntl ?? []) put(b.company, b.sector);
+  return Array.from(bySector, ([name, sector]) => ({ name, sector }));
+}
+
 /** Minimal runtime check that a fetched object looks like an Edition. */
 export function isEdition(value: unknown): value is Edition {
   if (!value || typeof value !== 'object') return false;

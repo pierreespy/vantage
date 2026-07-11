@@ -23,6 +23,10 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   les couleurs/polices en dur dans les écrans.
 - **Favoris** = état partagé et persisté via `src/state/favorites.tsx` (AsyncStorage) ;
   catalogue de startups dans `src/data/favoris.ts` (propre à l'utilisateur, hors édition).
+  Le répertoire recherchable s'enrichit tout seul : toute société du Journal absente du
+  catalogue est mémorisée par `EditionProvider` (`discoveredStartups`, persisté) et
+  fusionnée dans « Ajouter un favori » — jamais suivie d'office. Les brèves de secteur
+  `Fonds`/`Réglementaire` (investisseurs, régulateurs) sont exclues de cette découverte.
 - **Ops / « boîte aux lettres » hors de ce dépôt** : les routines quotidiennes
   (Journal + Favoris news), le code d'accès du jour et le backend de remontée anonyme
   (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt

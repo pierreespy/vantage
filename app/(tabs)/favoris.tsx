@@ -115,7 +115,7 @@ export default function FavorisScreen() {
   const { followed, isFollowed, toggle, customStartups, addCustomStartup, limit, tier, unlockExtended } =
     useFavorites();
   const { consent, reset } = useFavoritesSync();
-  const { stageOf } = useEdition();
+  const { stageOf, discoveredStartups } = useEdition();
   const access = useAccess();
 
   // Reset the anonymous reporting: blank the shared doc, wipe local favorites + consent.
@@ -144,15 +144,17 @@ export default function FavorisScreen() {
 
   // Every followed startup gets a card, in the order it was added. Ones we have data
   // for show their sector/news; the stage badge is filled from seeded data or, if
-  // absent, from what the journal has reported for that company (dynamic stage).
+  // absent, from what the journal has reported for that company (dynamic stage). A
+  // startup the journal introduced (not in the catalog) borrows its sector from there.
   const cards = useMemo<Startup[]>(() => {
     return followed
       .map((name) => {
-        const base = startupByName(name) ?? { name, sector: '', news: [] };
+        const disc = discoveredStartups.find((d) => d.name === name);
+        const base = startupByName(name) ?? { name, sector: disc?.sector ?? '', news: [] };
         return { ...base, stage: base.stage ?? stageOf(name) };
       })
       .filter((s) => sector === 'Toutes' || s.sector === sector);
-  }, [followed, sector, stageOf]);
+  }, [followed, sector, stageOf, discoveredStartups]);
 
   // How many more startups the extended tier would unlock (drives the upsell card).
   const remaining = Math.max(0, EXTENDED_LIMIT - followed.length);
@@ -526,17 +528,24 @@ function AddFavoriteSheet({
   tier: Tier;
 }) {
   const { translateY, panHandlers } = useSheetDrag(visible, onClose);
+  const { discoveredStartups } = useEdition();
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
 
-  // Searchable set = built-in catalog + the user's manually-added startups.
+  // Searchable set = built-in catalog + startups the journal introduced (discovered) +
+  // the user's manually-added startups. First writer wins per name, so the catalog's
+  // sector is authoritative; discoveries only ever add startups the catalog lacks.
   const allStartups = useMemo(() => {
     const byKey = new Map<string, { name: string; sector: string }>();
-    for (const c of catalog) byKey.set(c.name.toLowerCase(), { name: c.name, sector: c.sector });
-    for (const c of customStartups)
-      if (!byKey.has(c.name.toLowerCase())) byKey.set(c.name.toLowerCase(), { name: c.name, sector: c.sector });
+    const add = (c: { name: string; sector: string }) => {
+      const key = c.name.toLowerCase();
+      if (!byKey.has(key)) byKey.set(key, { name: c.name, sector: c.sector });
+    };
+    for (const c of catalog) add(c);
+    for (const c of discoveredStartups) add(c);
+    for (const c of customStartups) add(c);
     return Array.from(byKey.values());
-  }, [customStartups]);
+  }, [customStartups, discoveredStartups]);
 
   const matches = useMemo(() => {
     const base = q
