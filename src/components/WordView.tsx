@@ -36,8 +36,11 @@ export function WordView({ word }: { word: Word }) {
       {/* HERO */}
       <View style={styles.hero}>
         <View style={styles.heroBar}>
-          <Text style={styles.heroBarLabel}>Vulgarisé</Text>
-          <Text style={styles.heroBarField}>{word.field}</Text>
+          <Text style={styles.heroBarLabel}>Décrypté</Text>
+          {/* Catégorie principale seule (1er segment avant « · ») pour tenir dans le bandeau. */}
+          <Text style={styles.heroBarField} numberOfLines={1}>
+            {word.field.split('·')[0].trim()}
+          </Text>
         </View>
         <View style={styles.heroBody}>
           <Text style={styles.term}>{word.term}</Text>
@@ -112,6 +115,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 10,
   },
   heroBarLabel: {
     fontFamily: fonts.archivoBold,
@@ -119,6 +123,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     textTransform: 'uppercase',
     color: colors.paper,
+    flexShrink: 0,
   },
   heroBarField: {
     fontFamily: fonts.mono,
@@ -126,6 +131,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     color: colors.paper,
     opacity: 0.8,
+    flexShrink: 1,
+    textAlign: 'right',
   },
   heroBody: { paddingHorizontal: 16, paddingTop: 18, paddingBottom: 16 },
   term: {
