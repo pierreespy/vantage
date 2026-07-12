@@ -58,7 +58,7 @@ function contentHeight(data: ShareCardData): number {
   }
   if (data.type === 'breve') {
     return (
-      estBlock(data.kicker, 30, 39, 30, 3.6) +
+      estBlock(data.kicker, 22, 29, 28, 2.4) +
       cappedLines(data.title, 78, 3) * 81 + 34 +
       estBlock(data.summary, 40, 58)
     );
@@ -152,8 +152,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
   },
 
-  // header (ours)
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
+  // header (ours) — align tops so the App Store badge sits at the masthead's level
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
   masthead: {
     fontFamily: fonts.serifBold,
     fontSize: 32,
@@ -186,7 +186,8 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     marginBottom: 26,
   },
-  kickerBreve: { marginBottom: 30 },
+  // brève kicker smaller than the deal one, so the red rubric leaves more room for the title
+  kickerBreve: { fontSize: 22, letterSpacing: 2.4, marginBottom: 28 },
 
   // deal
   company: {
