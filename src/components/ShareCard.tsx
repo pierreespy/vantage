@@ -41,26 +41,31 @@ function estBlock(text: string, fontSize: number, lineHeight: number, marginBott
   return estLines(text, fontSize, letterSpacing) * lineHeight + marginBottom;
 }
 
+/** Line count for a headline, capped like its numberOfLines (it shrinks to fit, not wraps further). */
+function cappedLines(text: string, fontSize: number, max: number, letterSpacing = 0): number {
+  return Math.min(max, estLines(text, fontSize, letterSpacing));
+}
+
 /** Estimate the natural height of a card's content, so we can scale it to always fit. */
 function contentHeight(data: ShareCardData): number {
   if (data.type === 'deal') {
     return (
       estBlock(data.kicker, 30, 39, 26, 3.6) +
-      estBlock(data.company, 104, 98, 30) +
-      estBlock(data.amount, 132, 119, 40) +
+      cappedLines(data.company, 104, 2) * 104 + 30 +
+      cappedLines(data.amount, 132, 2) * 132 + 40 +
       estBlock(data.thesis, 42, 59)
     );
   }
   if (data.type === 'breve') {
     return (
       estBlock(data.kicker, 30, 39, 30, 3.6) +
-      estBlock(data.title, 78, 81, 34) +
+      cappedLines(data.title, 78, 3) * 81 + 34 +
       estBlock(data.summary, 40, 58)
     );
   }
   return (
     estBlock('Le mot du jour', 30, 39, 20, 3.6) +
-    estBlock(data.term, 150, 150) +
+    cappedLines(data.term, 150, 2) * 150 +
     estBlock(data.full, 40, 48, 18) +
     estBlock(data.fr, 38, 46, 34) +
     31 + // motRule + its margin
@@ -102,20 +107,20 @@ export function ShareCard({ data }: { data: ShareCardData }) {
           {data.type === 'deal' ? (
             <>
               <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
-              <Text style={styles.company}>{data.company}</Text>
-              <Text style={styles.amount}>{data.amount}</Text>
+              <Text style={styles.company} numberOfLines={2} adjustsFontSizeToFit>{data.company}</Text>
+              <Text style={styles.amount} numberOfLines={2} adjustsFontSizeToFit>{data.amount}</Text>
               <Text style={styles.thesis}>{data.thesis}</Text>
             </>
           ) : data.type === 'breve' ? (
             <>
               <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
-              <Text style={styles.breveTitle}>{data.title}</Text>
+              <Text style={styles.breveTitle} numberOfLines={3} adjustsFontSizeToFit>{data.title}</Text>
               <Text style={styles.breveSummary}>{data.summary}</Text>
             </>
           ) : (
             <>
               <Text style={[styles.kicker, { color: colors.accent, marginBottom: 20 }]}>Le mot du jour</Text>
-              <Text style={styles.term}>{data.term}</Text>
+              <Text style={styles.term} numberOfLines={2} adjustsFontSizeToFit>{data.term}</Text>
               <Text style={styles.termFull}>{data.full}</Text>
               <Text style={styles.termFr}>{data.fr}</Text>
               <View style={styles.motRule} />
@@ -187,7 +192,8 @@ const styles = StyleSheet.create({
   company: {
     fontFamily: fonts.serifBold,
     fontSize: 104,
-    lineHeight: 98,
+    // lineHeight >= fontSize so adjustsFontSizeToFit never clips tall glyphs.
+    lineHeight: 104,
     letterSpacing: -1.56,
     color: colors.ink,
     marginBottom: 30,
@@ -195,7 +201,7 @@ const styles = StyleSheet.create({
   amount: {
     fontFamily: fonts.monoSemi,
     fontSize: 132,
-    lineHeight: 119,
+    lineHeight: 132,
     color: colors.accent,
     marginBottom: 40,
   },
