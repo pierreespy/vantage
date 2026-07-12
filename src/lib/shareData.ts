@@ -35,9 +35,7 @@ export function wordCardData(word: Word, dateLong: string): ShareCardData {
   return {
     type: 'mot',
     rubric: 'Mot du jour',
-    // ⚠️ TEST TEMPORAIRE — force un terme long pour vérifier la carte de partage.
-    // À RETIRER (remettre `term: word.term,`) avant tout merge sur main.
-    term: 'AI-driven biotech',
+    term: word.term,
     full: word.full,
     fr: word.fr,
     def: word.definition,
