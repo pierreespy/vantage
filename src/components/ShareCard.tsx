@@ -22,6 +22,38 @@ export type ShareCardData =
 /** The 1080×1080 canvas. */
 export const CARD_SIZE = 1080;
 
+/**
+ * Body paragraphs are variable-length; a long deal thesis / brève summary used to
+ * overflow the fixed canvas and bleed over the masthead and footer. We keep the
+ * design's sizes for normal-length copy and step the font down only when the text
+ * would not fit the space left between the (fixed) headline block and the footer.
+ * `avail` is that leftover height in px; tuned against the design's real cards.
+ */
+const BODY = {
+  deal: { fontSize: 42, lineHeight: 59, avail: 380 },
+  breve: { fontSize: 40, lineHeight: 58, avail: 470 },
+  mot: { fontSize: 42, lineHeight: 59, avail: 390 },
+} as const;
+
+/** Estimate a font size that keeps `text` within `avail` px on the 912px-wide card. */
+function fitParagraph(
+  text: string,
+  base: { fontSize: number; lineHeight: number },
+  avail: number,
+): { fontSize: number; lineHeight: number } {
+  const WIDTH = CARD_SIZE - 84 * 2; // content width inside the card padding
+  const CHAR = 0.6; // avg glyph advance as a fraction of font size (serif, FR)
+  const ratio = base.lineHeight / base.fontSize;
+  let size = base.fontSize;
+  while (size > 22) {
+    const perLine = Math.max(1, Math.floor(WIDTH / (size * CHAR)));
+    const lines = Math.ceil(text.length / perLine);
+    if (lines * size * ratio <= avail) break;
+    size -= 2;
+  }
+  return { fontSize: size, lineHeight: Math.round(size * ratio) };
+}
+
 function AppStoreBadge() {
   return (
     <View style={styles.badge}>
@@ -53,24 +85,24 @@ export function ShareCard({ data }: { data: ShareCardData }) {
         {data.type === 'deal' ? (
           <>
             <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
-            <Text style={styles.company}>{data.company}</Text>
-            <Text style={styles.amount}>{data.amount}</Text>
-            <Text style={styles.thesis}>{data.thesis}</Text>
+            <Text style={styles.company} numberOfLines={1} adjustsFontSizeToFit>{data.company}</Text>
+            <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>{data.amount}</Text>
+            <Text style={[styles.thesis, fitParagraph(data.thesis, BODY.deal, BODY.deal.avail)]}>{data.thesis}</Text>
           </>
         ) : data.type === 'breve' ? (
           <>
             <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
-            <Text style={styles.breveTitle}>{data.title}</Text>
-            <Text style={styles.breveSummary}>{data.summary}</Text>
+            <Text style={styles.breveTitle} numberOfLines={3} adjustsFontSizeToFit>{data.title}</Text>
+            <Text style={[styles.breveSummary, fitParagraph(data.summary, BODY.breve, BODY.breve.avail)]}>{data.summary}</Text>
           </>
         ) : (
           <>
             <Text style={[styles.kicker, { color: colors.accent, marginBottom: 20 }]}>Le mot du jour</Text>
-            <Text style={styles.term}>{data.term}</Text>
-            <Text style={styles.termFull}>{data.full}</Text>
-            <Text style={styles.termFr}>{data.fr}</Text>
+            <Text style={styles.term} numberOfLines={1} adjustsFontSizeToFit>{data.term}</Text>
+            <Text style={styles.termFull} numberOfLines={2}>{data.full}</Text>
+            <Text style={styles.termFr} numberOfLines={2}>{data.fr}</Text>
             <View style={styles.motRule} />
-            <Text style={styles.def}>{data.def}</Text>
+            <Text style={[styles.def, fitParagraph(data.def, BODY.mot, BODY.mot.avail)]}>{data.def}</Text>
           </>
         )}
       </View>
@@ -121,7 +153,7 @@ const styles = StyleSheet.create({
   headerRule: { height: 2, backgroundColor: colors.ink, marginTop: 30 },
 
   // content
-  content: { flex: 1, justifyContent: 'center', paddingVertical: 40 },
+  content: { flex: 1, justifyContent: 'center', paddingVertical: 40, overflow: 'hidden' },
 
   kicker: {
     fontFamily: fonts.monoSemi,
