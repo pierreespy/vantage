@@ -43,8 +43,10 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (accumulées + persistées). Affiché dans le Journal (`app/(tabs)/index.tsx`) et sur les
   cartes Favoris (`app/(tabs)/favoris.tsx`). Badge en claret pour le distinguer des
   badges secteur (texte accent) et série (fond encre).
-- **Partage (cartes)** : bouton « Partager » sur le Deal du jour, chaque Brève (icône) et
-  le Mot du jour. Génère à la volée une **carte carrée 1080×1080** (`src/components/ShareCard.tsx`,
+- **Partage (cartes)** : bouton « Partager » sur la une (lead, icône), le Deal du jour,
+  chaque Brève (icône) et le Mot du jour. Génère à la volée une **carte carrée 1080×1080**
+  (`src/components/ShareCard.tsx`, types `deal`/`lead`/`breve`/`mot` — le lead réutilise le
+  gabarit brève avec un kicker pétrole,
   d'après la maquette Claude Design « Vantage Share Cards ») rendue **hors-écran** puis
   capturée en PNG (`react-native-view-shot`) et passée à la feuille de partage iOS
   (`expo-sharing`). Orchestré par `ShareProvider` (`src/lib/useShareCard.tsx`) ; le mapping

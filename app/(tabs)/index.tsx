@@ -23,7 +23,7 @@ import { useEdition } from '@/content/EditionProvider';
 import { useFavorites } from '@/state/favorites';
 import { useNotifications } from '@/state/notifications';
 import { useShareCard } from '@/lib/useShareCard';
-import { dealCardData, brefCardData } from '@/lib/shareData';
+import { leadCardData, dealCardData, brefCardData } from '@/lib/shareData';
 import { ShareButton } from '@/components/ShareButton';
 import type { Bref } from '@/content/types';
 import { Ticker } from '@/components/Ticker';
@@ -108,6 +108,10 @@ export default function JournalScreen() {
           <Pressable style={{ flex: 1 }} onPress={() => openArticle(lead.url)} accessibilityRole="link">
             <Text style={styles.leadTitle}>{lead.title}</Text>
           </Pressable>
+          <ShareButton
+            onPress={() => shareCard(leadCardData(lead, edition.dateLong))}
+            disabled={sharing}
+          />
           <Pressable
             onPress={() => onToggleFav(lead.company)}
             accessibilityRole="button"

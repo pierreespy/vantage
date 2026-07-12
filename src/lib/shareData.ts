@@ -2,11 +2,22 @@
  * Builders: edition data → ShareCardData. Keeps the "what goes on the card" mapping
  * in one place, out of the screens. The date is uppercased to match the design's ours.
  */
-import type { Deal, Bref, Word } from '@/content/types';
+import type { Lead, Deal, Bref, Word } from '@/content/types';
 import type { ShareCardData } from '@/components/ShareCard';
 
 const kicker = (...parts: (string | undefined)[]) =>
   parts.filter((p) => p && p.trim()).join(' · ');
+
+export function leadCardData(lead: Lead, dateLong: string): ShareCardData {
+  return {
+    type: 'lead',
+    rubric: 'La une',
+    kicker: lead.kicker,
+    title: lead.title,
+    summary: lead.deck,
+    date: dateLong.toUpperCase(),
+  };
+}
 
 export function dealCardData(deal: Deal, dateLong: string): ShareCardData {
   return {

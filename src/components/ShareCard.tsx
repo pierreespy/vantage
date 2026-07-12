@@ -16,6 +16,7 @@ import { fonts } from '@/fonts';
 
 export type ShareCardData =
   | { type: 'deal'; rubric: string; kicker: string; company: string; amount: string; thesis: string; date: string }
+  | { type: 'lead'; rubric: string; kicker: string; title: string; summary: string; date: string }
   | { type: 'breve'; rubric: string; kicker: string; title: string; summary: string; date: string }
   | { type: 'mot'; rubric: string; term: string; full: string; fr: string; def: string; date: string };
 
@@ -59,6 +60,13 @@ function contentHeight(data: ShareCardData): number {
   if (data.type === 'breve') {
     return (
       estBlock(data.kicker, 22, 29, 28, 2.4) +
+      cappedLines(data.title, 78, 3) * 81 + 34 +
+      estBlock(data.summary, 40, 58)
+    );
+  }
+  if (data.type === 'lead') {
+    return (
+      estBlock(data.kicker, 30, 39, 26, 3.6) +
       cappedLines(data.title, 78, 3) * 81 + 34 +
       estBlock(data.summary, 40, 58)
     );
@@ -111,9 +119,13 @@ export function ShareCard({ data }: { data: ShareCardData }) {
               <Text style={styles.amount} numberOfLines={2} adjustsFontSizeToFit>{data.amount}</Text>
               <Text style={styles.thesis}>{data.thesis}</Text>
             </>
-          ) : data.type === 'breve' ? (
+          ) : data.type === 'breve' || data.type === 'lead' ? (
             <>
-              <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
+              {data.type === 'lead' ? (
+                <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
+              ) : (
+                <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
+              )}
               <Text style={styles.breveTitle} numberOfLines={3} adjustsFontSizeToFit>{data.title}</Text>
               <Text style={styles.breveSummary}>{data.summary}</Text>
             </>
