@@ -24,11 +24,10 @@ export type ShareCardData =
 export const CARD_SIZE = 1080;
 
 /**
- * Content is variable-length (kicker / headline / amount / body), so a busy card can
- * exceed the fixed canvas and bleed over the masthead or footer. Rather than budget
- * each element, we estimate the block's natural height and scale the WHOLE block down
- * uniformly so it always fits — the design's proportions are preserved, short cards
- * stay at full size (scale 1), only dense ones shrink.
+ * Content is variable-length. To keep it left-aligned and full-width (no horizontal
+ * squeeze) while always fitting the fixed square, the block is anchored top-left and only
+ * the body paragraph's font shrinks when a card is dense — headlines keep their design
+ * size. `headlineHeight` estimates what the headlines take so the body gets the rest.
  */
 const CONTENT_WIDTH = CARD_SIZE - 84 * 2; // text wraps within the card padding
 const CONTENT_AVAIL = 660; // height the content block gets (between rule and footer, minus its padding)
@@ -47,38 +46,55 @@ function cappedLines(text: string, fontSize: number, max: number, letterSpacing 
   return Math.min(max, estLines(text, fontSize, letterSpacing));
 }
 
-/** Estimate the natural height of a card's content, so we can scale it to always fit. */
-function contentHeight(data: ShareCardData): number {
+/** Height of everything ABOVE the body paragraph, per card. Headlines are capped in lines
+ *  (they shrink to fit rather than wrap further), so this is a tight upper bound. */
+function headlineHeight(data: ShareCardData): number {
   if (data.type === 'deal') {
     return (
       estBlock(data.kicker, 30, 39, 26, 3.6) +
       cappedLines(data.company, 104, 2) * 104 + 30 +
-      cappedLines(data.amount, 132, 2) * 132 + 40 +
-      estBlock(data.thesis, 42, 59)
+      cappedLines(data.amount, 132, 2) * 132 + 40
     );
   }
   if (data.type === 'breve') {
-    return (
-      estBlock(data.kicker, 22, 29, 28, 2.4) +
-      cappedLines(data.title, 78, 3) * 81 + 34 +
-      estBlock(data.summary, 40, 58)
-    );
+    return estBlock(data.kicker, 22, 29, 28, 2.4) + cappedLines(data.title, 78, 3) * 81 + 34;
   }
   if (data.type === 'lead') {
-    return (
-      estBlock(data.kicker, 30, 39, 26, 3.6) +
-      cappedLines(data.title, 78, 3) * 81 + 34 +
-      estBlock(data.summary, 40, 58)
-    );
+    return estBlock(data.kicker, 30, 39, 26, 3.6) + cappedLines(data.title, 78, 3) * 81 + 34;
   }
   return (
     estBlock('Le mot du jour', 30, 39, 20, 3.6) +
     cappedLines(data.term, 150, 2) * 150 +
     estBlock(data.full, 40, 48, 18) +
     estBlock(data.fr, 38, 46, 34) +
-    31 + // motRule + its margin
-    estBlock(data.def, 42, 59)
+    31 // motRule + its margin
   );
+}
+
+/** Design size of each card's body paragraph. */
+const BODY = {
+  deal: { fontSize: 42, lineHeight: 59 },
+  lead: { fontSize: 40, lineHeight: 58 },
+  breve: { fontSize: 40, lineHeight: 58 },
+  mot: { fontSize: 42, lineHeight: 59 },
+} as const;
+
+/** Shrink ONLY the body font (keeping its line-spacing ratio) so a long paragraph fits
+ *  `avail` px — text stays full-width and left-aligned, never squeezed horizontally.
+ *  Floors at 20px; `height` is the resulting block height (may exceed `avail` at the floor,
+ *  which the caller catches with a last-resort scale). */
+function fitBody(text: string, base: { fontSize: number; lineHeight: number }, avail: number) {
+  const ratio = base.lineHeight / base.fontSize;
+  let size = base.fontSize;
+  let height = base.lineHeight;
+  while (true) {
+    const perLine = Math.max(1, Math.floor(CONTENT_WIDTH / (size * 0.55)));
+    const lines = Math.ceil(text.length / perLine);
+    height = lines * size * ratio;
+    if (height <= avail || size <= 20) break;
+    size -= 2;
+  }
+  return { fontSize: size, lineHeight: Math.round(size * ratio), height };
 }
 
 function AppStoreBadge() {
@@ -96,8 +112,16 @@ function AppStoreBadge() {
 }
 
 export function ShareCard({ data }: { data: ShareCardData }) {
-  // Scale the whole content block so a dense card never overflows the fixed canvas.
-  const scale = Math.min(1, CONTENT_AVAIL / contentHeight(data));
+  // The body paragraph gets whatever height the headlines leave, then its font shrinks to
+  // fit — so the text stays left-aligned and full-width, never squeezed.
+  const bodyText = data.type === 'deal' ? data.thesis : data.type === 'mot' ? data.def : data.summary;
+  const bodyBase = data.type === 'deal' ? BODY.deal : data.type === 'mot' ? BODY.mot : BODY.breve;
+  const headH = headlineHeight(data);
+  const body = fitBody(bodyText, bodyBase, CONTENT_AVAIL - headH);
+  const bodyStyle = { fontSize: body.fontSize, lineHeight: body.lineHeight };
+  // Last resort for a very dense card: if the floored body still overflows, scale the whole
+  // block from the top-left — it stays left-aligned and top-anchored, never re-centered.
+  const scale = Math.min(1, CONTENT_AVAIL / (headH + body.height));
   return (
     <View style={styles.card}>
       {/* EN-TÊTE OURS */}
@@ -109,15 +133,15 @@ export function ShareCard({ data }: { data: ShareCardData }) {
       </View>
       <View style={styles.headerRule} />
 
-      {/* CONTENU — mis à l'échelle pour toujours tenir dans le canvas fixe */}
+      {/* CONTENU — ancré en haut à gauche ; seul le corps rétrécit si l'article est long */}
       <View style={styles.content}>
-        <View style={[styles.contentInner, { transform: [{ scale }] }]}>
+        <View style={[styles.contentInner, { transform: [{ scale }], transformOrigin: 'left top' }]}>
           {data.type === 'deal' ? (
             <>
               <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
               <Text style={styles.company} numberOfLines={2} adjustsFontSizeToFit>{data.company}</Text>
               <Text style={styles.amount} numberOfLines={2} adjustsFontSizeToFit>{data.amount}</Text>
-              <Text style={styles.thesis}>{data.thesis}</Text>
+              <Text style={[styles.thesis, bodyStyle]}>{data.thesis}</Text>
             </>
           ) : data.type === 'breve' || data.type === 'lead' ? (
             <>
@@ -127,7 +151,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
                 <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
               )}
               <Text style={styles.breveTitle} numberOfLines={3} adjustsFontSizeToFit>{data.title}</Text>
-              <Text style={styles.breveSummary}>{data.summary}</Text>
+              <Text style={[styles.breveSummary, bodyStyle]}>{data.summary}</Text>
             </>
           ) : (
             <>
@@ -136,7 +160,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
               <Text style={styles.termFull}>{data.full}</Text>
               <Text style={styles.termFr}>{data.fr}</Text>
               <View style={styles.motRule} />
-              <Text style={styles.def}>{data.def}</Text>
+              <Text style={[styles.def, bodyStyle]}>{data.def}</Text>
             </>
           )}
         </View>
@@ -187,8 +211,9 @@ const styles = StyleSheet.create({
   badgeBig: { fontFamily: fonts.archivoSemi, fontSize: 25, color: colors.paper, lineHeight: 27 },
   headerRule: { height: 2, backgroundColor: colors.ink, marginTop: 30 },
 
-  // content
-  content: { flex: 1, justifyContent: 'center', paddingVertical: 40, overflow: 'hidden' },
+  // content — anchored to the top so a dense card only ever clips at the bottom, never
+  // into the masthead; the body font (fitBody) keeps it fitting.
+  content: { flex: 1, justifyContent: 'flex-start', paddingVertical: 40, overflow: 'hidden' },
   contentInner: { width: '100%' },
 
   kicker: {
