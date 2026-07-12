@@ -53,7 +53,7 @@ function headlineHeight(data: ShareCardData): number {
     return (
       estBlock(data.kicker, 30, 39, 26, 3.6) +
       cappedLines(data.company, 104, 2) * 104 + 30 +
-      cappedLines(data.amount, 132, 2) * 132 + 40
+      amountFont(data.amount) + 40 // amount is kept to one line at its adaptive size
     );
   }
   if (data.type === 'breve') {
@@ -69,6 +69,14 @@ function headlineHeight(data: ShareCardData): number {
     estBlock(data.fr, 38, 46, 34) +
     31 // motRule + its margin
   );
+}
+
+/** The deal amount is a hero number for short values ("1,5 Md$") but shrinks (staying on
+ *  one line) for long compound ones ("€4,2M (acquisition) + €3,1M (levée)"), so it doesn't
+ *  dominate the card and starve the thesis. Capped at the design 132px, floored at 40px. */
+function amountFont(text: string): number {
+  const size = Math.floor(CONTENT_WIDTH / Math.max(1, text.length * 0.6)); // mono ≈ 0.6em/char
+  return Math.max(40, Math.min(132, size));
 }
 
 /** Design size of each card's body paragraph. */
@@ -116,6 +124,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
   // fit — so the text stays left-aligned and full-width, never squeezed.
   const bodyText = data.type === 'deal' ? data.thesis : data.type === 'mot' ? data.def : data.summary;
   const bodyBase = data.type === 'deal' ? BODY.deal : data.type === 'mot' ? BODY.mot : BODY.breve;
+  const amountSize = data.type === 'deal' ? amountFont(data.amount) : 0;
   const headH = headlineHeight(data);
   const body = fitBody(bodyText, bodyBase, CONTENT_AVAIL - headH);
   const bodyStyle = { fontSize: body.fontSize, lineHeight: body.lineHeight };
@@ -140,7 +149,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
             <>
               <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
               <Text style={styles.company} numberOfLines={2} adjustsFontSizeToFit>{data.company}</Text>
-              <Text style={styles.amount} numberOfLines={2} adjustsFontSizeToFit>{data.amount}</Text>
+              <Text style={[styles.amount, { fontSize: amountSize, lineHeight: amountSize }]} numberOfLines={1} adjustsFontSizeToFit>{data.amount}</Text>
               <Text style={[styles.thesis, bodyStyle]}>{data.thesis}</Text>
             </>
           ) : data.type === 'breve' || data.type === 'lead' ? (
