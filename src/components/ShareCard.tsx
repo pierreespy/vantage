@@ -23,35 +23,49 @@ export type ShareCardData =
 export const CARD_SIZE = 1080;
 
 /**
- * Body paragraphs are variable-length; a long deal thesis / brève summary used to
- * overflow the fixed canvas and bleed over the masthead and footer. We keep the
- * design's sizes for normal-length copy and step the font down only when the text
- * would not fit the space left between the (fixed) headline block and the footer.
- * `avail` is that leftover height in px; tuned against the design's real cards.
+ * Content is variable-length (kicker / headline / amount / body), so a busy card can
+ * exceed the fixed canvas and bleed over the masthead or footer. Rather than budget
+ * each element, we estimate the block's natural height and scale the WHOLE block down
+ * uniformly so it always fits — the design's proportions are preserved, short cards
+ * stay at full size (scale 1), only dense ones shrink.
  */
-const BODY = {
-  deal: { fontSize: 42, lineHeight: 59, avail: 380 },
-  breve: { fontSize: 40, lineHeight: 58, avail: 470 },
-  mot: { fontSize: 42, lineHeight: 59, avail: 390 },
-} as const;
+const CONTENT_WIDTH = CARD_SIZE - 84 * 2; // text wraps within the card padding
+const CONTENT_AVAIL = 660; // height the content block gets (between rule and footer, minus its padding)
 
-/** Estimate a font size that keeps `text` within `avail` px on the 912px-wide card. */
-function fitParagraph(
-  text: string,
-  base: { fontSize: number; lineHeight: number },
-  avail: number,
-): { fontSize: number; lineHeight: number } {
-  const WIDTH = CARD_SIZE - 84 * 2; // content width inside the card padding
-  const CHAR = 0.6; // avg glyph advance as a fraction of font size (serif, FR)
-  const ratio = base.lineHeight / base.fontSize;
-  let size = base.fontSize;
-  while (size > 22) {
-    const perLine = Math.max(1, Math.floor(WIDTH / (size * CHAR)));
-    const lines = Math.ceil(text.length / perLine);
-    if (lines * size * ratio <= avail) break;
-    size -= 2;
+/** Rough wrapped-line count for `text` on the fixed-width card (glyph advance ≈ 0.55·size). */
+function estLines(text: string, fontSize: number, letterSpacing = 0): number {
+  const advance = fontSize * 0.55 + Math.max(0, letterSpacing);
+  return Math.max(1, Math.ceil((text.length * advance) / CONTENT_WIDTH));
+}
+function estBlock(text: string, fontSize: number, lineHeight: number, marginBottom = 0, letterSpacing = 0): number {
+  return estLines(text, fontSize, letterSpacing) * lineHeight + marginBottom;
+}
+
+/** Estimate the natural height of a card's content, so we can scale it to always fit. */
+function contentHeight(data: ShareCardData): number {
+  if (data.type === 'deal') {
+    return (
+      estBlock(data.kicker, 30, 39, 26, 3.6) +
+      estBlock(data.company, 104, 98, 30) +
+      estBlock(data.amount, 132, 119, 40) +
+      estBlock(data.thesis, 42, 59)
+    );
   }
-  return { fontSize: size, lineHeight: Math.round(size * ratio) };
+  if (data.type === 'breve') {
+    return (
+      estBlock(data.kicker, 30, 39, 30, 3.6) +
+      estBlock(data.title, 78, 81, 34) +
+      estBlock(data.summary, 40, 58)
+    );
+  }
+  return (
+    estBlock('Le mot du jour', 30, 39, 20, 3.6) +
+    estBlock(data.term, 150, 150) +
+    estBlock(data.full, 40, 48, 18) +
+    estBlock(data.fr, 38, 46, 34) +
+    31 + // motRule + its margin
+    estBlock(data.def, 42, 59)
+  );
 }
 
 function AppStoreBadge() {
@@ -69,6 +83,8 @@ function AppStoreBadge() {
 }
 
 export function ShareCard({ data }: { data: ShareCardData }) {
+  // Scale the whole content block so a dense card never overflows the fixed canvas.
+  const scale = Math.min(1, CONTENT_AVAIL / contentHeight(data));
   return (
     <View style={styles.card}>
       {/* EN-TÊTE OURS */}
@@ -80,31 +96,33 @@ export function ShareCard({ data }: { data: ShareCardData }) {
       </View>
       <View style={styles.headerRule} />
 
-      {/* CONTENU */}
+      {/* CONTENU — mis à l'échelle pour toujours tenir dans le canvas fixe */}
       <View style={styles.content}>
-        {data.type === 'deal' ? (
-          <>
-            <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
-            <Text style={styles.company} numberOfLines={1} adjustsFontSizeToFit>{data.company}</Text>
-            <Text style={styles.amount} numberOfLines={1} adjustsFontSizeToFit>{data.amount}</Text>
-            <Text style={[styles.thesis, fitParagraph(data.thesis, BODY.deal, BODY.deal.avail)]}>{data.thesis}</Text>
-          </>
-        ) : data.type === 'breve' ? (
-          <>
-            <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
-            <Text style={styles.breveTitle} numberOfLines={3} adjustsFontSizeToFit>{data.title}</Text>
-            <Text style={[styles.breveSummary, fitParagraph(data.summary, BODY.breve, BODY.breve.avail)]}>{data.summary}</Text>
-          </>
-        ) : (
-          <>
-            <Text style={[styles.kicker, { color: colors.accent, marginBottom: 20 }]}>Le mot du jour</Text>
-            <Text style={styles.term} numberOfLines={1} adjustsFontSizeToFit>{data.term}</Text>
-            <Text style={styles.termFull} numberOfLines={2}>{data.full}</Text>
-            <Text style={styles.termFr} numberOfLines={2}>{data.fr}</Text>
-            <View style={styles.motRule} />
-            <Text style={[styles.def, fitParagraph(data.def, BODY.mot, BODY.mot.avail)]}>{data.def}</Text>
-          </>
-        )}
+        <View style={[styles.contentInner, { transform: [{ scale }] }]}>
+          {data.type === 'deal' ? (
+            <>
+              <Text style={[styles.kicker, { color: colors.accent }]}>{data.kicker}</Text>
+              <Text style={styles.company}>{data.company}</Text>
+              <Text style={styles.amount}>{data.amount}</Text>
+              <Text style={styles.thesis}>{data.thesis}</Text>
+            </>
+          ) : data.type === 'breve' ? (
+            <>
+              <Text style={[styles.kicker, styles.kickerBreve, { color: colors.claret }]}>{data.kicker}</Text>
+              <Text style={styles.breveTitle}>{data.title}</Text>
+              <Text style={styles.breveSummary}>{data.summary}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={[styles.kicker, { color: colors.accent, marginBottom: 20 }]}>Le mot du jour</Text>
+              <Text style={styles.term}>{data.term}</Text>
+              <Text style={styles.termFull}>{data.full}</Text>
+              <Text style={styles.termFr}>{data.fr}</Text>
+              <View style={styles.motRule} />
+              <Text style={styles.def}>{data.def}</Text>
+            </>
+          )}
+        </View>
       </View>
 
       {/* PIED OURS */}
@@ -154,6 +172,7 @@ const styles = StyleSheet.create({
 
   // content
   content: { flex: 1, justifyContent: 'center', paddingVertical: 40, overflow: 'hidden' },
+  contentInner: { width: '100%' },
 
   kicker: {
     fontFamily: fonts.monoSemi,
@@ -197,7 +216,8 @@ const styles = StyleSheet.create({
   term: {
     fontFamily: fonts.serifBold,
     fontSize: 150,
-    lineHeight: 129,
+    // lineHeight >= fontSize so tall caps aren't clipped at the top on iOS.
+    lineHeight: 150,
     letterSpacing: -3,
     color: colors.ink,
   },
