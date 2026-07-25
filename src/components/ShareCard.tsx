@@ -71,12 +71,12 @@ function headlineHeight(data: ShareCardData): number {
   );
 }
 
-/** The deal amount is a hero number for short values ("1,5 Md$") but shrinks (staying on
- *  one line) for long compound ones ("€4,2M (acquisition) + €3,1M (levée)"), so it doesn't
- *  dominate the card and starve the thesis. Capped at the design 132px, floored at 40px. */
+/** The deal amount is sized like the company name (104px) for short values ("Jusqu'à
+ *  900 M€") and shrinks (staying on one line) for long compound ones ("€4,2M (acquisition)
+ *  + €3,1M (levée)"), so it never dominates the card. Capped at 104px, floored at 40px. */
 function amountFont(text: string): number {
   const size = Math.floor(CONTENT_WIDTH / Math.max(1, text.length * 0.6)); // mono ≈ 0.6em/char
-  return Math.max(40, Math.min(132, size));
+  return Math.max(40, Math.min(104, size));
 }
 
 /** Design size of each card's body paragraph. */
@@ -247,8 +247,9 @@ const styles = StyleSheet.create({
   },
   amount: {
     fontFamily: fonts.monoSemi,
-    fontSize: 132,
-    lineHeight: 132,
+    // sized dynamically (amountFont) to match the company name; these are the max defaults
+    fontSize: 104,
+    lineHeight: 104,
     color: colors.accent,
     marginBottom: 40,
   },
