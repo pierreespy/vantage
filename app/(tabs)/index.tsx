@@ -25,6 +25,7 @@ import { useNotifications } from '@/state/notifications';
 import { useShareCard } from '@/lib/useShareCard';
 import { leadCardData, dealCardData, brefCardData } from '@/lib/shareData';
 import { ShareButton } from '@/components/ShareButton';
+import { SignalBadge } from '@/components/SignalBadge';
 import type { Bref } from '@/content/types';
 import { Ticker } from '@/components/Ticker';
 import { colors, border } from '@/theme';
@@ -101,6 +102,7 @@ export default function JournalScreen() {
 
         {/* LEAD */}
         <View style={styles.kickerRow}>
+          {lead.signalType ? <SignalBadge type={lead.signalType} /> : null}
           <Text style={styles.kicker}>{lead.kicker}</Text>
           {lead.ai || usesAI(lead.company) ? <AiBadge /> : null}
         </View>
@@ -221,6 +223,7 @@ function BrefRow({
   return (
     <View style={styles.bref}>
       <View style={styles.brefMetaRow}>
+        {bref.signalType ? <SignalBadge type={bref.signalType} /> : null}
         <Text style={[styles.brefMeta, { color: accent ? colors.accent : colors.ink60 }]}>
           {bref.place} · {bref.sector}
         </Text>

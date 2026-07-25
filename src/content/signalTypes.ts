@@ -1,22 +1,16 @@
 /**
- * Weak-signal feed — the `signals.json` DATA CONTRACT.
+ * Weak-signal vocabulary — shared enums + labels.
  *
- * A sibling of the daily Edition (edition.json) and per-startup news (startup-news.json).
- * The generation pipeline (see docs/signals-plan.md) publishes ONE shared file: a flat
- * list of Signal objects. The app filters it two ways — by followed favorite (Favoris
- * tab) and by sector / type / strength (the "Signaux" view). The Journal stays curated
- * and does not read this feed.
+ * Signals are NOT a separate feed or screen: they are woven INTO the existing flows.
+ * A Journal brève (`Bref`) and a Favoris news item (`NewsItem`) each carry an optional
+ * `signalType` + `strength`, so the same lists surface early signals (regulatory,
+ * clinical, patents, hires, partnerships) — not just funding/M&A, which are "too late".
  *
- *   { generatedAt: "AAAA-MM-JJ", signals: Signal[] }
- *
- * Beyond funding/M&A, a Signal captures EARLY signals: regulatory milestones, clinical
- * status changes, reimbursement, patents, publications, leadership hires, partnerships.
+ * This module only defines the shared vocabulary; the fields live on Bref / NewsItem.
+ * See docs/signals-plan.md.
  */
 
-/** Sector buckets — medtech is first-class here, not an afterthought. */
-export type SignalSector = 'biotech' | 'medtech' | 'digital_health';
-
-/** What kind of event the signal is. Funding/M&A are kept — they're just two types now. */
+/** What kind of event a signal is. Funding/M&A are kept — they're just two types now. */
 export type SignalType =
   | 'leadership_hire'
   | 'regulatory_milestone'
@@ -32,33 +26,6 @@ export type SignalType =
 /** Indicative signal strength, 1 (faint) to 5 (strong). See the rubric in docs/signals-plan.md. */
 export type SignalStrength = 1 | 2 | 3 | 4 | 5;
 
-/** One captured signal. `date` is the FR display label; `publishedAt` (ISO) drives sort/retention. */
-export type Signal = {
-  /** Company name, exact catalog casing (so the Favoris filter matches). */
-  company: string;
-  sector: SignalSector;
-  type: SignalType;
-  strength: SignalStrength;
-  title: string;
-  summary: string;
-  /** Source name (e.g. "openFDA", "ClinicalTrials.gov", "BusinessWire"). */
-  source: string;
-  url: string;
-  /** FR display date, e.g. "12 juil. 2026". */
-  date: string;
-  /** ISO date AAAA-MM-JJ — sort key and retention window. */
-  publishedAt: string;
-};
-
-/** The whole weak-signal feed. */
-export type SignalsFeed = {
-  /** ISO date AAAA-MM-JJ — freshness label. */
-  generatedAt: string;
-  signals: Signal[];
-};
-
-export const SIGNAL_SECTORS: readonly SignalSector[] = ['biotech', 'medtech', 'digital_health'];
-
 export const SIGNAL_TYPES: readonly SignalType[] = [
   'leadership_hire',
   'regulatory_milestone',
@@ -72,13 +39,7 @@ export const SIGNAL_TYPES: readonly SignalType[] = [
   'acquisition',
 ];
 
-/** Short FR labels for the badges. */
-export const SECTOR_LABELS: Record<SignalSector, string> = {
-  biotech: 'Biotech',
-  medtech: 'MedTech',
-  digital_health: 'Digital Health',
-};
-
+/** Short FR labels for the badge. */
 export const SIGNAL_TYPE_LABELS: Record<SignalType, string> = {
   leadership_hire: 'Dirigeant',
   regulatory_milestone: 'Réglementaire',
@@ -92,33 +53,18 @@ export const SIGNAL_TYPE_LABELS: Record<SignalType, string> = {
   acquisition: 'M&A',
 };
 
-const SECTOR_SET = new Set<string>(SIGNAL_SECTORS);
+/** Funding/M&A are LATE signals ("everyone already sees them"). The rest are the early
+ *  signals we want to surface — the app styles them so they stand out. */
+const LATE_TYPES = new Set<SignalType>(['funding_round', 'acquisition']);
+
+/** True for the early/weak signals (everything except funding & M&A). */
+export function isEarlySignal(type: SignalType): boolean {
+  return !LATE_TYPES.has(type);
+}
+
 const TYPE_SET = new Set<string>(SIGNAL_TYPES);
 
-/** Minimal runtime check that a fetched object looks like a SignalsFeed. */
-export function isSignalsFeed(value: unknown): value is SignalsFeed {
-  if (!value || typeof value !== 'object') return false;
-  const f = value as Record<string, unknown>;
-  if (typeof f.generatedAt !== 'string') return false;
-  if (!Array.isArray(f.signals)) return false;
-  return f.signals.every((s) => {
-    if (!s || typeof s !== 'object') return false;
-    const it = s as Record<string, unknown>;
-    return (
-      typeof it.company === 'string' &&
-      typeof it.sector === 'string' &&
-      SECTOR_SET.has(it.sector) &&
-      typeof it.type === 'string' &&
-      TYPE_SET.has(it.type) &&
-      typeof it.strength === 'number' &&
-      it.strength >= 1 &&
-      it.strength <= 5 &&
-      typeof it.title === 'string' &&
-      typeof it.summary === 'string' &&
-      typeof it.source === 'string' &&
-      typeof it.url === 'string' &&
-      typeof it.date === 'string' &&
-      typeof it.publishedAt === 'string'
-    );
-  });
+/** Runtime guard for a value coming from JSON (edition / news) that should be a SignalType. */
+export function isSignalType(value: unknown): value is SignalType {
+  return typeof value === 'string' && TYPE_SET.has(value);
 }

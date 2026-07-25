@@ -6,6 +6,7 @@
  * have no news yet (the morning generation task fills them in).
  */
 import { startupCatalog } from './startups';
+import type { SignalType, SignalStrength } from '@/content/signalTypes';
 
 export type NewsItem = {
   title: string;
@@ -16,6 +17,11 @@ export type NewsItem = {
   /** ISO AAAA-MM-JJ machine date. Set by the news routine for the 30-day sliding
    *  window + ordering; absent on legacy seeded items. */
   publishedAt?: string;
+  /** Weak-signal metadata: the kind of signal (regulatory, clinical, patent, hire,
+   *  partnership… beyond funding/M&A) and its strength (1-5). Drives the type badge in
+   *  the Favoris feed so early signals stand out; absent on legacy items. */
+  signalType?: SignalType;
+  strength?: SignalStrength;
 };
 export type Startup = { name: string; sector: string; stage?: string; news: NewsItem[] };
 

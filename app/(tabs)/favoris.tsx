@@ -42,6 +42,7 @@ import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 import { hapticError, hapticSuccess } from '@/lib/haptics';
 import { useSheetDrag } from '@/lib/useSheetDrag';
+import { SignalBadge } from '@/components/SignalBadge';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
@@ -353,9 +354,12 @@ function FavoriteCard({ startup }: { startup: Startup }) {
             accessibilityRole="link"
           >
             <Text style={styles.newsTitle}>{n.title}</Text>
-            <Text style={styles.newsMeta}>
-              {n.source} · {n.date}
-            </Text>
+            <View style={styles.newsMetaRow}>
+              {n.signalType ? <SignalBadge type={n.signalType} /> : null}
+              <Text style={styles.newsMeta}>
+                {n.source} · {n.date}
+              </Text>
+            </View>
           </Pressable>
         ))
       )}
@@ -878,13 +882,13 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: colors.ink,
   },
+  newsMetaRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
   newsMeta: {
     fontFamily: fonts.mono,
     fontSize: 9,
     letterSpacing: 0.8,
     textTransform: 'uppercase',
     color: colors.ink50,
-    marginTop: 6,
   },
 
   // upsell (locked)

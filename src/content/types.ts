@@ -9,6 +9,8 @@
  * NOT in the data — the UI derives them — so the daily JSON stays about content.
  */
 
+import type { SignalType, SignalStrength } from './signalTypes';
+
 /** A ticker chip: a fundraise ("lev") or an M&A ("mna"). */
 export type TickerItem = {
   company: string;
@@ -31,6 +33,10 @@ export type Lead = {
   sector?: string;
   /** True when the company's core product is AI-driven — drives the "IA" badge. */
   ai?: boolean;
+  /** Weak-signal metadata: what kind of signal this is and how strong (1-5). Lets the
+   *  front page lead on an EARLY signal (regulatory, clinical…), not only funding/M&A. */
+  signalType?: SignalType;
+  strength?: SignalStrength;
   /** Source article, opened in the system browser. */
   url: string;
 };
@@ -58,6 +64,11 @@ export type Bref = {
   stage?: string;
   /** True when the company's core product is AI-driven — drives the "IA" badge. */
   ai?: boolean;
+  /** Weak-signal metadata: the kind of signal (regulatory, clinical, patent, hire,
+   *  partnership… as well as funding/M&A) and its strength (1-5). Drives the type badge
+   *  and lets early signals be surfaced/ordered ahead of "too late" funding news. */
+  signalType?: SignalType;
+  strength?: SignalStrength;
   title: string;
   summary: string;
   url: string;

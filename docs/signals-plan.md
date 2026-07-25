@@ -14,9 +14,11 @@ Statut : plan figé, exécution par phases. Ce fichier est le référentiel de s
 - **0 €** — que du gratuit : API publiques + RSS + état en git. Aucune source payante
   (STAT, MedTech Insight, enrichissement RH exclus). Pas de Firebase Functions (impose
   Blaze) — l'état vit en JSON dans le dépôt, les jobs tournent en **GitHub Actions**.
-- **Où vivent les signaux** : **Journal court maintenu** (1 une + 1 deal + ≤3 brèves
-  Europe + ≤3 brèves Intl, curé) **+ Favoris** (signaux par startup suivie) **+ nouvelle
-  vue « Signaux »** filtrable (secteur / type / force).
+- **Où vivent les signaux** : **intégrés directement dans les flux existants** — les
+  **brèves du Journal** et les **news des Favoris**. **Pas** de vue ni d'onglet séparés.
+  Chaque item porte un `signalType` (badge) + `strength`. But : capter les signaux **en
+  amont** (avant funding/M&A, qui sont « trop tard »). Journal reste **court/curé** (1 une
+  + 1 deal + ≤3 brèves Europe + ≤3 brèves Intl).
 - **Dirigeants** : **wires officiels uniquement** (BusinessWire / PR Newswire via RSS).
   Pas de LinkedIn (CGU), pas de saisie manuelle.
 
@@ -24,11 +26,13 @@ Statut : plan figé, exécution par phases. Ce fichier est le référentiel de s
 
 - **Moteur déterministe** (nouveau) : scripts Node lancés par une **GitHub Action
   planifiée** dans `vantage-content`. Interrogent les **API publiques**, comparent au
-  dernier état stocké (**diffing**), écrivent `signals.json`. État en git (comme
-  `recent-words.json` / `recent-articles.json`).
-- **Moteur éditorial** (existant) : la routine Claude quotidienne garde la presse/wires
-  (recherche web), rédige le **Journal court**, et fusionne les signaux pertinents dans les
-  Favoris.
+  dernier état stocké (**diffing**), et produisent des **candidats-signaux**. État en git
+  (comme `recent-words.json` / `recent-articles.json`).
+- **Moteur éditorial** (existant) : la routine Claude quotidienne (presse/wires + recherche
+  web) **fusionne les candidats-signaux dans les flux existants** — les **brèves** de
+  `edition.json` (Journal) et `startup-news.json` (Favoris) — en les taguant
+  `signalType` + `strength`. Pas de fichier `signals.json` séparé : les signaux **sont** le
+  contenu des flux.
 
 ### État & diffing (le cœur de la Voie B)
 Dossier `signal-state/` (git) : « ce qu'on savait déjà » par entité —
@@ -62,32 +66,29 @@ essais (`NCT id → dernier statut`), FDA (`company → 510(k)/PMA vus`), brevet
 
 ## Modèle de données
 
-`signals.json` (sibling de `edition.json` / `startup-news.json`), consommé par l'app :
+Pas de flux séparé : les signaux **enrichissent les items existants**. Chaque **brève**
+(`Bref` dans `edition.json`) et chaque **news de startup** (`NewsItem` dans
+`startup-news.json`) portent deux champs optionnels :
 
 ```jsonc
 {
-  "generatedAt": "AAAA-MM-JJ",
-  "signals": [
-    {
-      "company": "Nom exact",
-      "sector": "medtech",            // biotech | medtech | digital_health
-      "type": "regulatory_milestone", // enum ci-dessous
-      "strength": 4,                  // 1..5 (barème ci-dessous)
-      "title": "…", "summary": "…",
-      "source": "openFDA", "url": "https://…",
-      "date": "12 juil. 2026",        // libellé FR
-      "publishedAt": "2026-07-12"     // ISO — tri / rétention
-    }
-  ]
+  "signalType": "regulatory_milestone", // enum ci-dessous
+  "strength": 4                          // 1..5 (barème ci-dessous)
+  // + les champs existants : company, title, summary, sector, url…
 }
 ```
 
-`type` ∈ `leadership_hire | regulatory_milestone | clinical_update | reimbursement |
+`signalType` ∈ `leadership_hire | regulatory_milestone | clinical_update | reimbursement |
 patent_filing | publication_preprint | conference_abstract | early_partnership |
 funding_round | acquisition`.
 
-Touche app : `src/content/signalTypes.ts` (type + validation), un `SignalsProvider`
-(fetch + cache + graine), rendu badges **secteur / type / force**, nouvelle vue « Signaux ».
+Côté app (fait en Phase 0) :
+- `src/content/signalTypes.ts` — vocabulaire partagé (types, labels FR, `isEarlySignal`).
+- `signalType?` + `strength?` ajoutés à `Bref` (`types.ts`), `Lead` et `NewsItem`
+  (`favoris.ts`).
+- `src/components/SignalBadge.tsx` — badge du type, **accent** pour les signaux précoces,
+  **atténué** pour funding/M&A (« trop tard »). Rendu dans le Journal (brèves + une) et
+  dans le flux Favoris.
 
 ## Barème de force
 
@@ -101,9 +102,10 @@ Touche app : `src/content/signalTypes.ts` (type + validation), un `SignalsProvid
 
 ## Phases
 
-- **Phase 0 — Fondations (app + éditorial)** : type `Signal` + validation, `SignalsProvider`,
-  rendu badges (secteur/type/force), **vue « Signaux »** + signaux dans **Favoris**, Journal
-  court réconcilié, **rééquilibrage medtech** dans la routine éditoriale. *Valeur immédiate,
+- **Phase 0 — Fondations (app + éditorial)** : vocabulaire `signalType`/`strength`, champs
+  sur `Bref`/`Lead`/`NewsItem`, `SignalBadge`, **rendu dans le Journal + Favoris**, sample
+  aligné (≤3 brèves, exemples de signaux faibles). Reste à faire : **élargissement +
+  rééquilibrage medtech dans la routine éditoriale** (`vantage-content`). *Valeur immédiate,
   zéro pipeline.*
 - **Phase 1 — Pipeline (cœur B)** : GitHub Action cron + scripts Node + `signal-state/` +
   diffing, sur **openFDA** + **ClinicalTrials.gov** + **EMA (orphelines)** + couche de
