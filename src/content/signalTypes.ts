@@ -8,6 +8,12 @@
  *
  * This module only defines the shared vocabulary; the fields live on Bref / NewsItem.
  * See docs/signals-plan.md.
+ *
+ * `grant_award` and `company_incorporation` were added with the MedTech signal
+ * pipeline (`backend/signals/` in `vantage-content`): an i-Lab/i-PhD/EIC win and
+ * a fresh incorporation are two of the earliest signals that exist, and both are
+ * ingested deterministically. They are early signals, so `isEarlySignal` picks
+ * them up for free.
  */
 
 /** What kind of event a signal is. Funding/M&A are kept — they're just two types now. */
@@ -20,6 +26,8 @@ export type SignalType =
   | 'publication_preprint'
   | 'conference_abstract'
   | 'early_partnership'
+  | 'grant_award'
+  | 'company_incorporation'
   | 'funding_round'
   | 'acquisition';
 
@@ -35,6 +43,8 @@ export const SIGNAL_TYPES: readonly SignalType[] = [
   'publication_preprint',
   'conference_abstract',
   'early_partnership',
+  'grant_award',
+  'company_incorporation',
   'funding_round',
   'acquisition',
 ];
@@ -49,6 +59,8 @@ export const SIGNAL_TYPE_LABELS: Record<SignalType, string> = {
   publication_preprint: 'Publication',
   conference_abstract: 'Congrès',
   early_partnership: 'Partenariat',
+  grant_award: 'Subvention',
+  company_incorporation: 'Création',
   funding_round: 'Levée',
   acquisition: 'M&A',
 };

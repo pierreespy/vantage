@@ -64,6 +64,18 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt
   **`vantage-content`** (`DAILY_PROMPT.md`, `backend/routine/CCR_ROUTINE.md`, `gen-access.mjs`).
   Ce dépôt-ci ne change que pour les vraies MàJ logicielles.
+- **Pipeline « signaux faibles » MedTech** (Phases 1-2 de `docs/signals-plan.md`) : vit lui
+  aussi dans **`vantage-content`** (`backend/signals/`, Node ESM **zéro dépendance**, tests
+  `node:test`, cron GitHub Actions, **0 € d'infra**). Il interroge 6 sources publiques
+  (PubMed, Europe PMC, EPO OPS, ClinicalTrials.gov v2, concours d'innovation, Pappers),
+  compare à l'état stocké (`signal-state/`, **diffing** : un signal n'est émis que s'il est
+  nouveau ou modifié), **réconcilie les entités** (auteur ↔ inventeur ↔ dirigeant, persisté
+  entre runs), **score** (somme pondérée + deux règles-planchers : ≥ 80 chercheur + brevet +
+  société < 6 mois ; ≥ 50 essai sans structure commerciale) et publie `medtech-leads.json`.
+  Côté app, seul le **contrat typé** existe (`src/content/leadTypes.ts`, `config.leadsUrl`) —
+  **aucun écran ne consomme encore les leads** ; ils alimentent la routine éditoriale comme
+  candidats-signaux. Deux `SignalType` ont été ajoutés pour ce pipeline : `grant_award` et
+  `company_incorporation`.
 
 ## Vérifier
 

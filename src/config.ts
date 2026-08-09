@@ -23,6 +23,11 @@ export const config = {
   /** URL of the daily access-code manifest (sibling of contentUrl). Gates the
    *  extended favorites tier; see src/content/accessTypes.ts. */
   accessUrl: 'https://pierreespy.github.io/vantage-content/access.json',
+  /** URL of the scored MedTech leads JSON (sibling of contentUrl), produced by
+   *  the deterministic signal pipeline (`backend/signals/` in vantage-content).
+   *  Contract: src/content/leadTypes.ts. No screen consumes it yet — it is the
+   *  published output of the pipeline and the input the morning routine reads. */
+  leadsUrl: 'https://pierreespy.github.io/vantage-content/medtech-leads.json',
   /** Where users are sent to request the day's access code (LinkedIn).
    *  - `contactLinkedInApp`: deep link opened when the LinkedIn app is installed
    *    (user is already signed in there — no login wall).

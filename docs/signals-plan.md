@@ -7,6 +7,12 @@ changements** (Voie B) et **0 € d'infra**.
 
 Statut : plan figé, exécution par phases. Ce fichier est le référentiel de suivi.
 
+> **Avancement** — Phase 0 ✅ (app). **Phases 1 et 2 ✅** : le pipeline déterministe est
+> livré dans `vantage-content/backend/signals/` (ingestion 6 sources, état + diffing,
+> réconciliation d'entités, scoring, endpoint leads). Voir son
+> [README](https://github.com/pierreespy/vantage-content/blob/main/backend/signals/README.md).
+> Reste : Phase 3 (wires dirigeants) et l'exploitation éditoriale des candidats-signaux.
+
 ## Décisions actées
 
 - **Voie B** — vrai pipeline avec **état stocké + diffing** (détection exacte des
@@ -107,12 +113,43 @@ Côté app (fait en Phase 0) :
   aligné (≤3 brèves, exemples de signaux faibles). Reste à faire : **élargissement +
   rééquilibrage medtech dans la routine éditoriale** (`vantage-content`). *Valeur immédiate,
   zéro pipeline.*
-- **Phase 1 — Pipeline (cœur B)** : GitHub Action cron + scripts Node + `signal-state/` +
-  diffing, sur **openFDA** + **ClinicalTrials.gov** + **EMA (orphelines)** + couche de
-  **matching de noms**.
-- **Phase 2 — Science / IP** : PubMed + bioRxiv/medRxiv + Espacenet/USPTO.
+- **Phase 1 — Pipeline (cœur B)** ✅ : GitHub Action cron (`medtech-signals.yml`) + scripts
+  Node zéro-dépendance (`backend/signals/`) + `signal-state/` + diffing, sur
+  **ClinicalTrials.gov v2** + couche de **matching de noms** (`lib/normalize.mjs` +
+  `resolve/match.mjs`). *Écart au plan initial : openFDA et EMA ne sont pas branchés — le
+  périmètre livré suit le besoin sourcing exprimé (chercheur → brevet → société) plutôt que
+  le seul angle réglementaire. Ils restent à ajouter, chacun = un parseur au contrat
+  `SourceRecord`.*
+- **Phase 2 — Science / IP** ✅ : PubMed (E-utilities) + **Europe PMC** (qui couvre aussi
+  bioRxiv/medRxiv, avec ORCID et affiliations) + **Espacenet/EPO OPS**. *USPTO non branché.*
+- **Phase 2 bis — Amont société (ajout)** ✅ : **concours d'innovation** (i-Lab, i-PhD, EIC,
+  via un adaptateur de flux configurable) et **registre légal** (Pappers), qui ferment le
+  triplet du scoring haute priorité.
 - **Phase 3 — Dirigeants & vue dédiée** : wires RSS (BusinessWire…), polish de la vue.
 - **Continu** : presse via recherche web (éditorial), durcissement dédup/rétention.
+
+## Ce que le pipeline produit
+
+`medtech-leads.json` — des **leads scorés** (personne ou société) portant le détail des
+signaux qui ont déclenché le score. Deux règles garantissent les seuils, appliquées en
+**plancher** (`max(score, plancher)`) et non en remplacement :
+
+| Règle | Motif | Plancher |
+|---|---|---|
+| `researcher_patent_newco` | auteur/chercheur + brevet déposé + société créée **< 6 mois** | **80** |
+| `new_trial_no_company` | nouvel essai ClinicalTrials **sans structure commerciale** identifiée | **50** |
+
+Exposé de deux façons, même cœur de requête : le **fichier statique** (chemin de prod,
+0 €, comme `edition.json`) et `GET /api/medtech/leads` (`min_score`, `pays`, `mots-clés`,
+plage de dates, pagination) pour l'usage local/CI. Contrat typé côté app :
+`src/content/leadTypes.ts`.
+
+> **Risque n°1 (matching de noms) — traité.** `lib/normalize.mjs` ramène « Dupont JM »
+> (PubMed), « DUPONT JEAN-MARC [FR] » (EPO) et « Jean-Marc Dupont » (Pappers) à la même
+> clé ; `resolve/match.mjs` arbitre les paires avec un biais assumé vers la **précision**
+> (un faux positif fabrique un lead, ce qui est pire qu'en rater un) ; les entités sont
+> **persistées entre runs**, sans quoi une publication de mars, un brevet de mai et une
+> création de juin ne pourraient jamais se rencontrer.
 
 ## Risques
 
