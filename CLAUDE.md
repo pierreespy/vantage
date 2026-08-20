@@ -67,7 +67,8 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
 - **Pipeline « signaux faibles » MedTech** (Phases 1-2 de `docs/signals-plan.md`) : vit lui
   aussi dans **`vantage-content`** (`backend/signals/`, Node ESM **zéro dépendance**, tests
   `node:test`, cron GitHub Actions, **0 € d'infra**). Il interroge 6 sources publiques
-  (PubMed, Europe PMC, EPO OPS, ClinicalTrials.gov v2, concours d'innovation, Pappers),
+  (PubMed, Europe PMC, EPO OPS, ClinicalTrials.gov v2, concours d'innovation, INPI/RNE —
+  Pappers, payant, reste disponible hors liste par défaut),
   compare à l'état stocké (`signal-state/`, **diffing** : un signal n'est émis que s'il est
   nouveau ou modifié), **réconcilie les entités** (auteur ↔ inventeur ↔ dirigeant, persisté
   entre runs), **score** (somme pondérée + deux règles-planchers : ≥ 80 chercheur + brevet +

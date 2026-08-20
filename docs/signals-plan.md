@@ -123,8 +123,11 @@ Côté app (fait en Phase 0) :
 - **Phase 2 — Science / IP** ✅ : PubMed (E-utilities) + **Europe PMC** (qui couvre aussi
   bioRxiv/medRxiv, avec ORCID et affiliations) + **Espacenet/EPO OPS**. *USPTO non branché.*
 - **Phase 2 bis — Amont société (ajout)** ✅ : **concours d'innovation** (i-Lab, i-PhD, EIC,
-  via un adaptateur de flux configurable) et **registre légal** (Pappers), qui ferment le
-  triplet du scoring haute priorité.
+  via un adaptateur de flux configurable) et **registre légal**, qui ferment le triplet du
+  scoring haute priorité. Le registre passe par l'**API RNE de l'INPI** (gratuite, compte
+  requis) : Pappers, choisi au départ pour son API plus simple, s'est révélé **payant**, ce
+  qui contredit la décision « 0 €, aucune source payante ». Son connecteur reste dans
+  l'arbre, hors liste par défaut, pour qui dispose d'une clé.
 - **Phase 3 — Dirigeants & vue dédiée** : wires RSS (BusinessWire…), polish de la vue.
 - **Continu** : presse via recherche web (éditorial), durcissement dédup/rétention.
 

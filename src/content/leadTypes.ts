@@ -41,7 +41,8 @@ export type LeadSignal = {
   strength: SignalStrength;
   /** The kind of source record: publication, patent, trial, grant, incorporation. */
   recordKind: 'publication' | 'patent' | 'trial' | 'grant' | 'company_creation';
-  /** Connector id: `pubmed`, `europepmc`, `epo`, `clinicaltrials`, `grants`, `pappers`. */
+  /** Connector id: `pubmed`, `europepmc`, `epo`, `clinicaltrials`, `grants`, `inpi`
+   *  (or `pappers`, the paid alternative to `inpi`, when it is enabled instead). */
   source: string;
   /** Stable id within that source (PMID, EP publication number, NCT id, SIREN…). */
   sourceId: string;
