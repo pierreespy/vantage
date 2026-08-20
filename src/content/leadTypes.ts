@@ -11,6 +11,13 @@
  *   - **>= 80 (haute)**  chercheur/auteur + brevet déposé + société créée < 6 mois;
  *   - **>= 50 (moyenne)** nouvel essai ClinicalTrials sans structure commerciale.
  *
+ * The high band is EXCLUSIVE to the first pattern: a lead matching no rule is
+ * capped at 79 however many signals it carries. Without that ceiling a large
+ * incumbent — which files patents, publishes and runs trials continuously —
+ * reaches 80 by accumulation alone, which is the opposite of what the pipeline
+ * is for. So `priority === 'high'` implies `rules` contains
+ * `researcher_patent_newco`.
+ *
  * The same objects are served by the pipeline's HTTP endpoint
  * (`GET /api/medtech/leads`), so a client can either fetch the whole published
  * file or query the endpoint and get identical items.

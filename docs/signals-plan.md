@@ -139,6 +139,13 @@ signaux qui ont déclenché le score. Deux règles garantissent les seuils, appl
 | `researcher_patent_newco` | auteur/chercheur + brevet déposé + société créée **< 6 mois** | **80** |
 | `new_trial_no_company` | nouvel essai ClinicalTrials **sans structure commerciale** identifiée | **50** |
 
+La bande haute est **exclusive au premier motif** : un lead qui ne déclenche
+aucune règle plafonne à **79**, quel que soit son nombre de signaux. Sans ce
+plafond, un industriel établi — qui dépose, publie et mène des essais en
+continu — atteint 80 par simple accumulation, ce qui est l'inverse du but. Le
+premier run avec brevets l'a montré : l'unique lead « haute priorité » était
+B. Braun Melsungen, 95 points, dix signaux, aucune règle.
+
 Exposé de deux façons, même cœur de requête : le **fichier statique** (chemin de prod,
 0 €, comme `edition.json`) et `GET /api/medtech/leads` (`min_score`, `pays`, `mots-clés`,
 plage de dates, pagination) pour l'usage local/CI. Contrat typé côté app :
