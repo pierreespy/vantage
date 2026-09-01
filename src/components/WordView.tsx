@@ -2,9 +2,14 @@
  * WordView — the full "mot du jour" explainer for a single term, rendered as content
  * (no outer scroll/header). Used by the Mot du jour tab AND the Glossaire detail, so a
  * past term looks exactly like today's. The parent supplies the ScrollView + padding.
+ *
+ * Les sections montent en fondu, en cascade (<FadeInView>), et l'animation rejoue à
+ * chaque changement de terme — c'est ce qui fait « tourner la page » quand on ouvre un
+ * mot du glossaire.
  */
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { FadeInView } from '@/components/FadeInView';
 import type { Word } from '@/content/types';
 import { colors, border } from '@/theme';
 import { fonts } from '@/fonts';
@@ -34,7 +39,7 @@ export function WordView({ word }: { word: Word }) {
   return (
     <>
       {/* HERO */}
-      <View style={styles.hero}>
+      <FadeInView index={0} replayKey={word.term} style={styles.hero}>
         <View style={styles.heroBar}>
           <Text style={styles.heroBarLabel}>Décrypté</Text>
           {/* Catégorie principale seule (1er segment avant « · ») pour tenir dans le bandeau. */}
@@ -48,11 +53,13 @@ export function WordView({ word }: { word: Word }) {
           <Text style={styles.fr}>{word.fr}</Text>
           <Text style={styles.definition}>{word.definition}</Text>
         </View>
-      </View>
+      </FadeInView>
 
       {/* ANATOMIE */}
-      <SectionHeader label="Anatomie" color={colors.claret} />
-      <View style={styles.partsRow}>
+      <FadeInView index={1} replayKey={word.term}>
+        <SectionHeader label="Anatomie" color={colors.claret} />
+      </FadeInView>
+      <FadeInView index={2} replayKey={word.term} style={styles.partsRow}>
         {word.parts.map((p, i) => (
           <View
             key={p.label}
@@ -62,39 +69,48 @@ export function WordView({ word }: { word: Word }) {
             <Text style={styles.partRole}>{p.role}</Text>
           </View>
         ))}
-      </View>
+      </FadeInView>
 
       {/* COMMENT ÇA MARCHE */}
-      <SectionHeader label="Comment ça marche" color={colors.claret} />
-      {word.how.map((s) => (
-        <View key={s.n} style={styles.step}>
+      <FadeInView index={3} replayKey={word.term}>
+        <SectionHeader label="Comment ça marche" color={colors.claret} />
+      </FadeInView>
+      {word.how.map((s, i) => (
+        <FadeInView key={s.n} index={4 + i} replayKey={word.term} style={styles.step}>
           <Text style={styles.stepN}>{s.n}</Text>
           <View style={{ flex: 1 }}>
             <Text style={styles.stepH}>{s.h}</Text>
             <Text style={styles.stepT}>{s.t}</Text>
           </View>
-        </View>
+        </FadeInView>
       ))}
 
       {/* POURQUOI EN VOGUE */}
-      <View style={styles.whyBlock}>
+      <FadeInView index={4 + word.how.length} replayKey={word.term} style={styles.whyBlock}>
         <Text style={styles.whyLabel}>Pourquoi c’est en vogue</Text>
         <Text style={styles.whyText}>{word.why}</Text>
-      </View>
+      </FadeInView>
 
       {/* STARTUPS QUI L'UTILISENT */}
       {(word.startups ?? []).length > 0 ? (
         <>
-          <SectionHeader label="Startups qui l’utilisent" color={colors.claret} rule="faint" />
+          <FadeInView index={5 + word.how.length} replayKey={word.term}>
+            <SectionHeader label="Startups qui l’utilisent" color={colors.claret} rule="faint" />
+          </FadeInView>
           <View style={{ marginBottom: 18 }}>
             {word.startups.map((s, i) => (
-              <View key={s.name + i} style={styles.startup}>
+              <FadeInView
+                key={s.name + i}
+                index={6 + word.how.length + i}
+                replayKey={word.term}
+                style={styles.startup}
+              >
                 <View style={styles.startupHead}>
                   <Text style={styles.startupName}>{s.name}</Text>
                   {s.place ? <Text style={styles.startupPlace}>{s.place}</Text> : null}
                 </View>
                 <Text style={styles.startupUse}>{s.use}</Text>
-              </View>
+              </FadeInView>
             ))}
           </View>
         </>

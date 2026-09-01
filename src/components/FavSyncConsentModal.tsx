@@ -10,11 +10,14 @@
  * on-device and the user can enable it later.
  */
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFavoritesSync } from '@/state/favoritesSync';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
+import { hapticSuccess } from '@/lib/haptics';
+import { FadeInView } from '@/components/FadeInView';
+import { PressableScale } from '@/components/PressableScale';
 
 export function FavSyncConsentModal() {
   const insets = useSafeAreaInsets();
@@ -26,7 +29,8 @@ export function FavSyncConsentModal() {
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={decline}>
       <View style={styles.scrim}>
-        <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
+        {/* La carte monte depuis le bas en même temps que le voile apparaît. */}
+        <FadeInView delay={40} distance={22} style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
           <Text style={styles.eyebrow}>Confidentialité</Text>
           <Text style={styles.title}>Suivre l’actualité de vos favoris</Text>
 
@@ -42,22 +46,29 @@ export function FavSyncConsentModal() {
           </Text>
 
           <View style={styles.actions}>
-            <Pressable
+            <PressableScale
               onPress={decline}
               style={[styles.btn, styles.btnGhost]}
+              activeScale={0.95}
               accessibilityRole="button"
             >
               <Text style={[styles.btnText, styles.btnGhostText]}>Plus tard</Text>
-            </Pressable>
-            <Pressable
-              onPress={grant}
+            </PressableScale>
+            <PressableScale
+              onPress={() => {
+                // Consentement donné : même signal « c'est fait » que partout ailleurs.
+                hapticSuccess();
+                grant();
+              }}
               style={[styles.btn, styles.btnSolid]}
+              activeScale={0.95}
+              haptic={false}
               accessibilityRole="button"
             >
               <Text style={[styles.btnText, styles.btnSolidText]}>Activer</Text>
-            </Pressable>
+            </PressableScale>
           </View>
-        </View>
+        </FadeInView>
       </View>
     </Modal>
   );

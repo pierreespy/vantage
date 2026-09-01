@@ -59,6 +59,15 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   1re lecture** (via `noteRead()`, appelé à l'ouverture d'un article dans le Journal),
   pré-amorcée par `NotifPrimerModal` (calqué sur `FavSyncConsentModal`). Passer à une notif
   qui nomme la une demanderait un push serveur (registre de tokens + envoi 7h30).
+- **Animations & haptique** : tokens de mouvement dans `src/lib/motion.ts` (durées,
+  courbes, cascade) et vocabulaire haptique dans `src/lib/haptics.ts`
+  (`hapticTap`/`hapticLight`/`hapticMedium`/`hapticSuccess`/`hapticError`/`hapticWarning`).
+  Trois briques réutilisables : `FadeInView` (apparition en fondu + remontée, en cascade
+  via `index`, rejouée via `replayKey`), `PressableScale` (bouton qui s'enfonce + vibration
+  au press-in) et `FavoriteStar` (★ qui « pop » à l'ajout/retrait, tremble si l'action est
+  refusée). Tout passe par `Animated` de React Native en **driver natif** (opacité +
+  transform, aucune dépendance ajoutée) ; exception : les feuilles (`useSheetDrag`) restent
+  JS-driven. Ne pas coder de durée/courbe en dur — passer par `motion.ts`.
 - **Ops / « boîte aux lettres » hors de ce dépôt** : les routines quotidiennes
   (Journal + Favoris news), le code d'accès du jour et le backend de remontée anonyme
   (Firestore : `firestore.rules`, `union.mjs`, `routine/`) vivent dans le dépôt

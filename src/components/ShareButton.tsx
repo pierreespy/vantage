@@ -4,10 +4,15 @@
  * Two looks: a labelled accent pill (Deal / Mot du jour) and an icon-only button
  * (compact, for brève rows). Uses the iOS-style "share" glyph. Disabled while a
  * capture is in flight to avoid double-taps.
+ *
+ * Le bouton s'enfonce au toucher et émet une vibration légère (PressableScale) — la
+ * capture puis la feuille de partage iOS mettent un instant à s'ouvrir, ce retour
+ * immédiat évite l'impression que le tap n'a pas été pris.
  */
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { PressableScale } from '@/components/PressableScale';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
@@ -33,9 +38,10 @@ export function ShareButton({
   disabled?: boolean;
 }) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       disabled={disabled}
+      activeScale={0.9}
       accessibilityRole="button"
       accessibilityLabel={label ? `Partager : ${label}` : 'Partager'}
       hitSlop={8}
@@ -49,7 +55,7 @@ export function ShareButton({
       ) : (
         <ShareGlyph />
       )}
-    </Pressable>
+    </PressableScale>
   );
 }
 

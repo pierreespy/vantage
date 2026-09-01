@@ -9,7 +9,7 @@
  * unlock sheet; entering the day's code — obtained from the owner on LinkedIn — unlocks
  * the "extended" tier (up to 6) for good. Favorites are the shared, persisted state.
  */
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Animated,
@@ -40,7 +40,9 @@ import { useAccess } from '@/content/AccessProvider';
 import { config } from '@/config';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
-import { hapticError, hapticSuccess } from '@/lib/haptics';
+import { hapticError, hapticSuccess, hapticTap, hapticMedium } from '@/lib/haptics';
+import { FadeInView } from '@/components/FadeInView';
+import { PressableScale } from '@/components/PressableScale';
 import { useSheetDrag } from '@/lib/useSheetDrag';
 import { SignalBadge } from '@/components/SignalBadge';
 
@@ -171,26 +173,31 @@ export default function FavorisScreen() {
           <Text style={styles.h1}>Favoris</Text>
           <View style={styles.titleActions}>
             {consent === 'granted' ? (
-              <Pressable
+              <PressableScale
                 onPress={confirmReset}
                 style={styles.resetBtn}
+                activeScale={0.93}
                 accessibilityRole="button"
                 accessibilityLabel="Réinitialiser la personnalisation"
               >
                 <Text style={styles.resetText}>Réinitialiser</Text>
-              </Pressable>
+              </PressableScale>
             ) : null}
-            <Pressable
+            <PressableScale
               onPress={() => {
+                // Ouverture d'une feuille : impulsion un cran au-dessus d'un simple tap.
+                hapticMedium();
                 setQuery('');
                 setAddOpen(true);
               }}
               style={styles.addBtn}
+              activeScale={0.88}
+              haptic={false}
               accessibilityRole="button"
               accessibilityLabel="Ajouter un favori"
             >
               <Text style={styles.addPlus}>+</Text>
-            </Pressable>
+            </PressableScale>
           </View>
         </View>
 
@@ -203,13 +210,18 @@ export default function FavorisScreen() {
           {favSectors.map((s) => {
             const on = s === sector;
             return (
-              <Pressable
+              <PressableScale
                 key={s}
-                onPress={() => setSector(s)}
+                onPress={() => {
+                  if (!on) hapticTap();
+                  setSector(s);
+                }}
                 style={[styles.chip, on && styles.chipOn]}
+                activeScale={0.93}
+                haptic={false}
               >
                 <Text style={[styles.chipText, on && styles.chipTextOn]}>{s}</Text>
-              </Pressable>
+              </PressableScale>
             );
           })}
         </ScrollView>
@@ -217,9 +229,14 @@ export default function FavorisScreen() {
 
       {/* TIER BANNER — only while restricted; the door to the extended tier. */}
       {tier === 'restricted' ? (
-        <Pressable
-          onPress={() => setUnlockOpen(true)}
+        <PressableScale
+          onPress={() => {
+            hapticMedium();
+            setUnlockOpen(true);
+          }}
           style={styles.tierBanner}
+          activeScale={0.985}
+          haptic={false}
           accessibilityRole="button"
           accessibilityLabel="Débloquer la version étendue"
         >
@@ -234,7 +251,7 @@ export default function FavorisScreen() {
             </View>
           </View>
           <Text style={styles.tierChevron}>›</Text>
-        </Pressable>
+        </PressableScale>
       ) : null}
 
       {/* LIST */}
@@ -248,7 +265,12 @@ export default function FavorisScreen() {
             Aucun favori dans « {sector} ». Touchez ＋ pour en ajouter.
           </Text>
         ) : (
-          cards.map((f) => <FavoriteCard key={f.name} startup={f} />)
+          cards.map((f, i) => (
+            // La cascade rejoue quand le filtre secteur change : la liste se « recompose ».
+            <FadeInView key={f.name} index={i} replayKey={sector}>
+              <FavoriteCard startup={f} />
+            </FadeInView>
+          ))
         )}
 
         {tier === 'restricted' && remaining > 0 ? (
@@ -300,7 +322,8 @@ function FavoriteCard({ startup }: { startup: Startup }) {
         style: 'destructive',
         onPress: () => {
           toggle(startup.name);
-          hapticError();
+          // Le retrait a bien eu lieu : même signal « c'est fait » que dans le Journal.
+          hapticSuccess();
         },
       },
     ]);
@@ -310,17 +333,15 @@ function FavoriteCard({ startup }: { startup: Startup }) {
     <View style={styles.card}>
       <View style={styles.cardHead}>
         <View style={styles.nameRow}>
-          <Pressable
-            onPress={() => {
-              hapticSuccess();
-              confirmRemove();
-            }}
+          <PressableScale
+            onPress={confirmRemove}
+            activeScale={0.85}
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel={`Retirer ${startup.name} des favoris`}
           >
             <Text style={styles.star}>★</Text>
-          </Pressable>
+          </PressableScale>
           <Text style={styles.name}>{startup.name}</Text>
         </View>
       </View>
@@ -347,10 +368,11 @@ function FavoriteCard({ startup }: { startup: Startup }) {
         <Text style={styles.noNews}>Pas encore d’actualité suivie.</Text>
       ) : (
         news.map((n, i) => (
-          <Pressable
+          <PressableScale
             key={n.url + i}
             onPress={() => openLink(n.url)}
             style={[styles.newsItem, i > 0 && styles.newsItemDivided]}
+            activeScale={0.985}
             accessibilityRole="link"
           >
             <Text style={styles.newsTitle}>{n.title}</Text>
@@ -360,7 +382,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
                 {n.source} · {n.date}
               </Text>
             </View>
-          </Pressable>
+          </PressableScale>
         ))
       )}
     </View>
@@ -371,9 +393,11 @@ function FavoriteCard({ startup }: { startup: Startup }) {
  *  slots peeking out below. Tapping it opens the unlock sheet. Restricted tier only. */
 function UpsellLocked({ remaining, onPress }: { remaining: number; onPress: () => void }) {
   return (
-    <Pressable
+    <PressableScale
       onPress={onPress}
       style={styles.upsellWrap}
+      activeScale={0.98}
+      haptic={false}
       accessibilityRole="button"
       accessibilityLabel={`Débloquer ${remaining} favoris supplémentaires avec la version étendue`}
     >
@@ -393,7 +417,7 @@ function UpsellLocked({ remaining, onPress }: { remaining: number; onPress: () =
       </View>
       <View style={styles.ghost1} />
       <View style={styles.ghost2} />
-    </Pressable>
+    </PressableScale>
   );
 }
 
@@ -414,6 +438,18 @@ function UnlockSheet({
   const { translateY, panHandlers } = useSheetDrag(visible, onClose);
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  // Secousse horizontale du champ quand le code est refusé — le geste « non » d'iOS.
+  const shake = useRef(new Animated.Value(0)).current;
+
+  const shakeField = () => {
+    shake.setValue(0);
+    Animated.sequence([
+      Animated.timing(shake, { toValue: 1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shake, { toValue: -1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shake, { toValue: 1, duration: 50, useNativeDriver: true }),
+      Animated.timing(shake, { toValue: 0, duration: 60, useNativeDriver: true }),
+    ]).start();
+  };
 
   // Reset the field each time the sheet opens.
   useEffect(() => {
@@ -428,6 +464,7 @@ function UnlockSheet({
     // (real) code of the day. Keeps the public demo code from unlocking offline.
     if (!ready) {
       hapticError();
+      shakeField();
       setError('Code indisponible hors-ligne. Connectez-vous à Internet puis réessayez.');
       return;
     }
@@ -442,6 +479,7 @@ function UnlockSheet({
       return;
     }
     hapticError();
+    shakeField();
     setError('Code incorrect.');
   };
 
@@ -466,31 +504,40 @@ function UnlockSheet({
             code que je pourrais vous transmettre sur LinkedIn.
           </Text>
 
-          <Pressable
+          <PressableScale
             onPress={openContactLinkedIn}
             style={styles.linkedinBtn}
+            activeScale={0.97}
             accessibilityRole="link"
           >
             <View style={styles.linkedinBadge}>
               <Text style={styles.linkedinBadgeText}>in</Text>
             </View>
             <Text style={styles.linkedinText}>Me contacter sur LinkedIn (Pierre Espy)</Text>
-          </Pressable>
+          </PressableScale>
 
           <Text style={styles.codeLabel}>Code</Text>
-          <TextInput
-            value={code}
-            onChangeText={(v) => {
-              setCode(v);
-              if (error) setError(null);
+          <Animated.View
+            style={{
+              transform: [
+                { translateX: shake.interpolate({ inputRange: [-1, 1], outputRange: [-8, 8] }) },
+              ],
             }}
-            style={[styles.codeInput, error ? styles.codeInputError : null]}
-            autoCorrect={false}
-            autoCapitalize="none"
-            autoFocus
-            onSubmitEditing={submit}
-            returnKeyType="done"
-          />
+          >
+            <TextInput
+              value={code}
+              onChangeText={(v) => {
+                setCode(v);
+                if (error) setError(null);
+              }}
+              style={[styles.codeInput, error ? styles.codeInputError : null]}
+              autoCorrect={false}
+              autoCapitalize="none"
+              autoFocus
+              onSubmitEditing={submit}
+              returnKeyType="done"
+            />
+          </Animated.View>
 
           {error ? (
             <View style={styles.errRow}>
@@ -501,14 +548,16 @@ function UnlockSheet({
             </View>
           ) : null}
 
-          <Pressable
+          <PressableScale
             onPress={submit}
             disabled={code.trim().length === 0}
             style={[styles.unlockBtn, code.trim().length === 0 && styles.unlockBtnDisabled]}
+            activeScale={0.97}
+            haptic={false}
             accessibilityRole="button"
           >
             <Text style={styles.unlockBtnText}>DÉBLOQUER</Text>
-          </Pressable>
+          </PressableScale>
         </Animated.View>
       </KeyboardAvoidingView>
     </Modal>
@@ -612,9 +661,16 @@ function AddFavoriteSheet({
 
           <View style={styles.sheetHead}>
             <Text style={styles.sheetTitle}>Ajouter un favori</Text>
-            <Pressable onPress={onClose} accessibilityRole="button">
+            <PressableScale
+              onPress={() => {
+                hapticTap();
+                onClose();
+              }}
+              haptic={false}
+              accessibilityRole="button"
+            >
               <Text style={styles.sheetClose}>Fermer</Text>
-            </Pressable>
+            </PressableScale>
           </View>
 
           <View style={styles.searchBox}>
@@ -639,10 +695,11 @@ function AddFavoriteSheet({
               </Text>
             ) : null}
 
-            {results.map((c) => {
+            {results.map((c, i) => {
               const on = isFollowed(c.name);
               return (
-                <View key={c.name} style={styles.candRow}>
+                // La liste se recompose à chaque frappe : la cascade rejoue avec `query`.
+                <FadeInView key={c.name} index={i} replayKey={query} distance={8} style={styles.candRow}>
                   <View style={{ flex: 1 }}>
                     <Text style={styles.candName}>{c.name}</Text>
                     {c.sector || c.stage || usesAI(c.name) ? (
@@ -661,7 +718,7 @@ function AddFavoriteSheet({
                       </View>
                     ) : null}
                   </View>
-                  <Pressable
+                  <PressableScale
                     onPress={() => {
                       if (!toggle(c.name)) {
                         hapticError();
@@ -671,13 +728,15 @@ function AddFavoriteSheet({
                       }
                     }}
                     style={[styles.followBtn, on ? styles.followBtnOn : styles.followBtnOff]}
+                    activeScale={0.92}
+                    haptic={false}
                     accessibilityRole="button"
                   >
                     <Text style={[styles.followText, { color: on ? colors.accent : colors.paper }]}>
                       {on ? 'Suivi ✓' : 'Suivre'}
                     </Text>
-                  </Pressable>
-                </View>
+                  </PressableScale>
+                </FadeInView>
               );
             })}
 
@@ -690,13 +749,14 @@ function AddFavoriteSheet({
                     Absente du catalogue — je confirme qu’elle existe
                   </Text>
                 </View>
-                <Pressable
+                <PressableScale
                   onPress={confirmAdd}
                   style={[styles.followBtn, styles.followBtnOff]}
+                  activeScale={0.92}
                   accessibilityRole="button"
                 >
                   <Text style={[styles.followText, { color: colors.paper }]}>Vérifier</Text>
-                </Pressable>
+                </PressableScale>
               </View>
             ) : null}
           </ScrollView>

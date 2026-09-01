@@ -7,10 +7,15 @@
  * source article in the system browser. Pull down to fetch the day's edition.
  *
  * All content comes from the shared daily Edition (useEdition).
+ *
+ * Animations : chaque bloc (ticker, une, deal, brèves) monte en fondu en cascade à
+ * l'ouverture — et rejoue après un pull-to-refresh qui rapporte une nouvelle édition
+ * (`replayKey` = date de l'édition). Les ★ font un « pop », les titres s'enfoncent
+ * légèrement au toucher. Haptique : `hapticMedium` au déclenchement du refresh,
+ * `hapticLight` à l'ouverture d'un article, succès/erreur sur les favoris.
  */
 import React, { useCallback } from 'react';
 import {
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -25,12 +30,15 @@ import { useNotifications } from '@/state/notifications';
 import { useShareCard } from '@/lib/useShareCard';
 import { leadCardData, dealCardData, brefCardData } from '@/lib/shareData';
 import { ShareButton } from '@/components/ShareButton';
+import { FadeInView } from '@/components/FadeInView';
+import { FavoriteStar } from '@/components/FavoriteStar';
+import { PressableScale } from '@/components/PressableScale';
 import { SignalBadge } from '@/components/SignalBadge';
 import type { Bref } from '@/content/types';
 import { Ticker } from '@/components/Ticker';
 import { colors, border } from '@/theme';
 import { fonts } from '@/fonts';
-import { hapticError, hapticSuccess } from '@/lib/haptics';
+import { hapticLight, hapticMedium } from '@/lib/haptics';
 
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
@@ -43,6 +51,8 @@ export default function JournalScreen() {
   const { lead, deal, ticker, brefsEurope, brefsIntl } = edition;
 
   const onRefresh = useCallback(() => {
+    // Le geste est confirmé dès qu'il part : la requête, elle, peut durer.
+    hapticMedium();
     refresh();
   }, [refresh]);
 
@@ -50,20 +60,19 @@ export default function JournalScreen() {
   // primer (see src/state/notifications.tsx). Every source link routes through here.
   const openArticle = useCallback(
     (url: string) => {
+      hapticLight();
       noteRead();
       openLink(url);
     },
     [noteRead]
   );
 
-  const starColor = (name: string) => (isFollowed(name) ? colors.accent : border.starIdle);
+  // <FavoriteStar> se charge du « pop » (ajout/retrait) ou du tremblement + retour
+  // d'erreur quand `toggle` renvoie false (maximum de favoris atteint).
+  const onToggleFav = (name: string) => toggle(name);
 
-  // ★ toggle with haptics: same "ok" cue on every successful tap (add OR remove),
-  // and "non" when the add is refused (already at the max).
-  const onToggleFav = (name: string) => {
-    if (!toggle(name)) hapticError();
-    else hapticSuccess();
-  };
+  // Rejoue la cascade d'apparition quand l'édition change (nouvelle date après refresh).
+  const replayKey = edition.dateLong;
 
   return (
     <View style={styles.root}>
@@ -96,45 +105,56 @@ export default function JournalScreen() {
         </View>
 
         {/* ticker */}
-        <View style={styles.tickerWrap}>
+        <FadeInView index={0} replayKey={replayKey} style={styles.tickerWrap}>
           <Ticker items={ticker} />
-        </View>
+        </FadeInView>
 
         {/* LEAD */}
-        <View style={styles.kickerRow}>
-          {lead.signalType ? <SignalBadge type={lead.signalType} /> : null}
-          <Text style={styles.kicker}>{lead.kicker}</Text>
-          {lead.ai || usesAI(lead.company) ? <AiBadge /> : null}
-        </View>
-        <View style={styles.leadRow}>
-          <Pressable style={{ flex: 1 }} onPress={() => openArticle(lead.url)} accessibilityRole="link">
-            <Text style={styles.leadTitle}>{lead.title}</Text>
-          </Pressable>
-          <ShareButton
-            onPress={() => shareCard(leadCardData(lead, edition.dateLong))}
-            disabled={sharing}
-          />
-          <Pressable
-            onPress={() => onToggleFav(lead.company)}
-            accessibilityRole="button"
-            accessibilityLabel="Ajouter aux favoris"
-            hitSlop={8}
-          >
-            <Text style={[styles.starBig, { color: starColor(lead.company) }]}>★</Text>
-          </Pressable>
-        </View>
-        <Text style={styles.deck}>{lead.deck}</Text>
+        <FadeInView index={1} replayKey={replayKey}>
+          <View style={styles.kickerRow}>
+            {lead.signalType ? <SignalBadge type={lead.signalType} /> : null}
+            <Text style={styles.kicker}>{lead.kicker}</Text>
+            {lead.ai || usesAI(lead.company) ? <AiBadge /> : null}
+          </View>
+          <View style={styles.leadRow}>
+            <PressableScale
+              style={{ flex: 1 }}
+              activeScale={0.985}
+              onPress={() => openArticle(lead.url)}
+              accessibilityRole="link"
+              haptic={false}
+            >
+              <Text style={styles.leadTitle}>{lead.title}</Text>
+            </PressableScale>
+            <ShareButton
+              onPress={() => shareCard(leadCardData(lead, edition.dateLong))}
+              disabled={sharing}
+            />
+            <FavoriteStar
+              followed={isFollowed(lead.company)}
+              onToggle={() => onToggleFav(lead.company)}
+              style={styles.starBig}
+              label="Ajouter aux favoris"
+            />
+          </View>
+          <Text style={styles.deck}>{lead.deck}</Text>
+        </FadeInView>
 
         {/* DEAL CARD */}
-        <View style={styles.dealCard}>
+        <FadeInView index={2} replayKey={replayKey} style={styles.dealCard}>
           <View style={styles.dealBar}>
             <Text style={styles.dealBarText}>Le deal du jour</Text>
           </View>
           <View style={styles.dealBody}>
             <View style={styles.dealHead}>
-              <Pressable onPress={() => openArticle(deal.url)} accessibilityRole="link">
+              <PressableScale
+                activeScale={0.97}
+                onPress={() => openArticle(deal.url)}
+                accessibilityRole="link"
+                haptic={false}
+              >
                 <Text style={styles.dealCompany}>{deal.company}</Text>
-              </Pressable>
+              </PressableScale>
               <Text style={styles.dealAmount}>{deal.amount}</Text>
               <View style={styles.roundBadge}>
                 <Text style={styles.roundText}>{deal.round}</Text>
@@ -150,20 +170,22 @@ export default function JournalScreen() {
               />
             </View>
           </View>
-        </View>
+        </FadeInView>
 
         {/* BRÈVES EUROPE */}
-        <View style={styles.sectionHead}>
+        <FadeInView index={3} replayKey={replayKey} style={styles.sectionHead}>
           <Text style={[styles.sectionLabel, { color: colors.claret }]}>Brèves · Europe</Text>
           <View style={styles.ruleStrong} />
-        </View>
+        </FadeInView>
         {brefsEurope.map((b, i) => (
           <BrefRow
             key={b.url + i}
             bref={b}
+            index={4 + i}
+            replayKey={replayKey}
             accent
             ai={b.ai || usesAI(b.company)}
-            starColor={starColor(b.company)}
+            followed={isFollowed(b.company)}
             onFav={() => onToggleFav(b.company)}
             onOpen={openArticle}
             onShare={() => shareCard(brefCardData(b, edition.dateLong))}
@@ -172,16 +194,22 @@ export default function JournalScreen() {
         ))}
 
         {/* BRÈVES INTERNATIONAL */}
-        <View style={[styles.sectionHead, { marginTop: 18 }]}>
+        <FadeInView
+          index={4 + brefsEurope.length}
+          replayKey={replayKey}
+          style={[styles.sectionHead, { marginTop: 18 }]}
+        >
           <Text style={[styles.sectionLabel, { color: colors.ink60 }]}>Brèves · International</Text>
           <View style={styles.ruleFaint} />
-        </View>
+        </FadeInView>
         {brefsIntl.map((b, i) => (
           <BrefRow
             key={b.url + i}
             bref={b}
+            index={5 + brefsEurope.length + i}
+            replayKey={replayKey}
             ai={b.ai || usesAI(b.company)}
-            starColor={starColor(b.company)}
+            followed={isFollowed(b.company)}
             onFav={() => onToggleFav(b.company)}
             onOpen={openArticle}
             onShare={() => shareCard(brefCardData(b, edition.dateLong))}
@@ -203,25 +231,31 @@ function AiBadge() {
 
 function BrefRow({
   bref,
+  index,
+  replayKey,
   accent = false,
   ai = false,
-  starColor,
+  followed,
   onFav,
   onOpen,
   onShare,
   shareDisabled = false,
 }: {
   bref: Bref;
+  /** Rang global dans la page — décale l'apparition en cascade. */
+  index: number;
+  replayKey?: string | number;
   accent?: boolean;
   ai?: boolean;
-  starColor: string;
-  onFav: () => void;
+  followed: boolean;
+  /** Bascule le favori ; renvoie `false` si l'action est refusée. */
+  onFav: () => boolean;
   onOpen: (url: string) => void;
   onShare: () => void;
   shareDisabled?: boolean;
 }) {
   return (
-    <View style={styles.bref}>
+    <FadeInView index={index} replayKey={replayKey} style={styles.bref}>
       <View style={styles.brefMetaRow}>
         {bref.signalType ? <SignalBadge type={bref.signalType} /> : null}
         <Text style={[styles.brefMeta, { color: accent ? colors.accent : colors.ink60 }]}>
@@ -230,16 +264,20 @@ function BrefRow({
         {ai ? <AiBadge /> : null}
       </View>
       <View style={styles.brefTitleRow}>
-        <Pressable style={{ flex: 1 }} onPress={() => onOpen(bref.url)} accessibilityRole="link">
+        <PressableScale
+          style={{ flex: 1 }}
+          activeScale={0.985}
+          onPress={() => onOpen(bref.url)}
+          accessibilityRole="link"
+          haptic={false}
+        >
           <Text style={styles.brefTitle}>{bref.title}</Text>
-        </Pressable>
+        </PressableScale>
         <ShareButton onPress={onShare} disabled={shareDisabled} />
-        <Pressable onPress={onFav} accessibilityRole="button" accessibilityLabel="Favori" hitSlop={8}>
-          <Text style={[styles.starSmall, { color: starColor }]}>★</Text>
-        </Pressable>
+        <FavoriteStar followed={followed} onToggle={onFav} style={styles.starSmall} />
       </View>
       <Text style={styles.brefSummary}>{bref.summary}</Text>
-    </View>
+    </FadeInView>
   );
 }
 

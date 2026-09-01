@@ -4,14 +4,18 @@
  * Full-screen explainer of the day's bio/med term, rendered by <WordView> (shared
  * with the Glossaire detail). A "Glossaire" button in the header opens the searchable
  * archive of every past term.
+ *
+ * Le bouton Glossaire s'enfonce au toucher et vibre légèrement à l'ouverture ; le
+ * contenu du mot monte en fondu (voir <WordView>).
  */
 import React, { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useEdition } from '@/content/EditionProvider';
 import { WordView } from '@/components/WordView';
 import { GlossaireModal } from '@/components/GlossaireModal';
 import { ShareButton } from '@/components/ShareButton';
+import { PressableScale } from '@/components/PressableScale';
 import { useShareCard } from '@/lib/useShareCard';
 import { wordCardData } from '@/lib/shareData';
 import { colors, border, glass } from '@/theme';
@@ -37,15 +41,16 @@ export default function MotDuJourScreen() {
             onPress={() => shareCard(wordCardData(word, edition.dateLong))}
             disabled={sharing}
           />
-          <Pressable
+          <PressableScale
             onPress={() => setGlossaryOpen(true)}
             style={styles.glossaryBtn}
+            activeScale={0.93}
             accessibilityRole="button"
             accessibilityLabel="Ouvrir le glossaire"
             hitSlop={8}
           >
             <Text style={styles.glossaryBtnText}>Glossaire</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       </View>
 

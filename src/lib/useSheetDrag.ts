@@ -12,9 +12,13 @@
  *
  * Only the grabber zone gets the handlers, so the sheet's ScrollView / TextInput keep
  * scrolling and typing normally.
+ *
+ * Haptique : une impulsion moyenne au moment où le geste bascule en fermeture (le doigt
+ * a « lâché » la feuille), rien pendant le suivi du doigt ni au retour en place.
  */
 import { useEffect, useRef } from 'react';
 import { Animated, PanResponder } from 'react-native';
+import { hapticMedium } from './haptics';
 
 const DISMISS_DISTANCE = 90; // px dragged down before it closes on release
 const DISMISS_VELOCITY = 0.6; // or a downward flick
@@ -46,6 +50,7 @@ export function useSheetDrag(visible: boolean, onClose: () => void) {
       },
       onPanResponderRelease: (_, g) => {
         if (g.dy > DISMISS_DISTANCE || g.vy > DISMISS_VELOCITY) {
+          hapticMedium();
           // Slide fully out, then unmount the modal.
           Animated.timing(translateY, {
             toValue: 900,

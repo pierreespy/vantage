@@ -5,6 +5,10 @@
  * terms (newest first), and a DETAIL that reuses <WordView> so a past term reads
  * exactly like today's. Today's term is merged in from the live edition so it shows
  * immediately, even before the generation task appends it to words.json.
+ *
+ * Animations/haptique : les entrées de la liste apparaissent en cascade (et rejouent
+ * quand la recherche change), chaque ligne s'enfonce au toucher, et l'ouverture d'un
+ * terme émet une vibration de sélection.
  */
 import React, { useMemo, useState } from 'react';
 import {
@@ -21,6 +25,9 @@ import { useGlossary } from '@/content/GlossaryProvider';
 import { useEdition } from '@/content/EditionProvider';
 import type { GlossaryWord } from '@/content/types';
 import { WordView } from './WordView';
+import { FadeInView } from './FadeInView';
+import { PressableScale } from './PressableScale';
+import { hapticTap } from '@/lib/haptics';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
 
@@ -61,6 +68,7 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
 
   // Reset transient state each time the modal closes, so it reopens clean.
   const close = () => {
+    hapticTap();
     setSelected(null);
     setQuery('');
     onClose();
@@ -72,7 +80,14 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
         {/* HEADER */}
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
           {selected ? (
-            <Pressable onPress={() => setSelected(null)} hitSlop={10} accessibilityRole="button">
+            <Pressable
+              onPress={() => {
+                hapticTap();
+                setSelected(null);
+              }}
+              hitSlop={10}
+              accessibilityRole="button"
+            >
               <Text style={styles.headerAction}>‹ Glossaire</Text>
             </Pressable>
           ) : (
@@ -120,19 +135,25 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
                 <Text style={styles.empty}>Aucun terme ne correspond à « {query.trim()} ».</Text>
               ) : (
                 results.map((w, i) => (
-                  <Pressable
-                    key={w.term + i}
-                    onPress={() => setSelected(w)}
-                    style={styles.row}
-                    accessibilityRole="button"
-                  >
-                    <View style={styles.rowTop}>
-                      <Text style={styles.rowTerm}>{w.term}</Text>
-                      <Text style={styles.rowDate}>{w.dateLong}</Text>
-                    </View>
-                    <Text style={styles.rowFull}>{w.full}</Text>
-                    <Text style={styles.rowFr}>{w.fr}</Text>
-                  </Pressable>
+                  <FadeInView key={w.term + i} index={i} replayKey={query} distance={10}>
+                    <PressableScale
+                      onPress={() => {
+                        hapticTap();
+                        setSelected(w);
+                      }}
+                      style={styles.row}
+                      activeScale={0.98}
+                      haptic={false}
+                      accessibilityRole="button"
+                    >
+                      <View style={styles.rowTop}>
+                        <Text style={styles.rowTerm}>{w.term}</Text>
+                        <Text style={styles.rowDate}>{w.dateLong}</Text>
+                      </View>
+                      <Text style={styles.rowFull}>{w.full}</Text>
+                      <Text style={styles.rowFr}>{w.fr}</Text>
+                    </PressableScale>
+                  </FadeInView>
                 ))
               )}
             </ScrollView>

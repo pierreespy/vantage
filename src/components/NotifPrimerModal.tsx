@@ -10,12 +10,14 @@
  * the opt-in rate: an iOS permission refusal is near-permanent.
  */
 import React from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '@/state/notifications';
 import { hapticSuccess } from '@/lib/haptics';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
+import { FadeInView } from '@/components/FadeInView';
+import { PressableScale } from '@/components/PressableScale';
 
 export function NotifPrimerModal() {
   const insets = useSafeAreaInsets();
@@ -30,7 +32,8 @@ export function NotifPrimerModal() {
   return (
     <Modal visible={primerVisible} transparent animationType="fade" onRequestClose={decline}>
       <View style={styles.scrim}>
-        <View style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
+        {/* La carte monte depuis le bas en même temps que le voile apparaît. */}
+        <FadeInView delay={40} distance={22} style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
           <Text style={styles.eyebrow}>Notifications</Text>
           <Text style={styles.title}>La une, chaque matin</Text>
 
@@ -44,22 +47,25 @@ export function NotifPrimerModal() {
           </Text>
 
           <View style={styles.actions}>
-            <Pressable
+            <PressableScale
               onPress={decline}
               style={[styles.btn, styles.btnGhost]}
+              activeScale={0.95}
               accessibilityRole="button"
             >
               <Text style={[styles.btnText, styles.btnGhostText]}>Plus tard</Text>
-            </Pressable>
-            <Pressable
+            </PressableScale>
+            <PressableScale
               onPress={onActivate}
               style={[styles.btn, styles.btnSolid]}
+              activeScale={0.95}
+              haptic={false}
               accessibilityRole="button"
             >
               <Text style={[styles.btnText, styles.btnSolidText]}>Activer</Text>
-            </Pressable>
+            </PressableScale>
           </View>
-        </View>
+        </FadeInView>
       </View>
     </Modal>
   );
