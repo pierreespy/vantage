@@ -2,7 +2,7 @@
  * Builders: edition data → ShareCardData. Keeps the "what goes on the card" mapping
  * in one place, out of the screens. The date is uppercased to match the design's ours.
  */
-import type { Lead, Deal, Bref, Word } from '@/content/types';
+import type { Lead, Milestone, Deal, Bref, Word } from '@/content/types';
 import type { ShareCardData } from '@/components/ShareCard';
 
 const kicker = (...parts: (string | undefined)[]) =>
@@ -15,6 +15,18 @@ export function leadCardData(lead: Lead, dateLong: string): ShareCardData {
     kicker: lead.kicker,
     title: lead.title,
     summary: lead.deck,
+    date: dateLong.toUpperCase(),
+  };
+}
+
+/** The day's advance reuses the lead template (pétrole kicker + title + summary). */
+export function milestoneCardData(m: Milestone, dateLong: string): ShareCardData {
+  return {
+    type: 'lead',
+    rubric: 'Avancée du jour',
+    kicker: kicker(m.milestone, m.place, m.sector),
+    title: m.title,
+    summary: m.summary,
     date: dateLong.toUpperCase(),
   };
 }

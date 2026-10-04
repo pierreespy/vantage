@@ -1,10 +1,14 @@
 /**
- * Journal tab — native "Veille" screen (design 2a).
+ * Journal tab — native "Veille" screen (design 2a): the European MedTech watch.
  *
  * Header 1b épuré (date + VANTAGE CHRONICLE), then the scrolling ticker with its
- * legend, the lead article (★ favorite + clickable title), the "deal du jour" card,
- * and Brèves Europe + International (each with a ★ and a summary). Titles open the
- * source article in the system browser. Pull down to fetch the day's edition.
+ * legend (levées, M&A, but also marquages, avancées, naissances), the lead article
+ * (★ favorite + clickable title), "L'avancée du jour" (the tech/clinical step forward,
+ * decrypted), the "deal du jour" card (finance is one arm among others — both cards are
+ * optional), the European brèves grouped by pillar (Tech & clinique, Réglementaire &
+ * marché, Nouvelles pousses, Financement — see pillars.ts) and a short "Hors Europe"
+ * section. Titles open the source article in the system browser. Pull down to fetch the
+ * day's edition.
  *
  * All content comes from the shared daily Edition (useEdition).
  *
@@ -28,14 +32,15 @@ import { useEdition } from '@/content/EditionProvider';
 import { useFavorites } from '@/state/favorites';
 import { useNotifications } from '@/state/notifications';
 import { useShareCard } from '@/lib/useShareCard';
-import { leadCardData, dealCardData, brefCardData } from '@/lib/shareData';
+import { leadCardData, milestoneCardData, dealCardData, brefCardData } from '@/lib/shareData';
 import { ShareButton } from '@/components/ShareButton';
 import { FadeInView } from '@/components/FadeInView';
 import { FavoriteStar } from '@/components/FavoriteStar';
 import { PressableScale } from '@/components/PressableScale';
 import { SignalBadge } from '@/components/SignalBadge';
 import type { Bref } from '@/content/types';
-import { Ticker } from '@/components/Ticker';
+import { groupByPillar, PILLAR_LABELS } from '@/content/pillars';
+import { Ticker, TICKER_KINDS } from '@/components/Ticker';
 import { colors, border } from '@/theme';
 import { fonts } from '@/fonts';
 import { hapticLight, hapticMedium } from '@/lib/haptics';
@@ -48,7 +53,12 @@ export default function JournalScreen() {
   const { isFollowed, toggle } = useFavorites();
   const { noteRead } = useNotifications();
   const { shareCard, sharing } = useShareCard();
-  const { lead, deal, ticker, brefsEurope, brefsIntl } = edition;
+  const { lead, milestone, deal, ticker, brefsEurope, brefsIntl } = edition;
+  const europeByPillar = groupByPillar(brefsEurope);
+  // Legend lists only the kinds present in today's ticker, in TICKER_KINDS order.
+  const legendKinds = (Object.keys(TICKER_KINDS) as (keyof typeof TICKER_KINDS)[]).filter((k) =>
+    ticker.some((t) => t.kind === k)
+  );
 
   const onRefresh = useCallback(() => {
     // Le geste est confirmé dès qu'il part : la requête, elle, peut durer.
@@ -78,7 +88,7 @@ export default function JournalScreen() {
     <View style={styles.root}>
       {/* HEADER 1b épuré */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
-        <Text style={styles.date}>{edition.dateLong}</Text>
+        <Text style={styles.date}>{edition.dateLong} · Veille MedTech Europe</Text>
         <Text style={styles.nameplate}>
           VANTAGE <Text style={styles.nameplateAccent}>CHRONICLE</Text>
         </Text>
@@ -94,14 +104,14 @@ export default function JournalScreen() {
       >
         {/* ticker legend */}
         <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <Text style={[styles.legendSym, { color: colors.levGreen }]}>↑</Text>
-            <Text style={styles.legendText}>Levée</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <Text style={[styles.legendSym, { color: colors.mnaAmber }]}>⇄</Text>
-            <Text style={styles.legendText}>M&A</Text>
-          </View>
+          {legendKinds.map((k) => (
+            <View key={k} style={styles.legendItem}>
+              <Text style={[styles.legendSym, { color: TICKER_KINDS[k].legend }]}>
+                {TICKER_KINDS[k].symbol}
+              </Text>
+              <Text style={styles.legendText}>{TICKER_KINDS[k].label}</Text>
+            </View>
+          ))}
         </View>
 
         {/* ticker */}
@@ -140,73 +150,145 @@ export default function JournalScreen() {
           <Text style={styles.deck}>{lead.deck}</Text>
         </FadeInView>
 
-        {/* DEAL CARD */}
-        <FadeInView index={2} replayKey={replayKey} style={styles.dealCard}>
-          <View style={styles.dealBar}>
-            <Text style={styles.dealBarText}>Le deal du jour</Text>
-          </View>
-          <View style={styles.dealBody}>
-            <View style={styles.dealHead}>
-              <PressableScale
-                activeScale={0.97}
-                onPress={() => openArticle(deal.url)}
-                accessibilityRole="link"
-                haptic={false}
-              >
-                <Text style={styles.dealCompany}>{deal.company}</Text>
-              </PressableScale>
-              <Text style={styles.dealAmount}>{deal.amount}</Text>
-              <View style={styles.roundBadge}>
-                <Text style={styles.roundText}>{deal.round}</Text>
+        {/* L'AVANCÉE DU JOUR */}
+        {milestone ? (
+          <FadeInView index={2} replayKey={replayKey} style={styles.mileCard}>
+            <View style={styles.mileBar}>
+              <Text style={styles.dealBarText}>L’avancée du jour</Text>
+            </View>
+            <View style={styles.dealBody}>
+              <View style={styles.brefMetaRow}>
+                {milestone.signalType ? <SignalBadge type={milestone.signalType} /> : null}
+                {milestone.place || milestone.sector ? (
+                  <Text style={[styles.brefMeta, { color: colors.accent }]}>
+                    {[milestone.place, milestone.sector].filter(Boolean).join(' · ')}
+                  </Text>
+                ) : null}
+                {milestone.ai || usesAI(milestone.company) ? <AiBadge /> : null}
               </View>
-              {deal.ai || usesAI(deal.company) ? <AiBadge /> : null}
+              <View style={styles.dealHead}>
+                <Text style={styles.dealCompany}>{milestone.company}</Text>
+                <View style={styles.mileBadge}>
+                  <Text style={styles.roundText}>{milestone.milestone}</Text>
+                </View>
+              </View>
+              <View style={styles.brefTitleRow}>
+                <PressableScale
+                  style={{ flex: 1 }}
+                  activeScale={0.985}
+                  onPress={() => openArticle(milestone.url)}
+                  accessibilityRole="link"
+                  haptic={false}
+                >
+                  <Text style={styles.mileTitle}>{milestone.title}</Text>
+                </PressableScale>
+                <ShareButton
+                  onPress={() => shareCard(milestoneCardData(milestone, edition.dateLong))}
+                  disabled={sharing}
+                />
+                <FavoriteStar
+                  followed={isFollowed(milestone.company)}
+                  onToggle={() => onToggleFav(milestone.company)}
+                  style={styles.starSmall}
+                  label="Ajouter aux favoris"
+                />
+              </View>
+              <Text style={styles.dealThesis}>{milestone.summary}</Text>
+              {milestone.why ? (
+                <View style={styles.mileWhy}>
+                  <Text style={styles.mileWhyLabel}>Pourquoi ça compte</Text>
+                  <Text style={styles.dealThesis}>{milestone.why}</Text>
+                </View>
+              ) : null}
             </View>
-            <Text style={styles.dealThesis}>{deal.thesis}</Text>
-            <View style={styles.dealShareRow}>
-              <ShareButton
-                label="Partager"
-                onPress={() => shareCard(dealCardData(deal, edition.dateLong))}
-                disabled={sharing}
-              />
-            </View>
-          </View>
-        </FadeInView>
+          </FadeInView>
+        ) : null}
 
-        {/* BRÈVES EUROPE */}
-        <FadeInView index={3} replayKey={replayKey} style={styles.sectionHead}>
-          <Text style={[styles.sectionLabel, { color: colors.claret }]}>Brèves · Europe</Text>
-          <View style={styles.ruleStrong} />
-        </FadeInView>
-        {brefsEurope.map((b, i) => (
-          <BrefRow
-            key={b.url + i}
-            bref={b}
-            index={4 + i}
+        {/* DEAL CARD — le bras financier */}
+        {deal ? (
+          <FadeInView index={3} replayKey={replayKey} style={styles.dealCard}>
+            <View style={styles.dealBar}>
+              <Text style={styles.dealBarText}>Financement · le deal du jour</Text>
+            </View>
+            <View style={styles.dealBody}>
+              <View style={styles.dealHead}>
+                <PressableScale
+                  activeScale={0.97}
+                  onPress={() => openArticle(deal.url)}
+                  accessibilityRole="link"
+                  haptic={false}
+                >
+                  <Text style={styles.dealCompany}>{deal.company}</Text>
+                </PressableScale>
+                <Text style={styles.dealAmount}>{deal.amount}</Text>
+                <View style={styles.roundBadge}>
+                  <Text style={styles.roundText}>{deal.round}</Text>
+                </View>
+                {deal.ai || usesAI(deal.company) ? <AiBadge /> : null}
+              </View>
+              <Text style={styles.dealThesis}>{deal.thesis}</Text>
+              <View style={styles.dealShareRow}>
+                <ShareButton
+                  label="Partager"
+                  onPress={() => shareCard(dealCardData(deal, edition.dateLong))}
+                  disabled={sharing}
+                />
+              </View>
+            </View>
+          </FadeInView>
+        ) : null}
+
+        {/* EUROPE — une section par rubrique (Tech & clinique → Financement) */}
+        {europeByPillar.map(({ pillar, items }, g) => {
+          // Cascade rank: after the 4 top blocks, each earlier group = header + its rows.
+          const base = 4 + europeByPillar.slice(0, g).reduce((n, x) => n + 1 + x.items.length, 0);
+          return (
+            <React.Fragment key={pillar}>
+              <FadeInView
+                index={base}
+                replayKey={replayKey}
+                style={[styles.sectionHead, g > 0 && { marginTop: 18 }]}
+              >
+                <Text style={[styles.sectionLabel, { color: colors.claret }]}>
+                  Europe · {PILLAR_LABELS[pillar]}
+                </Text>
+                <View style={styles.ruleStrong} />
+              </FadeInView>
+              {items.map((b, i) => (
+                <BrefRow
+                  key={b.url + i}
+                  bref={b}
+                  index={base + 1 + i}
+                  replayKey={replayKey}
+                  accent
+                  ai={b.ai || usesAI(b.company)}
+                  followed={isFollowed(b.company)}
+                  onFav={() => onToggleFav(b.company)}
+                  onOpen={openArticle}
+                  onShare={() => shareCard(brefCardData(b, edition.dateLong))}
+                  shareDisabled={sharing}
+                />
+              ))}
+            </React.Fragment>
+          );
+        })}
+
+        {/* HORS EUROPE */}
+        {brefsIntl.length > 0 ? (
+          <FadeInView
+            index={4 + europeByPillar.length + brefsEurope.length}
             replayKey={replayKey}
-            accent
-            ai={b.ai || usesAI(b.company)}
-            followed={isFollowed(b.company)}
-            onFav={() => onToggleFav(b.company)}
-            onOpen={openArticle}
-            onShare={() => shareCard(brefCardData(b, edition.dateLong))}
-            shareDisabled={sharing}
-          />
-        ))}
-
-        {/* BRÈVES INTERNATIONAL */}
-        <FadeInView
-          index={4 + brefsEurope.length}
-          replayKey={replayKey}
-          style={[styles.sectionHead, { marginTop: 18 }]}
-        >
-          <Text style={[styles.sectionLabel, { color: colors.ink60 }]}>Brèves · International</Text>
-          <View style={styles.ruleFaint} />
-        </FadeInView>
+            style={[styles.sectionHead, { marginTop: 18 }]}
+          >
+            <Text style={[styles.sectionLabel, { color: colors.ink60 }]}>Hors Europe</Text>
+            <View style={styles.ruleFaint} />
+          </FadeInView>
+        ) : null}
         {brefsIntl.map((b, i) => (
           <BrefRow
             key={b.url + i}
             bref={b}
-            index={5 + brefsEurope.length + i}
+            index={5 + europeByPillar.length + brefsEurope.length + i}
             replayKey={replayKey}
             ai={b.ai || usesAI(b.company)}
             followed={isFollowed(b.company)}
@@ -313,7 +395,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20, paddingBottom: 132 },
 
   // legend
-  legend: { flexDirection: 'row', gap: 14, alignItems: 'center', paddingTop: 9 },
+  legend: { flexDirection: 'row', flexWrap: 'wrap', columnGap: 14, rowGap: 4, alignItems: 'center', paddingTop: 9 },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   legendSym: { fontSize: 12 },
   legendText: {
@@ -359,6 +441,27 @@ const styles = StyleSheet.create({
     lineHeight: 23,
     color: colors.ink80,
     marginBottom: 16,
+  },
+
+  // avancée du jour — pétrole, the non-financial counterpart of the ink deal card
+  mileCard: { borderWidth: 1.5, borderColor: colors.accent, borderRadius: 8, marginBottom: 16 },
+  mileBar: {
+    backgroundColor: colors.accent,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
+    borderTopLeftRadius: 6.5,
+    borderTopRightRadius: 6.5,
+  },
+  mileBadge: { backgroundColor: colors.claret, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 3 },
+  mileTitle: { fontFamily: fonts.serifSemi, fontSize: 16, lineHeight: 20, color: colors.ink },
+  mileWhy: { marginTop: 10, paddingTop: 8, borderTopWidth: 1, borderTopColor: border.soft },
+  mileWhyLabel: {
+    fontFamily: fonts.archivoBold,
+    fontSize: 9,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
+    color: colors.accent,
+    marginBottom: 3,
   },
 
   // deal

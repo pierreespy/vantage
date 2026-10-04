@@ -32,6 +32,9 @@ export const colors = {
   mnaAmber: '#B8862A', // M&A — legend + Linker anatomy
   tickerLev: '#5FB98C', // levée delta on ink chip
   tickerMna: '#E5B85C', // M&A delta on ink chip
+  tickerReg: '#8EC3DA', // réglementaire (CE, FDA, remboursement) on ink chip
+  tickerTech: '#E59A9A', // avancée tech / clinique on ink chip
+  tickerNew: '#F2D79A', // naissance (création, spin-off) on ink chip
   weatherAmber: '#C9982B',
 
   white: '#ffffff',

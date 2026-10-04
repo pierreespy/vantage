@@ -1,6 +1,8 @@
 # Vantage Chronicle — app iOS
 
-Application iOS privée de veille VC HealthTech pour un futur analyste. App **entièrement
+Application iOS privée de **veille de l'écosystème MedTech européen** — avancées
+technologiques et cliniques, étapes réglementaires, naissances de startups, et la finance
+comme un bras parmi d'autres. App **entièrement
 native**, à onglets, construite d'après les maquettes « Vantage App iOS » (Claude Design),
 dans l'esprit éditorial FT/Bloomberg (papier ivoire, encre, accent pétrole,
 « CHRONICLE » en bleu).
@@ -22,9 +24,9 @@ sans effort.
 
 | Onglet | Fichier | Détails |
 | --- | --- | --- |
-| **Journal** | `app/(tabs)/index.tsx` | La « une » : nameplate VANTAGE CHRONICLE, **ticker défilant** (↑ levée / ⇄ M&A), article à la une (★ favori + titre cliquable), carte « deal du jour », Brèves Europe + International (★ + résumé). Titres → Safari. Pull-to-refresh recharge l'édition. |
+| **Journal** | `app/(tabs)/index.tsx` | La « une » : nameplate VANTAGE CHRONICLE, **ticker défilant** (◆ avancée / ✓ réglementaire / ✦ naissance / ↑ levée / ⇄ M&A), article à la une (★ favori + titre cliquable), carte « L'avancée du jour », carte « deal du jour » (optionnelle), brèves Europe **par rubrique** (Tech & clinique, Réglementaire & marché, Nouvelles pousses, Financement) puis Hors Europe (★ + résumé). Titres → Safari. Pull-to-refresh recharge l'édition. |
 | **Favoris** | `app/(tabs)/favoris.tsx` | Une carte par startup suivie (★, secteur, stade + actus cliquables). Bouton `＋` → feuille « Ajouter un favori » avec **recherche en direct** et bascule Suivre / Suivi ✓. Filtres par secteur. État persisté. |
-| **Mot du jour** | `app/(tabs)/mot-du-jour.tsx` | Fiche plein écran du terme du jour (ADC) : hero, anatomie, mécanisme, « pourquoi c'est en vogue », M&A récentes. |
+| **Mot du jour** | `app/(tabs)/mot-du-jour.tsx` | Fiche plein écran du terme MedTech du jour (ex. BCI) : hero, anatomie, mécanisme, « pourquoi c'est en vogue », M&A récentes. |
 
 ## Le contenu quotidien (comment l'app se met à jour)
 

@@ -10,12 +10,18 @@
  */
 
 import type { SignalType, SignalStrength } from './signalTypes';
+import type { Pillar } from './pillars';
 
-/** A ticker chip: a fundraise ("lev") or an M&A ("mna"). */
+/** A ticker chip — the day's notable MedTech moves, not only money:
+ *  "lev" (levée), "mna" (M&A), "reg" (marquage CE / FDA / remboursement),
+ *  "tech" (avancée tech ou clinique : 1er patient, résultats d'essai…),
+ *  "new" (naissance d'une startup / spin-off). `amount` is the chip's short value:
+ *  "€24M" for money, "CE", "FDA", "1er patient", "Spin-off"… otherwise. */
+export type TickerKind = 'lev' | 'mna' | 'reg' | 'tech' | 'new';
 export type TickerItem = {
   company: string;
   amount: string;
-  kind: 'lev' | 'mna';
+  kind: TickerKind;
 };
 
 /** The front-page lead article. */
@@ -37,7 +43,31 @@ export type Lead = {
    *  front page lead on an EARLY signal (regulatory, clinical…), not only funding/M&A. */
   signalType?: SignalType;
   strength?: SignalStrength;
+  /** Editorial pillar (see pillars.ts) — derived from signalType when absent. */
+  pillar?: Pillar;
   /** Source article, opened in the system browser. */
+  url: string;
+};
+
+/** "L'avancée du jour" — the day's technological/clinical/regulatory step forward,
+ *  decrypted (first patient implanted, CE mark, pivotal results, a new startup…). The
+ *  non-financial counterpart of the deal card. */
+export type Milestone = {
+  company: string;
+  /** Short label of the step reached, shown as a badge: "Premier patient implanté",
+   *  "Marquage CE", "Résultats pivots", "Spin-off"… */
+  milestone: string;
+  title: string;
+  /** What happened, concretely (techno, indication, figures). */
+  summary: string;
+  /** Why it matters — for the field, the patients, the company's trajectory. */
+  why?: string;
+  place?: string;
+  sector?: string;
+  /** Funding stage, when known — feeds the Favoris badge. */
+  stage?: string;
+  ai?: boolean;
+  signalType?: SignalType;
   url: string;
 };
 
@@ -69,6 +99,9 @@ export type Bref = {
    *  and lets early signals be surfaced/ordered ahead of "too late" funding news. */
   signalType?: SignalType;
   strength?: SignalStrength;
+  /** Editorial pillar the Journal files it under (see pillars.ts). Derived from
+   *  signalType when absent. */
+  pillar?: Pillar;
   title: string;
   summary: string;
   url: string;
@@ -150,8 +183,14 @@ export type Edition = {
   dateLong: string;
   ticker: TickerItem[];
   lead: Lead;
-  deal: Deal;
+  /** "L'avancée du jour" — optional (older editions don't have it). */
+  milestone?: Milestone;
+  /** "Le deal du jour" — finance is one arm among others: optional, a calm day for
+   *  money needs no deal card. */
+  deal?: Deal;
+  /** European brèves, all pillars — the Journal groups them by pillar. */
   brefsEurope: Bref[];
+  /** Outside Europe — only the moves that matter for European MedTech. */
   brefsIntl: Bref[];
   word: Word;
 };
@@ -163,6 +202,7 @@ export function editionStages(e: Edition): Record<string, string> {
     if (name && stage) out[name] = stage;
   };
   put(e.lead?.company, e.lead?.stage);
+  put(e.milestone?.company, e.milestone?.stage);
   put(e.deal?.company, e.deal?.round);
   for (const b of e.brefsEurope ?? []) put(b.company, b.stage);
   for (const b of e.brefsIntl ?? []) put(b.company, b.stage);
@@ -187,6 +227,7 @@ export function editionCompanies(e: Edition): { name: string; sector: string; st
     if (!prev.stage && stage) prev.stage = stage;
   };
   put(e.lead?.company, e.lead?.sector ?? '', e.lead?.stage);
+  put(e.milestone?.company, e.milestone?.sector ?? '', e.milestone?.stage);
   put(e.deal?.company, e.deal?.sector ?? '', e.deal?.round);
   for (const b of e.brefsEurope ?? []) put(b.company, b.sector, b.stage);
   for (const b of e.brefsIntl ?? []) put(b.company, b.sector, b.stage);
@@ -202,6 +243,7 @@ export function editionAiCompanies(e: Edition): string[] {
     if (name && ai) out.push(name);
   };
   put(e.lead?.company, e.lead?.ai);
+  put(e.milestone?.company, e.milestone?.ai);
   put(e.deal?.company, e.deal?.ai);
   for (const b of e.brefsEurope ?? []) put(b.company, b.ai);
   for (const b of e.brefsIntl ?? []) put(b.company, b.ai);
@@ -218,7 +260,6 @@ export function isEdition(value: unknown): value is Edition {
     Array.isArray(e.brefsEurope) &&
     Array.isArray(e.brefsIntl) &&
     !!e.lead &&
-    !!e.deal &&
     !!e.word
   );
 }

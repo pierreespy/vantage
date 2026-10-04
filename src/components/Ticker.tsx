@@ -1,25 +1,39 @@
 /**
  * Scrolling ticker (marquee) — the design's continuously-looping band of the day's
- * fundraises & M&A. Each chip is an ink pill: COMPANY · amount · ↑ (levée, green) or
- * ⇄ (M&A, amber). The row is duplicated and translated so the loop is seamless.
+ * MedTech moves. Each chip is an ink pill: COMPANY · value · symbol, the symbol telling
+ * the kind of move (see TICKER_KINDS): ↑ levée, ⇄ M&A, ✓ réglementaire, ◆ avancée tech /
+ * clinique, ✦ naissance. The row is duplicated and translated so the loop is seamless.
  */
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
-import type { TickerItem } from '@/content/types';
+import type { TickerItem, TickerKind } from '@/content/types';
 import { colors } from '@/theme';
 import { fonts } from '@/fonts';
 
 const PX_PER_SECOND = 34; // gentle, readable scroll speed
 
+/** Symbol + colors per kind: `chip` on the ink pill, `legend` on paper. Display order. */
+export const TICKER_KINDS: Record<
+  TickerKind,
+  { symbol: string; label: string; chip: string; legend: string }
+> = {
+  tech: { symbol: '◆', label: 'Avancée', chip: colors.tickerTech, legend: colors.claret },
+  reg: { symbol: '✓', label: 'Réglementaire', chip: colors.tickerReg, legend: colors.accent },
+  new: { symbol: '✦', label: 'Naissance', chip: colors.tickerNew, legend: colors.ink },
+  lev: { symbol: '↑', label: 'Levée', chip: colors.tickerLev, legend: colors.levGreen },
+  mna: { symbol: '⇄', label: 'M&A', chip: colors.tickerMna, legend: colors.mnaAmber },
+};
+
+/** Unknown kinds (a newer edition than the app) render as a levée rather than crash. */
+export const tickerKind = (kind: string) => TICKER_KINDS[kind as TickerKind] ?? TICKER_KINDS.lev;
+
 function Chip({ item }: { item: TickerItem }) {
-  const isLev = item.kind === 'lev';
+  const k = tickerKind(item.kind);
   return (
     <View style={styles.chip}>
       <Text style={styles.chipText}>{item.company} </Text>
       <Text style={styles.chipAmount}>{item.amount} </Text>
-      <Text style={[styles.chipDelta, { color: isLev ? colors.tickerLev : colors.tickerMna }]}>
-        {isLev ? '↑' : '⇄'}
-      </Text>
+      <Text style={[styles.chipDelta, { color: k.chip }]}>{k.symbol}</Text>
     </View>
   );
 }

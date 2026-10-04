@@ -9,6 +9,13 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (`src/components/FloatingTabBar.tsx`) :
   - `Journal` (`app/(tabs)/index.tsx`), `Favoris` (`app/(tabs)/favoris.tsx`),
     `Mot du jour` (`app/(tabs)/mot-du-jour.tsx`).
+- **Ligne éditoriale = veille MedTech européenne**, pas une veille financière : la finance
+  est un bras parmi d'autres. Le Journal range les brèves Europe par **rubrique**
+  (`pillar` : `innovation` Tech & clinique, `marche` Réglementaire & marché, `naissances`
+  Nouvelles pousses, `financement` — `src/content/pillars.ts`, déduite du `signalType` si
+  absente), affiche « L'avancée du jour » (`milestone`) avant le deal du jour (`deal`,
+  **optionnel**), et un ticker mixte (`kind` : `tech`/`reg`/`new`/`lev`/`mna`, symboles dans
+  `TICKER_KINDS` de `Ticker.tsx`). Règles dans `daily-content/GENERATION.md`.
 - **Contenu quotidien** : le Journal et le Mot du jour lisent l'objet `Edition`
   (`src/content/types.ts`) fourni par `EditionProvider` (`src/content/EditionProvider.tsx`),
   qui télécharge `config.contentUrl` (JSON), met en cache, et retombe sur
@@ -16,7 +23,7 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (`example-edition.json`, `recent-words.json`, `GENERATION.md`).
   Ne pas remettre de contenu de veille en dur dans les écrans — passer par l'`Edition`.
 - **Mot du jour** : le choix se fait à la génération (voir `daily-content/GENERATION.md`) :
-  terme HealthTech/MedTech/Biotech utile en VC santé, **jamais un terme présent dans
+  terme **MedTech** (dispositifs, imagerie, réglementaire/accès marché…), **jamais un terme présent dans
   `recent-words.json`** (mémoire des ~30 derniers jours, mise à jour chaque matin).
   Le rendu de l'explication est factorisé dans `src/components/WordView.tsx`, partagé par
   l'onglet Mot du jour et le détail du Glossaire.

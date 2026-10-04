@@ -2,14 +2,9 @@
   "dateLong": "8 juil. 2026",
   "ticker": [
     {
-      "company": "ALDERAAN",
-      "amount": "€120M",
-      "kind": "lev"
-    },
-    {
-      "company": "CUREVAC",
-      "amount": "$1.3Md",
-      "kind": "mna"
+      "company": "NEUROLOOP",
+      "amount": "1er patient",
+      "kind": "tech"
     },
     {
       "company": "VITROGEN",
@@ -17,169 +12,190 @@
       "kind": "lev"
     },
     {
-      "company": "FLOW NEURO",
-      "amount": "€18M",
-      "kind": "lev"
-    },
-    {
-      "company": "OWKIN",
-      "amount": "+€30M",
-      "kind": "mna"
-    },
-    {
       "company": "CARDIOWAVE",
-      "amount": "€14M",
-      "kind": "lev"
+      "amount": "FDA",
+      "kind": "reg"
+    },
+    {
+      "company": "OSTEOPRINT",
+      "amount": "Spin-off",
+      "kind": "new"
+    },
+    {
+      "company": "SONAVIEW",
+      "amount": "CE",
+      "kind": "reg"
+    },
+    {
+      "company": "ORTHOMIND",
+      "amount": "€85M",
+      "kind": "mna"
     }
   ],
   "lead": {
-    "kicker": "Series B · Oncologie",
-    "title": "Alderaan Bio lève 120 M€ pour ses thérapies à ARN ciblé",
-    "deck": "Le tour, mené par Sofinnova avec Jeito Capital et l'EIC Fund, place la biotech parisienne parmi les mieux financées d'Europe en oncologie.",
-    "company": "Alderaan Bio",
-    "url": "https://sifted.eu/articles/alderaan-bio-series-b-oncologie",
-    "stage": "Series B",
-    "sector": "Oncologie"
+    "kicker": "Première mondiale · Neurotech",
+    "title": "NeuroLoop implante son premier stimulateur en boucle fermée contre l’épilepsie",
+    "deck": "Au CHU de Grenoble, la startup lyonnaise a posé son implant qui détecte une crise naissante et la stoppe en quelques millisecondes — premier patient d’un essai de faisabilité sur 12 malades pharmacorésistants.",
+    "company": "NeuroLoop",
+    "stage": "Series A",
+    "sector": "MedTech",
+    "signalType": "clinical_update",
+    "strength": 5,
+    "pillar": "innovation",
+    "url": "https://www.medtechdive.com"
+  },
+  "milestone": {
+    "company": "SonaView",
+    "milestone": "Marquage CE",
+    "title": "SonaView obtient le marquage CE (MDR) pour son échographe de poche piloté par IA",
+    "summary": "La sonde, branchée sur un smartphone, guide un médecin généraliste pas à pas pour réaliser une échographie cardiaque et en mesure automatiquement la fraction d’éjection.",
+    "why": "Sous MDR, une classe IIa avec IA est un parcours long et coûteux : le franchir ouvre les 27 marchés de l’UE et lance la course au remboursement, première étape vers un dépistage de l’insuffisance cardiaque hors de l’hôpital.",
+    "place": "Copenhague",
+    "sector": "Imagerie",
+    "stage": "Seed",
+    "ai": true,
+    "signalType": "regulatory_milestone",
+    "url": "https://www.medtechdive.com"
   },
   "deal": {
-    "company": "CureVac",
-    "amount": "$1,3 Md",
+    "company": "OrthoMind",
+    "amount": "85 M€",
     "round": "M&A",
-    "thesis": "GSK rachète le pionnier allemand de l'ARNm pour internaliser sa plateforme — cas d'école de consolidation post-Covid.",
-    "sector": "Biotech",
-    "url": "https://endpts.com/gsk-acquires-curevac-mrna-deal"
+    "thesis": "Un leader européen de l’orthopédie rachète la startup de planification chirurgicale par IA pour intégrer son logiciel à ses robots de pose de prothèse — la robotique veut maîtriser la donnée pré-opératoire.",
+    "sector": "Robotique chirurgicale",
+    "ai": true,
+    "url": "https://www.medtechdive.com"
   },
   "brefsEurope": [
+    {
+      "company": "CardioWave",
+      "place": "Paris",
+      "sector": "MedTech",
+      "pillar": "marche",
+      "signalType": "regulatory_milestone",
+      "strength": 4,
+      "ai": true,
+      "title": "CardioWave décroche une FDA Breakthrough Device Designation",
+      "summary": "Son patch ECG piloté par IA obtient le statut Breakthrough de la FDA — accès accéléré au marché américain visé pour 2027.",
+      "url": "https://www.medtechdive.com"
+    },
+    {
+      "company": "Kinetis Health",
+      "place": "Berlin",
+      "sector": "Digital Health",
+      "pillar": "marche",
+      "signalType": "reimbursement",
+      "strength": 4,
+      "title": "Kinetis Health inscrite au registre DiGA allemand",
+      "summary": "Son programme de rééducation post-AVC sur tablette devient prescriptible et remboursé par l’assurance maladie allemande.",
+      "url": "https://www.mobihealthnews.com"
+    },
+    {
+      "company": "Hemotex",
+      "place": "Eindhoven",
+      "sector": "MedTech",
+      "pillar": "innovation",
+      "signalType": "clinical_update",
+      "strength": 4,
+      "title": "Hemotex publie ses résultats pivots sur un pansement hémostatique résorbable",
+      "summary": "Arrêt du saignement en moins de 3 minutes chez 94 % des 210 patients opérés du foie ; dépôt du dossier CE prévu d’ici la fin d’année.",
+      "url": "https://www.medtechdive.com"
+    },
+    {
+      "company": "OsteoPrint",
+      "place": "Lausanne",
+      "sector": "Biomatériaux",
+      "pillar": "naissances",
+      "signalType": "company_incorporation",
+      "strength": 3,
+      "title": "OsteoPrint, spin-off de l’EPFL, naît pour imprimer des greffons osseux sur mesure",
+      "summary": "Fondée par deux chercheurs du laboratoire de biomatériaux ; implants céramiques imprimés en 3D à partir du scanner du patient. Lauréate du concours i-Lab.",
+      "url": "https://www.startupticker.ch"
+    },
     {
       "company": "Vitrogen",
       "place": "Munich",
       "sector": "MedTech",
+      "stage": "Series A",
+      "pillar": "financement",
+      "signalType": "funding_round",
+      "strength": 4,
       "title": "Vitrogen boucle 24 M€ en Series A",
       "summary": "Valves cardiaques résorbables ; tour mené par un fonds allemand deep-tech. Premiers essais cliniques attendus fin 2026.",
-      "url": "https://www.eu-startups.com/2026/07/vitrogen-series-a",
-      "stage": "Series A"
-    },
-    {
-      "company": "Flow Neuroscience",
-      "place": "Stockholm",
-      "sector": "Digital Health",
-      "title": "Flow Neuroscience étend sa Series B à 18 M€",
-      "summary": "La medtech de neurostimulation contre la dépression accélère son déploiement aux États-Unis.",
-      "url": "https://sifted.eu/articles/flow-neuroscience-series-b-extension",
-      "stage": "Series B"
-    },
-    {
-      "company": "Balderton",
-      "place": "Londres",
-      "sector": "Fonds",
-      "title": "Balderton dédie 100 M$ à la healthtech européenne",
-      "summary": "Nouveau véhicule early-stage centré sur l'IA appliquée au diagnostic médical.",
-      "url": "https://tech.eu/2026/07/balderton-healthtech-fund"
-    },
-    {
-      "company": "Aboleris Pharma",
-      "place": "Paris",
-      "sector": "Biotech",
-      "title": "Aboleris Pharma lève 42 M€ en Series A",
-      "summary": "Immunothérapies de tolérance contre les maladies auto-immunes ; tour mené par Jeito Capital et Bpifrance.",
-      "url": "https://sifted.eu/articles/aboleris-pharma-series-a",
-      "stage": "Series A"
-    },
-    {
-      "company": "Swissmedic",
-      "place": "Bâle",
-      "sector": "Réglementaire",
-      "title": "Swissmedic ouvre une voie accélérée pour les DTx",
-      "summary": "Les thérapies digitales validées cliniquement pourront être évaluées en 90 jours.",
-      "url": "https://www.swissmedic.ch/dtx-fast-track"
+      "url": "https://www.eu-startups.com"
     }
   ],
   "brefsIntl": [
     {
-      "company": "Chroma Medicine",
+      "company": "Pulsar Neuro",
       "place": "Boston",
-      "sector": "Biotech",
-      "title": "Chroma Medicine lève 60 M$ en Series A",
-      "summary": "Édition épigénétique in vivo ; tour mené par GV (Google Ventures) et Atlas Venture.",
-      "url": "https://www.fiercebiotech.com/biotech/chroma-medicine-series-a",
-      "stage": "Series A"
-    },
-    {
-      "company": "Abridge",
-      "place": "San Francisco",
-      "sector": "Digital Health",
-      "ai": true,
-      "title": "Abridge lève 90 M$ pour son copilote clinique",
-      "summary": "Documentation médicale par IA, déjà déployée dans 40 hôpitaux américains ; Lightspeed en lead.",
-      "url": "https://techcrunch.com/2026/07/abridge-raises-90m"
-    },
-    {
-      "company": "Temasek",
-      "place": "Singapour",
-      "sector": "MedTech",
-      "title": "Temasek injecte 200 M$ dans la medtech de dépistage",
-      "summary": "Le fonds souverain vise les dispositifs de dépistage à bas coût pour l'Asie du Sud-Est.",
-      "url": "https://www.mobihealthnews.com/temasek-medtech-screening"
+      "sector": "Neurotech",
+      "pillar": "innovation",
+      "signalType": "clinical_update",
+      "strength": 3,
+      "title": "Pulsar Neuro démarre l’essai pivot de son interface cerveau-machine",
+      "summary": "Concurrent direct des neurotechs européennes : 30 patients paralysés, résultats attendus en 2028.",
+      "url": "https://www.fiercebiotech.com"
     }
   ],
   "word": {
-    "term": "ADC",
-    "full": "Antibody-Drug Conjugate",
-    "fr": "Anticorps-médicament conjugué",
-    "field": "Oncologie de précision",
-    "definition": "Un « missile guidé » anticancéreux : un anticorps qui reconnaît la cellule tumorale, relié à une charge toxique qu'il y délivre — en épargnant les tissus sains.",
+    "term": "BCI",
+    "full": "Brain-Computer Interface",
+    "fr": "Interface cerveau-machine",
+    "field": "Neurotechnologies",
+    "definition": "Un dispositif qui lit l’activité électrique du cerveau et la traduit en commandes — pour piloter un curseur, un bras robotisé ou stimuler la moelle épinière — sans passer par les muscles.",
     "parts": [
       {
-        "label": "Anticorps",
-        "role": "le guidage"
+        "label": "Électrodes",
+        "role": "l’écoute"
       },
       {
-        "label": "Linker",
-        "role": "l'attache"
+        "label": "Décodeur",
+        "role": "la traduction"
       },
       {
-        "label": "Charge",
-        "role": "l'ogive"
+        "label": "Effecteur",
+        "role": "l’action"
       }
     ],
     "how": [
       {
         "n": "1",
-        "h": "Ciblage",
-        "t": "L'anticorps circule dans le sang et se fixe sur un antigène (ex. HER2) surexprimé par la tumeur."
+        "h": "Captation",
+        "t": "Des électrodes (sur le crâne, à sa surface ou dans le cortex) enregistrent l’activité des neurones moteurs."
       },
       {
         "n": "2",
-        "h": "Internalisation",
-        "t": "Le complexe est absorbé à l'intérieur de la cellule cancéreuse."
+        "h": "Décodage",
+        "t": "Un algorithme, souvent d’IA, reconnaît l’intention (« bouger la main ») dans ce signal."
       },
       {
         "n": "3",
-        "h": "Libération",
-        "t": "Le linker se rompt dans la cellule et libère la charge, qui la détruit de l'intérieur."
+        "h": "Commande",
+        "t": "L’intention pilote un ordinateur, une prothèse ou un stimulateur qui réactive le membre paralysé."
       }
     ],
-    "why": "Après des décennies de faux départs, les linkers de nouvelle génération ont rendu les ADC à la fois efficaces et tolérables. Résultat : la plus grosse vague de M&A oncologique de la décennie, et une course aux cibles au-delà d'HER2.",
+    "why": "Miniaturisation des implants, nouveaux matériaux (graphène, électrodes souples) et décodage par IA font passer les BCI du labo aux premiers essais cliniques. L’Europe y a des pépites issues de la recherche publique — et les montants levés aux États-Unis en font l’un des segments MedTech les plus suivis.",
     "startups": [
       {
-        "name": "Adcytherix",
-        "place": "France",
-        "use": "Startup ADC française ; plus grosse Série A ADC d’Europe (105 M€, 2025), entrée en clinique visée en 2026."
+        "name": "Inbrain Neuroelectronics",
+        "place": "Barcelone",
+        "use": "Interfaces neurales en graphène ; implant testé chez l’homme, ciblant d’abord Parkinson."
       },
       {
-        "name": "Iksuda Therapeutics",
-        "place": "Newcastle",
-        "use": "Linkers stables (techno PermaLink) pour viser des cibles tumorales difficiles."
+        "name": "Onward Medical",
+        "place": "Eindhoven / Lausanne",
+        "use": "Stimulation de la moelle épinière ; couplée à un implant cérébral (avec Clinatec) pour refaire marcher des patients paralysés."
       },
       {
-        "name": "VALANX Biotech",
-        "place": "Vienne",
-        "use": "Plateforme de conjugaison GoldenSite ; ADC anti-LIV-1 pour le cancer du sein triple négatif."
+        "name": "Synchron",
+        "place": "New York",
+        "use": "Stentrode : électrode posée par voie vasculaire, sans ouvrir le crâne."
       },
       {
-        "name": "Sidewinder",
-        "place": "États-Unis",
-        "use": "ADCs bispécifiques « de précision » ; 137 M$ levés (OrbiMed)."
+        "name": "Paradromics",
+        "place": "Austin",
+        "use": "Implant haut débit (Connexus) pour restaurer la parole."
       }
     ]
   }
