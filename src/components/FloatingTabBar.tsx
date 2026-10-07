@@ -20,17 +20,21 @@ import { fonts } from '../fonts';
 import { duration, easing } from '../lib/motion';
 import { hapticTap } from '../lib/haptics';
 import { TabIcon, TabIconName } from './TabIcon';
+import { useSettings } from '../state/settings';
+import type { Strings } from '../i18n/strings';
 
-const TABS: Record<string, { label: string; icon: TabIconName }> = {
-  index: { label: 'Journal', icon: 'journal' },
-  favoris: { label: 'Favoris', icon: 'favoris' },
-  'mot-du-jour': { label: 'Mot du jour', icon: 'motdujour' },
+const TABS: Record<string, { label: keyof Strings['tabs']; icon: TabIconName }> = {
+  index: { label: 'journal', icon: 'journal' },
+  favoris: { label: 'favoris', icon: 'favoris' },
+  'mot-du-jour': { label: 'motDuJour', icon: 'motdujour' },
+  reglages: { label: 'reglages', icon: 'reglages' },
 };
 
 const INACTIVE = '#a49b8c';
 
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const { t } = useSettings();
   // Float above the home indicator; ~matches the design's 28px offset on notched
   // devices while keeping a safe minimum on older ones.
   const bottom = Math.max(insets.bottom, 16);
@@ -40,8 +44,9 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       <BlurView intensity={24} tint="light" style={styles.pill}>
         <View style={styles.pillTint}>
           {state.routes.map((route, index) => {
-            const def = TABS[route.name];
-            if (!def) return null;
+            const tab = TABS[route.name];
+            if (!tab) return null;
+            const def = { label: t.tabs[tab.label], icon: tab.icon };
             const focused = state.index === index;
 
             const onPress = () => {

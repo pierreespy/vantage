@@ -3,9 +3,9 @@
  * (viewBox 0 0 24 24, stroke currentColor, width 1.7, round caps/joins).
  */
 import React from 'react';
-import Svg, { Path, Line } from 'react-native-svg';
+import Svg, { Circle, Path, Line } from 'react-native-svg';
 
-export type TabIconName = 'journal' | 'favoris' | 'motdujour';
+export type TabIconName = 'journal' | 'favoris' | 'motdujour' | 'reglages';
 
 type Props = { name: TabIconName; size?: number; color: string };
 
@@ -38,6 +38,16 @@ export function TabIcon({ name, size = 23, color }: Props) {
         <>
           <Path d="M3 5.5c2.4-1 5.4-1 8 .6v12.4c-2.6-1.5-5.6-1.5-8-.6z" {...common} />
           <Path d="M21 5.5c-2.4-1-5.4-1-8 .6v12.4c2.4-1.5 5.6-1.5 8-.6z" {...common} />
+        </>
+      )}
+      {name === 'reglages' && (
+        <>
+          <Line x1={4} y1={7} x2={20} y2={7} {...common} />
+          <Line x1={4} y1={12} x2={20} y2={12} {...common} />
+          <Line x1={4} y1={17} x2={20} y2={17} {...common} />
+          <Circle cx={9} cy={7} r={2} fill="#F9EFE3" stroke={color} strokeWidth={1.7} />
+          <Circle cx={15} cy={12} r={2} fill="#F9EFE3" stroke={color} strokeWidth={1.7} />
+          <Circle cx={8} cy={17} r={2} fill="#F9EFE3" stroke={color} strokeWidth={1.7} />
         </>
       )}
     </Svg>

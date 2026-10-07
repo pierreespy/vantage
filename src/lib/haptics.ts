@@ -13,26 +13,39 @@
  */
 import * as Haptics from 'expo-haptics';
 
+/** Interrupteur global, piloté par le réglage « Retours haptiques » (SettingsProvider). */
+let enabled = true;
+
+export function setHapticsEnabled(value: boolean): void {
+  enabled = value;
+}
+
 export function hapticError(): void {
+  if (!enabled) return;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error).catch(() => {});
 }
 
 export function hapticSuccess(): void {
+  if (!enabled) return;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
 }
 
 export function hapticWarning(): void {
+  if (!enabled) return;
   Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => {});
 }
 
 export function hapticTap(): void {
+  if (!enabled) return;
   Haptics.selectionAsync().catch(() => {});
 }
 
 export function hapticLight(): void {
+  if (!enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
 
 export function hapticMedium(): void {
+  if (!enabled) return;
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
 }

@@ -10,6 +10,7 @@ import { useAppFonts } from '@/fonts';
 import { colors } from '@/theme';
 import { FavoritesProvider } from '@/state/favorites';
 import { FavoritesSyncProvider } from '@/state/favoritesSync';
+import { SettingsProvider } from '@/state/settings';
 import { NotificationsProvider } from '@/state/notifications';
 import { ShareProvider } from '@/lib/useShareCard';
 import { FavSyncConsentModal } from '@/components/FavSyncConsentModal';
@@ -30,6 +31,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <SettingsProvider>
       <EditionProvider>
         <GlossaryProvider>
           <NewsProvider>
@@ -52,6 +54,7 @@ export default function RootLayout() {
           </NewsProvider>
         </GlossaryProvider>
       </EditionProvider>
+      </SettingsProvider>
     </SafeAreaProvider>
   );
 }

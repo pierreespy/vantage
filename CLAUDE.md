@@ -5,10 +5,15 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
 
 ## À savoir avant d'éditer
 
-- App **entièrement native**. **3 onglets** dans une barre flottante en pilule
+- App **entièrement native**. **4 onglets** dans une barre flottante en pilule
   (`src/components/FloatingTabBar.tsx`) :
   - `Journal` (`app/(tabs)/index.tsx`), `Favoris` (`app/(tabs)/favoris.tsx`),
-    `Mot du jour` (`app/(tabs)/mot-du-jour.tsx`).
+    `Mot du jour` (`app/(tabs)/mot-du-jour.tsx`), `Réglages` (`app/(tabs)/reglages.tsx`).
+- **Réglages & langue** : `SettingsProvider` (`src/state/settings.tsx`, AsyncStorage) porte
+  la langue d'interface (`fr`/`en`) et l'interrupteur haptique (`setHapticsEnabled` dans
+  `haptics.ts`). Chaînes traduites dans `src/i18n/strings.ts` via `useSettings().t` — seule
+  l'interface est traduite (onglets + Réglages pour l'instant), pas le contenu de l'`Edition`.
+  L'écran pilote aussi la notif du matin et le partage anonyme des favoris.
 - **Ligne éditoriale = veille MedTech européenne**, pas une veille financière : la finance
   est un bras parmi d'autres. Le Journal range les brèves Europe par **rubrique**
   (`pillar` : `innovation` Tech & clinique, `marche` Réglementaire & marché, `naissances`

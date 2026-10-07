@@ -1,5 +1,5 @@
 /**
- * Tab navigator — 3 tabs (Journal · Favoris · Mot du jour) with the floating
+ * Tab navigator — 4 tabs (Journal · Favoris · Mot du jour · Réglages) with the floating
  * pill tab bar. Phase-2 tabs (deal-tracker, etc.) slot in by adding a screen here.
  */
 import React from 'react';
@@ -19,6 +19,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: 'Journal' }} />
       <Tabs.Screen name="favoris" options={{ title: 'Favoris' }} />
       <Tabs.Screen name="mot-du-jour" options={{ title: 'Mot du jour' }} />
+      <Tabs.Screen name="reglages" options={{ title: 'Réglages' }} />
     </Tabs>
   );
 }
