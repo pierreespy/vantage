@@ -2,7 +2,7 @@
  * Daily content provider.
  *
  * On launch (and on pull-to-refresh) it fetches the day's edition JSON from
- * config.contentUrl. Resolution order, so the app ALWAYS shows something:
+ * config.editionUrls[theme] (theme = Réglages, MedTech ou Biotech). Resolution order, so the app ALWAYS shows something:
  *   1. live   — freshly fetched from the URL (also cached for next time)
  *   2. cache  — last successfully fetched edition (works offline)
  *   3. sample — the edition bundled inside the app
@@ -27,6 +27,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useMemo,
   useState,
 } from 'react';
@@ -35,9 +36,12 @@ import { config } from '@/config';
 import { catalog } from '@/data/favoris';
 import { isAiStartup } from '@/data/aiStartups';
 import { sampleEdition } from './sampleEdition';
+import { useSettings } from '@/state/settings';
 import { editionAiCompanies, editionCompanies, editionStages, isEdition, type Edition } from './types';
 
 const CACHE_KEY = 'vantage.edition.v1';
+/** Cache par thème : MedTech garde la clé historique. */
+const cacheKey = (theme: string) => (theme === 'medtech' ? CACHE_KEY : `${CACHE_KEY}.${theme}`);
 const STAGES_KEY = 'vantage.stages.v1';
 const DISCOVERED_KEY = 'vantage.discoveredStartups.v2';
 const AI_KEY = 'vantage.aiCompanies.v1';
@@ -93,6 +97,7 @@ type EditionContextValue = {
 const EditionContext = createContext<EditionContextValue | null>(null);
 
 export function EditionProvider({ children }: { children: React.ReactNode }) {
+  const { theme } = useSettings();
   const [edition, setEdition] = useState<Edition>(sampleEdition);
   const [source, setSource] = useState<EditionSource>('sample');
   const [loading, setLoading] = useState(false);
@@ -109,10 +114,14 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
   const [aiHydrated, setAiHydrated] = useState(false);
 
   // Warm up edition from cache immediately, so a cold offline start shows the last edition.
+  // Re-run on theme switch: reset to the sample, then show that theme's cache.
   useEffect(() => {
-    AsyncStorage.getItem(CACHE_KEY)
+    let active = true;
+    setEdition(sampleEdition);
+    setSource('sample');
+    AsyncStorage.getItem(cacheKey(theme))
       .then((raw) => {
-        if (!raw) return;
+        if (!raw || !active) return;
         const parsed = JSON.parse(raw);
         if (isEdition(parsed)) {
           setEdition(parsed);
@@ -120,7 +129,10 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {});
-  }, []);
+    return () => {
+      active = false;
+    };
+  }, [theme]);
 
   // Load the accumulated stage map once.
   useEffect(() => {
@@ -253,22 +265,26 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(AI_KEY, JSON.stringify(aiCompanies)).catch(() => {});
   }, [aiCompanies, aiHydrated]);
 
+  const themeRef = useRef(theme);
+  themeRef.current = theme;
+
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(config.contentUrl, { headers: { Accept: 'application/json' } });
+      const res = await fetch(config.editionUrls[theme], { headers: { Accept: 'application/json' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
       if (!isEdition(data)) throw new Error('Malformed edition');
+      if (themeRef.current !== theme) return; // switched mid-flight
       setEdition(data);
       setSource('live');
-      AsyncStorage.setItem(CACHE_KEY, JSON.stringify(data)).catch(() => {});
+      AsyncStorage.setItem(cacheKey(theme), JSON.stringify(data)).catch(() => {});
     } catch {
       // Keep whatever we already have (cache or sample) — never blank the screen.
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [theme]);
 
   // Fetch once on mount.
   useEffect(() => {

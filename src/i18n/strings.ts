@@ -7,6 +7,14 @@
  */
 export type Language = 'fr' | 'en';
 
+/** Thème de veille : chaque thème a sa propre édition quotidienne. */
+export type Theme = 'medtech' | 'biotech';
+
+export const THEMES: { code: Theme; label: string }[] = [
+  { code: 'medtech', label: 'MedTech' },
+  { code: 'biotech', label: 'Biotech' },
+];
+
 export const LANGUAGES: { code: Language; label: string }[] = [
   { code: 'fr', label: 'Français' },
   { code: 'en', label: 'English' },
@@ -21,6 +29,8 @@ const fr = {
   },
   settings: {
     title: 'Réglages',
+    sectionTheme: 'Thème de veille',
+    themeHint: 'Aussi modifiable en haut du Journal.',
     sectionLanguage: 'Langue',
     languageHint: "Langue de l'interface. Le contenu éditorial reste en français.",
     sectionNotifications: 'Notifications',
@@ -54,6 +64,8 @@ const en: Strings = {
   },
   settings: {
     title: 'Settings',
+    sectionTheme: 'Coverage theme',
+    themeHint: 'Also switchable at the top of the Journal.',
     sectionLanguage: 'Language',
     languageHint: 'Interface language. Editorial content stays in French.',
     sectionNotifications: 'Notifications',

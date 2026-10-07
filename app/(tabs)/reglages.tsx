@@ -13,6 +13,7 @@ import { useNotifications } from '@/state/notifications';
 import { useFavoritesSync } from '@/state/favoritesSync';
 import { LANGUAGES } from '@/i18n/strings';
 import { PressableScale } from '@/components/PressableScale';
+import { ThemeSwitch } from '@/components/ThemeSwitch';
 import { hapticTap, hapticWarning } from '@/lib/haptics';
 import { colors, border, glass } from '@/theme';
 import { fonts } from '@/fonts';
@@ -39,6 +40,10 @@ export default function ReglagesScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        <Section title={s.sectionTheme} hint={s.themeHint}>
+          <ThemeSwitch stretch />
+        </Section>
+
         <Section title={s.sectionLanguage} hint={s.languageHint}>
           <View style={styles.segment}>
             {LANGUAGES.map(({ code, label }) => {

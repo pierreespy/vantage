@@ -38,6 +38,8 @@ import { FadeInView } from '@/components/FadeInView';
 import { FavoriteStar } from '@/components/FavoriteStar';
 import { PressableScale } from '@/components/PressableScale';
 import { SignalBadge } from '@/components/SignalBadge';
+import { ThemeSwitch } from '@/components/ThemeSwitch';
+import { useSettings } from '@/state/settings';
 import type { Bref } from '@/content/types';
 import { groupByPillar, PILLAR_LABELS } from '@/content/pillars';
 import { Ticker, TICKER_KINDS } from '@/components/Ticker';
@@ -49,7 +51,9 @@ const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {
 
 export default function JournalScreen() {
   const insets = useSafeAreaInsets();
-  const { edition, loading, refresh, usesAI } = useEdition();
+  const { edition, source, loading, refresh, usesAI } = useEdition();
+  const { theme } = useSettings();
+  const themeLabel = theme === 'biotech' ? 'Biotech' : 'MedTech';
   const { isFollowed, toggle } = useFavorites();
   const { noteRead } = useNotifications();
   const { shareCard, sharing } = useShareCard();
@@ -88,10 +92,18 @@ export default function JournalScreen() {
     <View style={styles.root}>
       {/* HEADER 1b épuré */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
-        <Text style={styles.date}>{edition.dateLong} · Veille MedTech Europe</Text>
+        <Text style={styles.date}>{edition.dateLong} · Veille {themeLabel} Europe</Text>
         <Text style={styles.nameplate}>
           VANTAGE <Text style={styles.nameplateAccent}>CHRONICLE</Text>
         </Text>
+        <View style={{ marginTop: 10 }}>
+          <ThemeSwitch />
+        </View>
+        {theme !== 'medtech' && source === 'sample' ? (
+          <Text style={styles.themeNotice}>
+            Édition {themeLabel} pas encore disponible — aperçu MedTech affiché.
+          </Text>
+        ) : null}
       </View>
 
       <ScrollView
@@ -372,6 +384,13 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: 2,
     borderBottomColor: colors.ink,
+  },
+  themeNotice: {
+    fontFamily: fonts.serifItalic,
+    fontSize: 12,
+    color: colors.claret,
+    textAlign: 'center',
+    marginTop: 8,
   },
   date: {
     fontFamily: fonts.mono,

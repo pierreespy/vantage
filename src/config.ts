@@ -15,6 +15,12 @@
 export const config = {
   /** URL of the daily edition JSON. */
   contentUrl: 'https://pierreespy.github.io/vantage-content/edition.json',
+  /** Daily edition per coverage theme (Réglages / Journal switch). MedTech is the
+   *  historical `contentUrl`; Biotech is a sibling file produced by its own routine. */
+  editionUrls: {
+    medtech: 'https://pierreespy.github.io/vantage-content/edition.json',
+    biotech: 'https://pierreespy.github.io/vantage-content/edition-biotech.json',
+  },
   /** URL of the per-startup news JSON (sibling of contentUrl). */
   newsUrl: 'https://pierreespy.github.io/vantage-content/startup-news.json',
   /** URL of the growing glossary JSON (sibling of contentUrl): every past "mot du
