@@ -6,7 +6,7 @@
  *    tier's limit — new users start with none and pick their own.
  *  - `customStartups`: startups the user added by hand (persisted) — real startups
  *    not yet in the built-in catalog. They become searchable like any other.
- *  - `tier`: 'restricted' (1 favorite) or 'extended' (6). New installs are restricted;
+ *  - `tier`: 'restricted' (1 favorite) or 'extended' (10). New installs are restricted;
  *    entering the day's access code unlocks 'extended' PERMANENTLY on this device
  *    (see AccessProvider / docs/perso-favoris.md). On hydration the followed set is
  *    truncated to the current tier's limit — a restricted user carrying favorites from
@@ -38,7 +38,7 @@ export type Tier = 'restricted' | 'extended';
  *  report, whose backend rules cap the list — keep EXTENDED_LIMIT and
  *  vantage-content/backend/firestore.rules in lockstep). */
 export const RESTRICTED_LIMIT = 1;
-export const EXTENDED_LIMIT = 6;
+export const EXTENDED_LIMIT = 10;
 
 export function limitForTier(tier: Tier): number {
   return tier === 'extended' ? EXTENDED_LIMIT : RESTRICTED_LIMIT;

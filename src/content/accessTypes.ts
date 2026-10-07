@@ -2,7 +2,7 @@
  * Daily access code — the `access.json` DATA CONTRACT.
  *
  * A sibling of the daily Edition (see types.ts) and startup-news (see newsTypes.ts).
- * It gates the "extended" favorites tier (up to 6 startups vs 1). Each morning the
+ * It gates the "extended" favorites tier (up to 10 startups vs 1). Each morning the
  * generation pipeline mints a fresh human-readable passphrase, then publishes ONLY a
  * salted SHA-256 of it — never the passphrase itself. The owner (Pierre) hands the
  * plaintext out on request (LinkedIn); the app verifies it offline against the hash.
