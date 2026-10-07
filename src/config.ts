@@ -37,9 +37,7 @@ export const config = {
   /** Where users are sent to request the day's access code (LinkedIn).
    *  - `contactLinkedInApp`: deep link opened when the LinkedIn app is installed
    *    (user is already signed in there — no login wall).
-   *  - `contactLinkedInUrl`: https profile, used as the web fallback.
-   *  - `linkedInAppStoreUrl`: App Store page, opened when the app isn't installed. */
+   *  - `contactLinkedInUrl`: https profile (universal link), used as the fallback. */
   contactLinkedInApp: 'linkedin://in/pierre-espy',
   contactLinkedInUrl: 'https://www.linkedin.com/in/pierre-espy',
-  linkedInAppStoreUrl: 'https://apps.apple.com/app/linkedin/id288429040',
 } as const;

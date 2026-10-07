@@ -14,6 +14,8 @@ import { Animated, Pressable, PressableProps, StyleProp, ViewStyle } from 'react
 import { duration, easing } from '@/lib/motion';
 import { hapticLight, hapticTap } from '@/lib/haptics';
 
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
 type Props = Omit<PressableProps, 'style'> & {
   style?: StyleProp<ViewStyle>;
   /** Échelle atteinte pendant l'appui (0.96 par défaut). */
@@ -48,9 +50,12 @@ export function PressableScale({
   );
 
   return (
-    <Animated.View style={[style, { transform: [{ scale }] }]}>
-      <Pressable
+    // Le style (dont flexDirection/gap/padding) s'applique au Pressable lui-même : c'est
+    // lui qui contient les enfants. Sur un conteneur séparé, la mise en page en ligne
+    // était perdue et le contenu s'empilait.
+    <AnimatedPressable
         {...rest}
+        style={[style, { transform: [{ scale }] }]}
         disabled={disabled}
         onPressIn={(e) => {
           animate(activeScale, duration.press);
@@ -64,7 +69,6 @@ export function PressableScale({
         }}
       >
         {children}
-      </Pressable>
-    </Animated.View>
+    </AnimatedPressable>
   );
 }

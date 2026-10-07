@@ -51,24 +51,22 @@ import { SignalBadge } from '@/components/SignalBadge';
 const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {});
 
 /**
- * Open the "day's code" contact on LinkedIn with the least friction:
- *  - if the LinkedIn app is installed → open it directly on the profile (the user is
- *    already signed in there, so no web login wall);
- *  - otherwise → send them to the App Store to get the app;
- *  - last resort → the web profile in the in-app browser.
- * (Detecting the app requires `linkedin` in ios.infoPlist.LSApplicationQueriesSchemes.)
+ * Open the "day's code" contact on LinkedIn, straight on the profile:
+ *  1. the LinkedIn app deep link — tried directly (no `canOpenURL` probe, which returns
+ *     false whenever the scheme isn't whitelisted, e.g. in Expo Go, and wrongly sent
+ *     users to the App Store although the app was installed);
+ *  2. otherwise the https profile: a universal link, so iOS still hands it to the app if
+ *     installed, else Safari shows the profile.
  */
 async function openContactLinkedIn() {
   try {
-    if (await Linking.canOpenURL('linkedin://')) {
-      await Linking.openURL(config.contactLinkedInApp);
-      return;
-    }
+    await Linking.openURL(config.contactLinkedInApp);
+    return;
   } catch {
-    // fall through to the App Store / web
+    // app not installed → universal link
   }
   try {
-    await Linking.openURL(config.linkedInAppStoreUrl);
+    await Linking.openURL(config.contactLinkedInUrl);
   } catch {
     WebBrowser.openBrowserAsync(config.contactLinkedInUrl).catch(() => {});
   }
@@ -512,7 +510,9 @@ function UnlockSheet({
             <View style={styles.linkedinBadge}>
               <Text style={styles.linkedinBadgeText}>in</Text>
             </View>
-            <Text style={styles.linkedinText}>{t.favoris.contactLinkedIn}</Text>
+            <Text style={styles.linkedinText} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8}>
+              {t.favoris.contactLinkedIn}
+            </Text>
           </PressableScale>
 
           <Text style={styles.codeLabel}>{t.favoris.code}</Text>
@@ -1057,6 +1057,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     borderRadius: 100,
     paddingVertical: 15,
+    paddingHorizontal: 18,
     marginTop: 20,
   },
   linkedinBadge: {
@@ -1073,6 +1074,7 @@ const styles = StyleSheet.create({
     color: colors.accent,
   },
   linkedinText: {
+    flexShrink: 1,
     fontFamily: fonts.archivoSemi,
     fontSize: 14,
     color: colors.paper,
