@@ -14,7 +14,7 @@ import React, { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
+import type { BottomTabBarProps } from 'expo-router/tabs';
 import { colors, border } from '../theme';
 import { fonts } from '../fonts';
 import { duration, easing } from '../lib/motion';
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   tabFill: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     borderRadius: 16,
     backgroundColor: colors.accent,
   },
