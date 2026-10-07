@@ -303,3 +303,19 @@ L'app n'a pas besoin de connaître l'historique des mots (elle n'affiche que cel
 jour). C'est **la génération** qui en a besoin, pour ne pas se répéter. On garde donc
 cette mémoire dans son propre fichier, à côté de `edition.json`, plutôt que de la mêler
 au contenu affiché.
+
+## Thèmes et langues (app ≥ onglet Réglages)
+
+L'app lit une édition par **thème** et par **langue** :
+
+| Fichier | Contenu |
+|---|---|
+| `edition.json` | MedTech, français (historique) |
+| `edition.en.json` | MedTech, anglais (même édition, traduite) |
+| `edition-biotech.json` | Biotech, français |
+| `edition-biotech.en.json` | Biotech, anglais |
+
+Même schéma `Edition` pour tous. Les traductions `.en.json` existent aussi pour
+`words.json` et `startup-news.json`. Un fichier absent n'est pas bloquant : l'app retombe
+sur la version française (et sur l'aperçu MedTech si l'édition Biotech n'existe pas).
+La règle « noms précis » s'applique à l'identique en anglais.

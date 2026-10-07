@@ -9,6 +9,7 @@
  * capture puis la feuille de partage iOS mettent un instant à s'ouvrir, ce retour
  * immédiat évite l'impression que le tap n'a pas été pris.
  */
+import { useSettings } from '@/state/settings';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -37,13 +38,14 @@ export function ShareButton({
   label?: string;
   disabled?: boolean;
 }) {
+  const { t } = useSettings();
   return (
     <PressableScale
       onPress={onPress}
       disabled={disabled}
       activeScale={0.9}
       accessibilityRole="button"
-      accessibilityLabel={label ? `Partager : ${label}` : 'Partager'}
+      accessibilityLabel={label ? t.common.shareLabel(label) : t.common.share}
       hitSlop={8}
       style={[label ? styles.pill : styles.icon, disabled && styles.disabled]}
     >

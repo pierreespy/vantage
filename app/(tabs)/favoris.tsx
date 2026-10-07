@@ -9,6 +9,8 @@
  * unlock sheet; entering the day's code — obtained from the owner on LinkedIn — unlocks
  * the "extended" tier (up to 6) for good. Favorites are the shared, persisted state.
  */
+import { useSettings } from '@/state/settings';
+import type { Strings } from '@/i18n/strings';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
@@ -73,11 +75,9 @@ async function openContactLinkedIn() {
 }
 
 /** The message shown when an add is blocked by the cap — tier-aware. */
-function limitReachedMessage(tier: Tier, limit: number): string {
-  if (tier === 'restricted') {
-    return `La version restreinte n’autorise qu’un seul favori. Débloquez la version étendue pour en suivre jusqu’à ${EXTENDED_LIMIT}.`;
-  }
-  return `Vous pouvez suivre au maximum ${limit} startups. Retirez-en une pour en ajouter une autre.`;
+function limitReachedMessage(tier: Tier, limit: number, t: Strings): string {
+  if (tier === 'restricted') return t.favoris.limitRestricted(EXTENDED_LIMIT);
+  return t.favoris.limitExtended(limit);
 }
 
 /** Small vector padlock, tinted, drawn to match the design (no emoji). */
@@ -120,16 +120,18 @@ export default function FavorisScreen() {
   const { consent, reset } = useFavoritesSync();
   const { stageOf, discoveredStartups } = useEdition();
   const access = useAccess();
+  const { t } = useSettings();
+  const f = t.favoris;
 
   // Reset the anonymous reporting: blank the shared doc, wipe local favorites + consent.
   const confirmReset = () => {
     Alert.alert(
-      'Réinitialiser la personnalisation',
-      'Vos favoris et votre consentement au partage anonyme seront effacés sur cet appareil, et la liste transmise sera vidée. Cette action est irréversible.',
+      f.resetTitle,
+      f.resetBody,
       [
-        { text: 'Annuler', style: 'cancel' },
+        { text: t.common.cancel, style: 'cancel' },
         {
-          text: 'Réinitialiser',
+          text: f.reset,
           style: 'destructive',
           onPress: () => {
             void reset();
@@ -167,10 +169,10 @@ export default function FavorisScreen() {
       {/* HEADER */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
         <Text style={styles.eyebrow}>
-          {followed.length} / {limit} startup{limit > 1 ? 's' : ''} suivie{limit > 1 ? 's' : ''}
+          {f.followedCount(followed.length, limit)}
         </Text>
         <View style={styles.titleRow}>
-          <Text style={styles.h1}>Favoris</Text>
+          <Text style={styles.h1}>{f.title}</Text>
           <View style={styles.titleActions}>
             {consent === 'granted' ? (
               <PressableScale
@@ -178,9 +180,9 @@ export default function FavorisScreen() {
                 style={styles.resetBtn}
                 activeScale={0.93}
                 accessibilityRole="button"
-                accessibilityLabel="Réinitialiser la personnalisation"
+                accessibilityLabel={f.resetTitle}
               >
-                <Text style={styles.resetText}>Réinitialiser</Text>
+                <Text style={styles.resetText}>{f.reset}</Text>
               </PressableScale>
             ) : null}
             <PressableScale
@@ -194,7 +196,7 @@ export default function FavorisScreen() {
               activeScale={0.88}
               haptic={false}
               accessibilityRole="button"
-              accessibilityLabel="Ajouter un favori"
+              accessibilityLabel={f.add}
             >
               <Text style={styles.addPlus}>+</Text>
             </PressableScale>
@@ -220,7 +222,7 @@ export default function FavorisScreen() {
                 activeScale={0.93}
                 haptic={false}
               >
-                <Text style={[styles.chipText, on && styles.chipTextOn]}>{s}</Text>
+                <Text style={[styles.chipText, on && styles.chipTextOn]}>{f.sectors[s] ?? s}</Text>
               </PressableScale>
             );
           })}
@@ -238,12 +240,12 @@ export default function FavorisScreen() {
           activeScale={0.985}
           haptic={false}
           accessibilityRole="button"
-          accessibilityLabel="Débloquer la version étendue"
+          accessibilityLabel={f.unlockExtended}
         >
           <LockIcon color={colors.accent} />
           <View style={{ flex: 1 }}>
-            <Text style={styles.tierTitle}>Version restreinte — {limit} favori</Text>
-            <Text style={styles.tierSub}>Débloquer la version étendue (jusqu’à {EXTENDED_LIMIT})</Text>
+            <Text style={styles.tierTitle}>{f.tierTitle(limit)}</Text>
+            <Text style={styles.tierSub}>{f.tierSub(EXTENDED_LIMIT)}</Text>
             <View style={styles.progressRow}>
               {Array.from({ length: EXTENDED_LIMIT }).map((_, i) => (
                 <View key={i} style={[styles.seg, i < followed.length && styles.segOn]} />
@@ -261,9 +263,7 @@ export default function FavorisScreen() {
         showsVerticalScrollIndicator={false}
       >
         {cards.length === 0 ? (
-          <Text style={styles.emptyList}>
-            Aucun favori dans « {sector} ». Touchez ＋ pour en ajouter.
-          </Text>
+          <Text style={styles.emptyList}>{f.empty(f.sectors[sector] ?? sector)}</Text>
         ) : (
           cards.map((f, i) => (
             // La cascade rejoue quand le filtre secteur change : la liste se « recompose ».
@@ -308,6 +308,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
   const { newsFor } = useStartupNews();
   const { usesAI } = useEdition();
   const { toggle } = useFavorites();
+  const { t } = useSettings();
   const ai = usesAI(startup.name);
   // Live per-startup news takes precedence; fall back to any seeded news for that
   // startup so a followed catalog entry still shows something until live news exists.
@@ -315,10 +316,10 @@ function FavoriteCard({ startup }: { startup: Startup }) {
   const news = live.length > 0 ? live : startup.news;
 
   const confirmRemove = () => {
-    Alert.alert('Retirer ce favori', `« ${startup.name} » sera retirée de vos favoris.`, [
-      { text: 'Annuler', style: 'cancel' },
+    Alert.alert(t.favoris.removeTitle, t.favoris.removeBody(startup.name), [
+      { text: t.common.cancel, style: 'cancel' },
       {
-        text: 'Retirer',
+        text: t.favoris.remove,
         style: 'destructive',
         onPress: () => {
           toggle(startup.name);
@@ -338,7 +339,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
             activeScale={0.85}
             hitSlop={12}
             accessibilityRole="button"
-            accessibilityLabel={`Retirer ${startup.name} des favoris`}
+            accessibilityLabel={t.favoris.removeLabel(startup.name)}
           >
             <Text style={styles.star}>★</Text>
           </PressableScale>
@@ -348,7 +349,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
 
       {startup.sector || startup.stage || ai ? (
         <View style={styles.metaRow}>
-          {startup.sector ? <Text style={styles.sector}>{startup.sector}</Text> : null}
+          {startup.sector ? <Text style={styles.sector}>{t.favoris.sectors[startup.sector] ?? startup.sector}</Text> : null}
           {startup.stage ? (
             <View style={styles.stageBadge}>
               <Text style={styles.stageText}>{startup.stage}</Text>
@@ -356,7 +357,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
           ) : null}
           {ai ? (
             <View style={[styles.stageBadge, styles.aiBadge]}>
-              <Text style={styles.stageText}>IA</Text>
+              <Text style={styles.stageText}>{t.common.ai}</Text>
             </View>
           ) : null}
         </View>
@@ -365,7 +366,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
       <View style={styles.cardDivider} />
 
       {news.length === 0 ? (
-        <Text style={styles.noNews}>Pas encore d’actualité suivie.</Text>
+        <Text style={styles.noNews}>{t.favoris.noNews}</Text>
       ) : (
         news.map((n, i) => (
           <PressableScale
@@ -392,6 +393,7 @@ function FavoriteCard({ startup }: { startup: Startup }) {
 /** The locked "upsell" card: what the extended tier would unlock, with stacked ghost
  *  slots peeking out below. Tapping it opens the unlock sheet. Restricted tier only. */
 function UpsellLocked({ remaining, onPress }: { remaining: number; onPress: () => void }) {
+  const { t } = useSettings();
   return (
     <PressableScale
       onPress={onPress}
@@ -399,17 +401,15 @@ function UpsellLocked({ remaining, onPress }: { remaining: number; onPress: () =
       activeScale={0.98}
       haptic={false}
       accessibilityRole="button"
-      accessibilityLabel={`Débloquer ${remaining} favoris supplémentaires avec la version étendue`}
+      accessibilityLabel={t.favoris.upsellLabel(remaining)}
     >
       <View style={styles.upsellMain}>
         <View style={styles.upsellIcon}>
           <LockIcon color={colors.paper} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={styles.upsellTitle}>
-            Encore {remaining} favori{remaining > 1 ? 's' : ''} à suivre
-          </Text>
-          <Text style={styles.upsellSub}>Avec la version étendue</Text>
+          <Text style={styles.upsellTitle}>{t.favoris.upsellTitle(remaining)}</Text>
+          <Text style={styles.upsellSub}>{t.favoris.upsellSub}</Text>
         </View>
         <View style={styles.upsellBadge}>
           <Text style={styles.upsellBadgeText}>+{remaining}</Text>
@@ -437,6 +437,7 @@ function UnlockSheet({
   const insets = useSafeAreaInsets();
   const { translateY, panHandlers } = useSheetDrag(visible, onClose);
   const [code, setCode] = useState('');
+  const { t } = useSettings();
   const [error, setError] = useState<string | null>(null);
   // Secousse horizontale du champ quand le code est refusé — le geste « non » d'iOS.
   const shake = useRef(new Animated.Value(0)).current;
@@ -465,7 +466,7 @@ function UnlockSheet({
     if (!ready) {
       hapticError();
       shakeField();
-      setError('Code indisponible hors-ligne. Connectez-vous à Internet puis réessayez.');
+      setError(t.favoris.codeOffline);
       return;
     }
     if (verify(code)) {
@@ -473,14 +474,14 @@ function UnlockSheet({
       onUnlocked();
       onClose();
       Alert.alert(
-        'Version étendue débloquée',
-        `Vous pouvez maintenant suivre jusqu’à ${EXTENDED_LIMIT} startups.`
+        t.favoris.unlockedTitle,
+        t.favoris.unlockedBody(EXTENDED_LIMIT)
       );
       return;
     }
     hapticError();
     shakeField();
-    setError('Code incorrect.');
+    setError(t.favoris.codeWrong);
   };
 
   return (
@@ -489,7 +490,7 @@ function UnlockSheet({
         style={styles.scrim}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t.common.close} />
         <Animated.View
           style={[styles.sheet, { paddingBottom: 28 + insets.bottom, transform: [{ translateY }] }]}
         >
@@ -497,11 +498,9 @@ function UnlockSheet({
             <View style={styles.grabber} />
           </View>
 
-          <Text style={styles.unlockTitle}>Version étendue</Text>
+          <Text style={styles.unlockTitle}>{t.favoris.extendedTitle}</Text>
           <Text style={styles.unlockCopy}>
-            La version étendue permet de suivre jusqu’à {EXTENDED_LIMIT} startups. Pour des
-            raisons d’architecture, elle n’est pas ouverte à tous : elle se débloque avec un
-            code que je pourrais vous transmettre sur LinkedIn.
+            {t.favoris.extendedCopy(EXTENDED_LIMIT)}
           </Text>
 
           <PressableScale
@@ -513,10 +512,10 @@ function UnlockSheet({
             <View style={styles.linkedinBadge}>
               <Text style={styles.linkedinBadgeText}>in</Text>
             </View>
-            <Text style={styles.linkedinText}>Me contacter sur LinkedIn (Pierre Espy)</Text>
+            <Text style={styles.linkedinText}>{t.favoris.contactLinkedIn}</Text>
           </PressableScale>
 
-          <Text style={styles.codeLabel}>Code</Text>
+          <Text style={styles.codeLabel}>{t.favoris.code}</Text>
           <Animated.View
             style={{
               transform: [
@@ -556,7 +555,7 @@ function UnlockSheet({
             haptic={false}
             accessibilityRole="button"
           >
-            <Text style={styles.unlockBtnText}>DÉBLOQUER</Text>
+            <Text style={styles.unlockBtnText}>{t.favoris.unlock}</Text>
           </PressableScale>
         </Animated.View>
       </KeyboardAvoidingView>
@@ -589,6 +588,7 @@ function AddFavoriteSheet({
 }) {
   const { translateY, panHandlers } = useSheetDrag(visible, onClose);
   const { discoveredStartups, usesAI } = useEdition();
+  const { t } = useSettings();
   const trimmed = query.trim();
   const q = trimmed.toLowerCase();
 
@@ -618,7 +618,7 @@ function AddFavoriteSheet({
   }, [q, allStartups]);
   const results = matches.slice(0, 25);
 
-  const listLabel = q ? 'Résultats' : 'Suggestions';
+  const listLabel = q ? t.favoris.results : t.favoris.suggestions;
   // Let the user add a startup they typed that isn't in the catalog — gated by a
   // confirmation so they verify the spelling first (avoids garbage entries).
   const exactExists = allStartups.some((c) => c.name.toLowerCase() === q);
@@ -626,16 +626,16 @@ function AddFavoriteSheet({
 
   const confirmAdd = () => {
     Alert.alert(
-      'Vérifier le nom',
-      `« ${trimmed} » sera ajoutée à vos favoris et au catalogue de l'app.\n\nVérifiez bien l'orthographe : le nom est enregistré tel quel.`,
+      t.favoris.checkNameTitle,
+      t.favoris.checkNameBody(trimmed),
       [
-        { text: 'Corriger', style: 'cancel' },
+        { text: t.favoris.fix, style: 'cancel' },
         {
-          text: 'Confirmer',
+          text: t.favoris.confirm,
           onPress: () => {
             if (!addCustomStartup(trimmed)) {
               hapticError();
-              Alert.alert('Limite atteinte', limitReachedMessage(tier, limit));
+              Alert.alert(t.favoris.limitTitle, limitReachedMessage(tier, limit, t));
             } else {
               hapticSuccess();
             }
@@ -653,14 +653,14 @@ function AddFavoriteSheet({
       >
         {/* Tap the dimmed area (behind the sheet) to close. The sheet is a sibling
             View on top, so taps inside it — and TextInput focus — are unaffected. */}
-        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel="Fermer" />
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} accessibilityLabel={t.common.close} />
         <Animated.View style={[styles.sheet, { transform: [{ translateY }] }]}>
           <View {...panHandlers} style={styles.grabZone}>
             <View style={styles.grabber} />
           </View>
 
           <View style={styles.sheetHead}>
-            <Text style={styles.sheetTitle}>Ajouter un favori</Text>
+            <Text style={styles.sheetTitle}>{t.favoris.add}</Text>
             <PressableScale
               onPress={() => {
                 hapticTap();
@@ -669,7 +669,7 @@ function AddFavoriteSheet({
               haptic={false}
               accessibilityRole="button"
             >
-              <Text style={styles.sheetClose}>Fermer</Text>
+              <Text style={styles.sheetClose}>{t.common.close}</Text>
             </PressableScale>
           </View>
 
@@ -678,7 +678,7 @@ function AddFavoriteSheet({
             <TextInput
               value={query}
               onChangeText={onQuery}
-              placeholder="Rechercher une startup…"
+              placeholder={t.favoris.searchStartup}
               placeholderTextColor={colors.ink50}
               style={styles.searchInput}
               autoCorrect={false}
@@ -690,9 +690,7 @@ function AddFavoriteSheet({
 
           <ScrollView keyboardShouldPersistTaps="handled" style={{ maxHeight: 300 }}>
             {results.length === 0 && q.length > 0 ? (
-              <Text style={styles.noResults}>
-                Aucune startup du catalogue ne correspond à « {query} ».
-              </Text>
+              <Text style={styles.noResults}>{t.favoris.noStartup(query)}</Text>
             ) : null}
 
             {results.map((c, i) => {
@@ -704,7 +702,7 @@ function AddFavoriteSheet({
                     <Text style={styles.candName}>{c.name}</Text>
                     {c.sector || c.stage || usesAI(c.name) ? (
                       <View style={styles.candMeta}>
-                        {c.sector ? <Text style={styles.candSector}>{c.sector}</Text> : null}
+                        {c.sector ? <Text style={styles.candSector}>{t.favoris.sectors[c.sector] ?? c.sector}</Text> : null}
                         {c.stage ? (
                           <View style={styles.candStageBadge}>
                             <Text style={styles.candStageText}>{c.stage}</Text>
@@ -712,7 +710,7 @@ function AddFavoriteSheet({
                         ) : null}
                         {usesAI(c.name) ? (
                           <View style={[styles.candStageBadge, styles.aiBadge]}>
-                            <Text style={styles.candStageText}>IA</Text>
+                            <Text style={styles.candStageText}>{t.common.ai}</Text>
                           </View>
                         ) : null}
                       </View>
@@ -722,7 +720,7 @@ function AddFavoriteSheet({
                     onPress={() => {
                       if (!toggle(c.name)) {
                         hapticError();
-                        Alert.alert('Limite atteinte', limitReachedMessage(tier, limit));
+                        Alert.alert(t.favoris.limitTitle, limitReachedMessage(tier, limit, t));
                       } else if (!on) {
                         hapticSuccess();
                       }
@@ -733,7 +731,7 @@ function AddFavoriteSheet({
                     accessibilityRole="button"
                   >
                     <Text style={[styles.followText, { color: on ? colors.accent : colors.paper }]}>
-                      {on ? 'Suivi ✓' : 'Suivre'}
+                      {on ? t.favoris.followed : t.favoris.follow}
                     </Text>
                   </PressableScale>
                 </FadeInView>
@@ -744,10 +742,8 @@ function AddFavoriteSheet({
             {canAddCustom ? (
               <View style={styles.addCustomRow}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.candName}>Ajouter « {trimmed} »</Text>
-                  <Text style={styles.addCustomHint}>
-                    Absente du catalogue — je confirme qu’elle existe
-                  </Text>
+                  <Text style={styles.candName}>{t.favoris.addCustom(trimmed)}</Text>
+                  <Text style={styles.addCustomHint}>{t.favoris.addCustomHint}</Text>
                 </View>
                 <PressableScale
                   onPress={confirmAdd}
@@ -755,7 +751,7 @@ function AddFavoriteSheet({
                   activeScale={0.92}
                   accessibilityRole="button"
                 >
-                  <Text style={[styles.followText, { color: colors.paper }]}>Vérifier</Text>
+                  <Text style={[styles.followText, { color: colors.paper }]}>{t.favoris.verify}</Text>
                 </PressableScale>
               </View>
             ) : null}

@@ -26,6 +26,7 @@ import React, {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
+import { useSettings } from '@/state/settings';
 
 const CONSENT_KEY = 'vantage.notifConsent.v1';
 const HAS_READ_KEY = 'vantage.notifHasRead.v1';
@@ -34,8 +35,6 @@ const HAS_READ_KEY = 'vantage.notifHasRead.v1';
 const NOTIF_HOUR = 7;
 const NOTIF_MINUTE = 30;
 
-const NOTIF_TITLE = 'Vantage Chronicle';
-const NOTIF_BODY = 'Ne manquez pas la nouvelle édition !';
 
 /** unset = not decided yet, granted = scheduled, declined = off (re-enable via iOS). */
 export type NotifConsent = 'unset' | 'granted' | 'declined';
@@ -70,7 +69,7 @@ Notifications.setNotificationHandler({
 /** Request permission (if needed) and (re)schedule the single daily reminder.
  *  Idempotent: clears any prior schedule first so relaunches never stack duplicates.
  *  Returns true only if permission is granted. Never throws. */
-async function scheduleDailyReminder(): Promise<boolean> {
+async function scheduleDailyReminder(content: { title: string; body: string }): Promise<boolean> {
   try {
     const existing = await Notifications.getPermissionsAsync();
     let status = existing.status;
@@ -84,7 +83,7 @@ async function scheduleDailyReminder(): Promise<boolean> {
     // schedule from stacking across launches / re-grants.
     await Notifications.cancelAllScheduledNotificationsAsync();
     await Notifications.scheduleNotificationAsync({
-      content: { title: NOTIF_TITLE, body: NOTIF_BODY },
+      content,
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
         hour: NOTIF_HOUR,
@@ -107,6 +106,9 @@ async function cancelReminder(): Promise<void> {
 }
 
 export function NotificationsProvider({ children }: { children: React.ReactNode }) {
+  const { t } = useSettings();
+  const pushTitle = t.notif.pushTitle;
+  const pushBody = t.notif.pushBody;
   const [consent, setConsent] = useState<NotifConsent>('unset');
   const [consentResolved, setConsentResolved] = useState(false);
   const [hasRead, setHasRead] = useState(false);
@@ -141,7 +143,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
   }, []);
 
   const grant = useCallback(async () => {
-    const ok = await scheduleDailyReminder();
+    const ok = await scheduleDailyReminder({ title: pushTitle, body: pushBody });
     if (!ok) {
       // Permission refused — record as declined so the primer doesn't reappear. The
       // user can still flip it on later from iOS Settings.
@@ -152,7 +154,7 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
     setConsent('granted');
     AsyncStorage.setItem(CONSENT_KEY, 'granted').catch(() => {});
     return true;
-  }, []);
+  }, [pushTitle, pushBody]);
 
   const decline = useCallback(() => {
     setConsent('declined');
@@ -162,10 +164,10 @@ export function NotificationsProvider({ children }: { children: React.ReactNode 
 
   // Once granted, re-assert the schedule on launch (idempotent) so the reminder
   // survives edge cases like a cleared schedule. Permission is already granted here,
-  // so this triggers no dialog.
+  // so this triggers no dialog. Also re-runs on language change so the text follows it.
   useEffect(() => {
-    if (consentResolved && consent === 'granted') scheduleDailyReminder();
-  }, [consentResolved, consent]);
+    if (consentResolved && consent === 'granted') scheduleDailyReminder({ title: pushTitle, body: pushBody });
+  }, [consentResolved, consent, pushTitle, pushBody]);
 
   const primerVisible = consentResolved && consent === 'unset' && hasRead;
 

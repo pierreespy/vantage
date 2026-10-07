@@ -10,6 +10,7 @@
  * quand la recherche change), chaque ligne s'enfonce au toucher, et l'ouverture d'un
  * terme émet une vibration de sélection.
  */
+import { useSettings } from '@/state/settings';
 import React, { useMemo, useState } from 'react';
 import {
   Modal,
@@ -45,6 +46,7 @@ function fold(s: string): string {
 }
 
 export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const { t } = useSettings();
   const insets = useSafeAreaInsets();
   const { words } = useGlossary();
   const { edition } = useEdition();
@@ -88,12 +90,12 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
               hitSlop={10}
               accessibilityRole="button"
             >
-              <Text style={styles.headerAction}>‹ Glossaire</Text>
+              <Text style={styles.headerAction}>{t.word.glossaryBack}</Text>
             </Pressable>
           ) : (
-            <Text style={styles.eyebrow}>Lexique VC santé</Text>
+            <Text style={styles.eyebrow}>{t.word.glossaryEyebrow}</Text>
           )}
-          <Pressable onPress={close} hitSlop={10} accessibilityRole="button" accessibilityLabel="Fermer">
+          <Pressable onPress={close} hitSlop={10} accessibilityRole="button" accessibilityLabel={t.common.close}>
             <Text style={styles.close}>✕</Text>
           </Pressable>
         </View>
@@ -109,12 +111,12 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
           </ScrollView>
         ) : (
           <>
-            <Text style={styles.title}>Glossaire</Text>
+            <Text style={styles.title}>{t.word.glossary}</Text>
             <View style={styles.searchWrap}>
               <TextInput
                 value={query}
                 onChangeText={setQuery}
-                placeholder="Rechercher un terme…"
+                placeholder={t.word.searchTerm}
                 placeholderTextColor={colors.ink50}
                 style={styles.search}
                 autoCorrect={false}
@@ -132,7 +134,7 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
               keyboardDismissMode="on-drag"
             >
               {results.length === 0 ? (
-                <Text style={styles.empty}>Aucun terme ne correspond à « {query.trim()} ».</Text>
+                <Text style={styles.empty}>{t.word.noTerm(query.trim())}</Text>
               ) : (
                 results.map((w, i) => (
                   <FadeInView key={w.term + i} index={i} replayKey={query} distance={10}>

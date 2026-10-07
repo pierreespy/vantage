@@ -18,6 +18,8 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { useSettings } from '@/state/settings';
+import { fetchLocalized, localizedKey } from './localized';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { config } from '@/config';
 import { isStartupNews, type NewsItem, type StartupNews } from './newsTypes';
@@ -42,13 +44,14 @@ type NewsContextValue = {
 const NewsContext = createContext<NewsContextValue | null>(null);
 
 export function NewsProvider({ children }: { children: React.ReactNode }) {
+  const { language } = useSettings();
   const [data, setData] = useState<StartupNews>(EMPTY_NEWS);
   const [source, setSource] = useState<NewsSource>('empty');
   const [loading, setLoading] = useState(false);
 
   // Warm up from cache immediately, so a cold offline start shows the last news.
   useEffect(() => {
-    AsyncStorage.getItem(CACHE_KEY)
+    AsyncStorage.getItem(localizedKey(CACHE_KEY, language))
       .then((raw) => {
         if (!raw) return;
         const parsed = JSON.parse(raw);
@@ -58,24 +61,23 @@ export function NewsProvider({ children }: { children: React.ReactNode }) {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [language]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(config.newsUrl, { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const parsed = await res.json();
-      if (!isStartupNews(parsed)) throw new Error('Malformed startup news');
+      const { data: parsed } = await fetchLocalized(config.newsUrl, language, (d) =>
+        isStartupNews(d) ? d : null
+      );
       setData(parsed);
       setSource('live');
-      AsyncStorage.setItem(CACHE_KEY, JSON.stringify(parsed)).catch(() => {});
+      AsyncStorage.setItem(localizedKey(CACHE_KEY, language), JSON.stringify(parsed)).catch(() => {});
     } catch {
       // Keep whatever we already have (cache or empty) — never blank the screen.
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   // Fetch once on mount.
   useEffect(() => {

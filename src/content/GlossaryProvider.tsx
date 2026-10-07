@@ -19,6 +19,8 @@ import React, {
   useMemo,
   useState,
 } from 'react';
+import { useSettings } from '@/state/settings';
+import { fetchLocalized, localizedKey } from './localized';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { config } from '@/config';
 import { sampleEdition } from './sampleEdition';
@@ -40,35 +42,33 @@ type GlossaryContextValue = {
 const GlossaryContext = createContext<GlossaryContextValue | null>(null);
 
 export function GlossaryProvider({ children }: { children: React.ReactNode }) {
+  const { language } = useSettings();
   const [words, setWords] = useState<GlossaryWord[]>(SEED);
   const [loading, setLoading] = useState(false);
 
   // Warm up from cache immediately (offline-friendly).
   useEffect(() => {
-    AsyncStorage.getItem(CACHE_KEY)
+    AsyncStorage.getItem(localizedKey(CACHE_KEY, language))
       .then((raw) => {
         if (!raw) return;
         const parsed = parseGlossary(JSON.parse(raw));
         if (parsed && parsed.length) setWords(parsed);
       })
       .catch(() => {});
-  }, []);
+  }, [language]);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(config.wordsUrl, { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const parsed = parseGlossary(await res.json());
-      if (!parsed) throw new Error('Malformed glossary');
+      const { data: parsed } = await fetchLocalized(config.wordsUrl, language, parseGlossary);
       setWords(parsed);
-      AsyncStorage.setItem(CACHE_KEY, JSON.stringify({ words: parsed })).catch(() => {});
+      AsyncStorage.setItem(localizedKey(CACHE_KEY, language), JSON.stringify({ words: parsed })).catch(() => {});
     } catch {
       // Keep whatever we already have (cache or seed) — never blank the screen.
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [language]);
 
   useEffect(() => {
     refresh();

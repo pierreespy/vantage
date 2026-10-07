@@ -7,6 +7,7 @@
  * chaque changement de terme — c'est ce qui fait « tourner la page » quand on ouvre un
  * mot du glossaire.
  */
+import { useSettings } from '@/state/settings';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { FadeInView } from '@/components/FadeInView';
@@ -36,12 +37,13 @@ function SectionHeader({
 }
 
 export function WordView({ word }: { word: Word }) {
+  const { t } = useSettings();
   return (
     <>
       {/* HERO */}
       <FadeInView index={0} replayKey={word.term} style={styles.hero}>
         <View style={styles.heroBar}>
-          <Text style={styles.heroBarLabel}>Décrypté</Text>
+          <Text style={styles.heroBarLabel}>{t.word.decoded}</Text>
           {/* Catégorie principale seule (1er segment avant « · ») pour tenir dans le bandeau. */}
           <Text style={styles.heroBarField} numberOfLines={1}>
             {word.field.split('·')[0].trim()}
@@ -57,7 +59,7 @@ export function WordView({ word }: { word: Word }) {
 
       {/* ANATOMIE */}
       <FadeInView index={1} replayKey={word.term}>
-        <SectionHeader label="Anatomie" color={colors.claret} />
+        <SectionHeader label={t.word.anatomy} color={colors.claret} />
       </FadeInView>
       <FadeInView index={2} replayKey={word.term} style={styles.partsRow}>
         {word.parts.map((p, i) => (
@@ -73,7 +75,7 @@ export function WordView({ word }: { word: Word }) {
 
       {/* COMMENT ÇA MARCHE */}
       <FadeInView index={3} replayKey={word.term}>
-        <SectionHeader label="Comment ça marche" color={colors.claret} />
+        <SectionHeader label={t.word.howItWorks} color={colors.claret} />
       </FadeInView>
       {word.how.map((s, i) => (
         <FadeInView key={s.n} index={4 + i} replayKey={word.term} style={styles.step}>
@@ -87,7 +89,7 @@ export function WordView({ word }: { word: Word }) {
 
       {/* POURQUOI EN VOGUE */}
       <FadeInView index={4 + word.how.length} replayKey={word.term} style={styles.whyBlock}>
-        <Text style={styles.whyLabel}>Pourquoi c’est en vogue</Text>
+        <Text style={styles.whyLabel}>{t.word.whyTrending}</Text>
         <Text style={styles.whyText}>{word.why}</Text>
       </FadeInView>
 
@@ -95,7 +97,7 @@ export function WordView({ word }: { word: Word }) {
       {(word.startups ?? []).length > 0 ? (
         <>
           <FadeInView index={5 + word.how.length} replayKey={word.term}>
-            <SectionHeader label="Startups qui l’utilisent" color={colors.claret} rule="faint" />
+            <SectionHeader label={t.word.startupsUsing} color={colors.claret} rule="faint" />
           </FadeInView>
           <View style={{ marginBottom: 18 }}>
             {word.startups.map((s, i) => (

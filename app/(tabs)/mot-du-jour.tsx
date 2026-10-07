@@ -8,6 +8,7 @@
  * Le bouton Glossaire s'enfonce au toucher et vibre légèrement à l'ouverture ; le
  * contenu du mot monte en fondu (voir <WordView>).
  */
+import { useSettings } from '@/state/settings';
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ export default function MotDuJourScreen() {
   const insets = useSafeAreaInsets();
   const { edition } = useEdition();
   const { word } = edition;
+  const { t } = useSettings();
   const { shareCard, sharing } = useShareCard();
   const [glossaryOpen, setGlossaryOpen] = useState(false);
 
@@ -35,10 +37,10 @@ export default function MotDuJourScreen() {
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
             <Text style={styles.date}>{edition.dateLong}</Text>
-            <Text style={styles.h1}>Mot du jour</Text>
+            <Text style={styles.h1}>{t.word.title}</Text>
           </View>
           <ShareButton
-            onPress={() => shareCard(wordCardData(word, edition.dateLong))}
+            onPress={() => shareCard(wordCardData(word, edition.dateLong, t))}
             disabled={sharing}
           />
           <PressableScale
@@ -46,10 +48,10 @@ export default function MotDuJourScreen() {
             style={styles.glossaryBtn}
             activeScale={0.93}
             accessibilityRole="button"
-            accessibilityLabel="Ouvrir le glossaire"
+            accessibilityLabel={t.word.openGlossary}
             hitSlop={8}
           >
-            <Text style={styles.glossaryBtnText}>Glossaire</Text>
+            <Text style={styles.glossaryBtnText}>{t.word.glossary}</Text>
           </PressableScale>
         </View>
       </View>

@@ -37,11 +37,14 @@ import { catalog } from '@/data/favoris';
 import { isAiStartup } from '@/data/aiStartups';
 import { sampleEdition } from './sampleEdition';
 import { useSettings } from '@/state/settings';
+import type { Language } from '@/i18n/strings';
+import { fetchLocalized, localizedKey } from './localized';
 import { editionAiCompanies, editionCompanies, editionStages, isEdition, type Edition } from './types';
 
 const CACHE_KEY = 'vantage.edition.v1';
 /** Cache par thème : MedTech garde la clé historique. */
-const cacheKey = (theme: string) => (theme === 'medtech' ? CACHE_KEY : `${CACHE_KEY}.${theme}`);
+const cacheKey = (theme: string, language: Language) =>
+  localizedKey(theme === 'medtech' ? CACHE_KEY : `${CACHE_KEY}.${theme}`, language);
 const STAGES_KEY = 'vantage.stages.v1';
 const DISCOVERED_KEY = 'vantage.discoveredStartups.v2';
 const AI_KEY = 'vantage.aiCompanies.v1';
@@ -81,6 +84,8 @@ type EditionContextValue = {
   source: EditionSource;
   /** True while a fetch is in flight. */
   loading: boolean;
+  /** Language of the edition actually shown (falls back to fr if no translation). */
+  contentLanguage: Language;
   /** Re-fetch the live edition (used by pull-to-refresh). */
   refresh: () => Promise<void>;
   /** Funding stage known for a company (from any edition seen), or undefined. */
@@ -97,7 +102,9 @@ type EditionContextValue = {
 const EditionContext = createContext<EditionContextValue | null>(null);
 
 export function EditionProvider({ children }: { children: React.ReactNode }) {
-  const { theme } = useSettings();
+  const { theme, language } = useSettings();
+  /** Langue réelle de l'édition affichée (repli fr si la traduction manque). */
+  const [contentLanguage, setContentLanguage] = useState<Language>('fr');
   const [edition, setEdition] = useState<Edition>(sampleEdition);
   const [source, setSource] = useState<EditionSource>('sample');
   const [loading, setLoading] = useState(false);
@@ -119,12 +126,14 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     let active = true;
     setEdition(sampleEdition);
     setSource('sample');
-    AsyncStorage.getItem(cacheKey(theme))
+    setContentLanguage('fr');
+    AsyncStorage.getItem(cacheKey(theme, language))
       .then((raw) => {
         if (!raw || !active) return;
         const parsed = JSON.parse(raw);
         if (isEdition(parsed)) {
           setEdition(parsed);
+          setContentLanguage(language);
           setSource((s) => (s === 'sample' ? 'cache' : s));
         }
       })
@@ -132,7 +141,7 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     return () => {
       active = false;
     };
-  }, [theme]);
+  }, [theme, language]);
 
   // Load the accumulated stage map once.
   useEffect(() => {
@@ -265,28 +274,29 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
     AsyncStorage.setItem(AI_KEY, JSON.stringify(aiCompanies)).catch(() => {});
   }, [aiCompanies, aiHydrated]);
 
-  const themeRef = useRef(theme);
-  themeRef.current = theme;
+  const keyRef = useRef(`${theme}|${language}`);
+  keyRef.current = `${theme}|${language}`;
 
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(config.editionUrls[theme], { headers: { Accept: 'application/json' } });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data = await res.json();
-      if (!isEdition(data)) throw new Error('Malformed edition');
-      if (themeRef.current !== theme) return; // switched mid-flight
+      const { data, language: got } = await fetchLocalized(config.editionUrls[theme], language, (d) =>
+        isEdition(d) ? d : null
+      );
+      if (keyRef.current !== `${theme}|${language}`) return; // switched mid-flight
       setEdition(data);
+      setContentLanguage(got);
       setSource('live');
-      AsyncStorage.setItem(cacheKey(theme), JSON.stringify(data)).catch(() => {});
+      // Only cache under the requested language when we actually got that language.
+      if (got === language) AsyncStorage.setItem(cacheKey(theme, language), JSON.stringify(data)).catch(() => {});
     } catch {
       // Keep whatever we already have (cache or sample) — never blank the screen.
     } finally {
       setLoading(false);
     }
-  }, [theme]);
+  }, [theme, language]);
 
-  // Fetch once on mount.
+  // Fetch on mount and whenever theme/language change.
   useEffect(() => {
     refresh();
   }, [refresh]);
@@ -304,8 +314,8 @@ export function EditionProvider({ children }: { children: React.ReactNode }) {
   );
 
   const value = useMemo<EditionContextValue>(
-    () => ({ edition, source, loading, refresh, stageOf, discoveredStartups, usesAI }),
-    [edition, source, loading, refresh, stageOf, discoveredStartups, usesAI]
+    () => ({ edition, source, contentLanguage, loading, refresh, stageOf, discoveredStartups, usesAI }),
+    [edition, source, contentLanguage, loading, refresh, stageOf, discoveredStartups, usesAI]
   );
 
   return <EditionContext.Provider value={value}>{children}</EditionContext.Provider>;

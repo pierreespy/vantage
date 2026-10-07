@@ -7,6 +7,7 @@
  * pour matérialiser le refus. Les retours haptiques correspondants (succès / erreur)
  * sont émis ici, une bonne fois pour toutes.
  */
+import { useSettings } from '@/state/settings';
 import React, { useCallback, useRef } from 'react';
 import { Animated, Pressable, StyleProp, TextStyle } from 'react-native';
 import { colors, border } from '@/theme';
@@ -17,7 +18,7 @@ export function FavoriteStar({
   followed,
   onToggle,
   style,
-  label = 'Favori',
+  label,
 }: {
   followed: boolean;
   /** Bascule le favori ; renvoie `false` si l'action a été refusée. */
@@ -25,6 +26,7 @@ export function FavoriteStar({
   style?: StyleProp<TextStyle>;
   label?: string;
 }) {
+  const { t } = useSettings();
   const scale = useRef(new Animated.Value(1)).current;
   const shake = useRef(new Animated.Value(0)).current;
 
@@ -57,7 +59,7 @@ export function FavoriteStar({
   };
 
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} hitSlop={8}>
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label ?? t.common.favorite} hitSlop={8}>
       <Animated.Text
         style={[
           style,

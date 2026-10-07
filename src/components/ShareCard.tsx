@@ -8,6 +8,7 @@
  *
  * All sizes are the design's literal px at 1080 (letterSpacing em→px converted).
  */
+import { useSettings } from '@/state/settings';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
@@ -106,20 +107,22 @@ function fitBody(text: string, base: { fontSize: number; lineHeight: number }, a
 }
 
 function AppStoreBadge() {
+  const { t } = useSettings();
   return (
     <View style={styles.badge}>
       <Svg width={34} height={34} viewBox="0 0 24 24" fill={colors.paper}>
         <Path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.19 2.31-.89 3.51-.8 1.54.15 2.7.74 3.44 1.79-3.14 1.98-2.36 6.16.4 7.44-.68 1.68-1.72 3.35-2.94 4.94zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
       </Svg>
       <View>
-        <Text style={styles.badgeSmall}>Télécharger dans</Text>
-        <Text style={styles.badgeBig}>l’App Store</Text>
+        <Text style={styles.badgeSmall}>{t.share.storeSmall}</Text>
+        <Text style={styles.badgeBig}>{t.share.storeBig}</Text>
       </View>
     </View>
   );
 }
 
 export function ShareCard({ data }: { data: ShareCardData }) {
+  const { t } = useSettings();
   // The body paragraph gets whatever height the headlines leave, then its font shrinks to
   // fit — so the text stays left-aligned and full-width, never squeezed.
   const bodyText = data.type === 'deal' ? data.thesis : data.type === 'mot' ? data.def : data.summary;
@@ -164,7 +167,7 @@ export function ShareCard({ data }: { data: ShareCardData }) {
             </>
           ) : (
             <>
-              <Text style={[styles.kicker, { color: colors.accent, marginBottom: 20 }]}>Le mot du jour</Text>
+              <Text style={[styles.kicker, { color: colors.accent, marginBottom: 20 }]}>{t.share.wordKicker}</Text>
               <Text style={styles.term} numberOfLines={2} adjustsFontSizeToFit>{data.term}</Text>
               <Text style={styles.termFull}>{data.full}</Text>
               <Text style={styles.termFr}>{data.fr}</Text>

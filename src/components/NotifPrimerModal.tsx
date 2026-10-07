@@ -9,6 +9,7 @@
  * Priming with our own modal first (rather than firing the iOS dialog cold) protects
  * the opt-in rate: an iOS permission refusal is near-permanent.
  */
+import { useSettings } from '@/state/settings';
 import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import { FadeInView } from '@/components/FadeInView';
 import { PressableScale } from '@/components/PressableScale';
 
 export function NotifPrimerModal() {
+  const { t } = useSettings();
   const insets = useSafeAreaInsets();
   const { primerVisible, grant, decline } = useNotifications();
 
@@ -34,16 +36,16 @@ export function NotifPrimerModal() {
       <View style={styles.scrim}>
         {/* La carte monte depuis le bas en même temps que le voile apparaît. */}
         <FadeInView delay={40} distance={22} style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
-          <Text style={styles.eyebrow}>Notifications</Text>
-          <Text style={styles.title}>La une, chaque matin</Text>
+          <Text style={styles.eyebrow}>{t.notif.eyebrow}</Text>
+          <Text style={styles.title}>{t.notif.title}</Text>
 
           <Text style={styles.body}>
-            Recevez chaque matin à <Text style={styles.em}>7 h 30</Text> un rappel dès que la
-            nouvelle édition santé est en ligne.
+            {t.notif.body1a}
+            <Text style={styles.em}>{t.notif.body1em}</Text>
+            {t.notif.body1b}
           </Text>
           <Text style={styles.body}>
-            Une par jour, jamais plus. Vous pouvez la désactiver à tout moment depuis les
-            réglages iOS.
+            {t.notif.body2}
           </Text>
 
           <View style={styles.actions}>
@@ -53,7 +55,7 @@ export function NotifPrimerModal() {
               activeScale={0.95}
               accessibilityRole="button"
             >
-              <Text style={[styles.btnText, styles.btnGhostText]}>Plus tard</Text>
+              <Text style={[styles.btnText, styles.btnGhostText]}>{t.common.later}</Text>
             </PressableScale>
             <PressableScale
               onPress={onActivate}
@@ -62,7 +64,7 @@ export function NotifPrimerModal() {
               haptic={false}
               accessibilityRole="button"
             >
-              <Text style={[styles.btnText, styles.btnSolidText]}>Activer</Text>
+              <Text style={[styles.btnText, styles.btnSolidText]}>{t.common.enable}</Text>
             </PressableScale>
           </View>
         </FadeInView>

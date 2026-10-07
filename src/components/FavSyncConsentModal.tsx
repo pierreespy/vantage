@@ -9,6 +9,7 @@
  * The choice is persisted by FavoritesSyncProvider; declining keeps favorites purely
  * on-device and the user can enable it later.
  */
+import { useSettings } from '@/state/settings';
 import React from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -20,6 +21,7 @@ import { FadeInView } from '@/components/FadeInView';
 import { PressableScale } from '@/components/PressableScale';
 
 export function FavSyncConsentModal() {
+  const { t } = useSettings();
   const insets = useSafeAreaInsets();
   const { consent, consentResolved, grant, decline } = useFavoritesSync();
 
@@ -31,18 +33,16 @@ export function FavSyncConsentModal() {
       <View style={styles.scrim}>
         {/* La carte monte depuis le bas en même temps que le voile apparaît. */}
         <FadeInView delay={40} distance={22} style={[styles.card, { marginBottom: insets.bottom + 24 }]}>
-          <Text style={styles.eyebrow}>Confidentialité</Text>
-          <Text style={styles.title}>Suivre l’actualité de vos favoris</Text>
+          <Text style={styles.eyebrow}>{t.favSync.eyebrow}</Text>
+          <Text style={styles.title}>{t.favSync.title}</Text>
 
           <Text style={styles.body}>
-            Pour vous montrer les nouvelles des startups que vous suivez, l’app transmet
-            la liste de vos favoris de façon <Text style={styles.em}>anonyme</Text> : un
-            identifiant aléatoire, sans compte et sans aucune donnée personnelle.
+            {t.favSync.body1a}
+            <Text style={styles.em}>{t.favSync.body1em}</Text>
+            {t.favSync.body1b}
           </Text>
           <Text style={styles.body}>
-            Vos favoris restent sur votre téléphone. Seuls les noms des startups suivies
-            servent à préparer votre veille. Conservation limitée à 30 jours, et vous
-            pouvez tout réinitialiser à tout moment depuis l’onglet Favoris.
+            {t.favSync.body2}
           </Text>
 
           <View style={styles.actions}>
@@ -52,7 +52,7 @@ export function FavSyncConsentModal() {
               activeScale={0.95}
               accessibilityRole="button"
             >
-              <Text style={[styles.btnText, styles.btnGhostText]}>Plus tard</Text>
+              <Text style={[styles.btnText, styles.btnGhostText]}>{t.common.later}</Text>
             </PressableScale>
             <PressableScale
               onPress={() => {
@@ -65,7 +65,7 @@ export function FavSyncConsentModal() {
               haptic={false}
               accessibilityRole="button"
             >
-              <Text style={[styles.btnText, styles.btnSolidText]}>Activer</Text>
+              <Text style={[styles.btnText, styles.btnSolidText]}>{t.common.enable}</Text>
             </PressableScale>
           </View>
         </FadeInView>

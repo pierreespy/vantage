@@ -41,7 +41,7 @@ import { SignalBadge } from '@/components/SignalBadge';
 import { ThemeSwitch } from '@/components/ThemeSwitch';
 import { useSettings } from '@/state/settings';
 import type { Bref } from '@/content/types';
-import { groupByPillar, PILLAR_LABELS } from '@/content/pillars';
+import { groupByPillar } from '@/content/pillars';
 import { Ticker, TICKER_KINDS } from '@/components/Ticker';
 import { colors, border } from '@/theme';
 import { fonts } from '@/fonts';
@@ -51,8 +51,8 @@ const openLink = (url: string) => WebBrowser.openBrowserAsync(url).catch(() => {
 
 export default function JournalScreen() {
   const insets = useSafeAreaInsets();
-  const { edition, source, loading, refresh, usesAI } = useEdition();
-  const { theme } = useSettings();
+  const { edition, source, contentLanguage, loading, refresh, usesAI } = useEdition();
+  const { theme, language, t } = useSettings();
   const themeLabel = theme === 'biotech' ? 'Biotech' : 'MedTech';
   const { isFollowed, toggle } = useFavorites();
   const { noteRead } = useNotifications();
@@ -92,7 +92,7 @@ export default function JournalScreen() {
     <View style={styles.root}>
       {/* HEADER 1b épuré */}
       <View style={[styles.header, { paddingTop: insets.top + 14 }]}>
-        <Text style={styles.date}>{edition.dateLong} · Veille {themeLabel} Europe</Text>
+        <Text style={styles.date}>{edition.dateLong} · {t.journal.coverage(themeLabel)}</Text>
         <Text style={styles.nameplate}>
           VANTAGE <Text style={styles.nameplateAccent}>CHRONICLE</Text>
         </Text>
@@ -100,9 +100,9 @@ export default function JournalScreen() {
           <ThemeSwitch />
         </View>
         {theme !== 'medtech' && source === 'sample' ? (
-          <Text style={styles.themeNotice}>
-            Édition {themeLabel} pas encore disponible — aperçu MedTech affiché.
-          </Text>
+          <Text style={styles.themeNotice}>{t.journal.themeUnavailable(themeLabel)}</Text>
+        ) : source !== 'sample' && contentLanguage !== language ? (
+          <Text style={styles.themeNotice}>{t.journal.translationUnavailable}</Text>
         ) : null}
       </View>
 
@@ -121,7 +121,7 @@ export default function JournalScreen() {
               <Text style={[styles.legendSym, { color: TICKER_KINDS[k].legend }]}>
                 {TICKER_KINDS[k].symbol}
               </Text>
-              <Text style={styles.legendText}>{TICKER_KINDS[k].label}</Text>
+              <Text style={styles.legendText}>{t.ticker[k]}</Text>
             </View>
           ))}
         </View>
@@ -149,14 +149,14 @@ export default function JournalScreen() {
               <Text style={styles.leadTitle}>{lead.title}</Text>
             </PressableScale>
             <ShareButton
-              onPress={() => shareCard(leadCardData(lead, edition.dateLong))}
+              onPress={() => shareCard(leadCardData(lead, edition.dateLong, t))}
               disabled={sharing}
             />
             <FavoriteStar
               followed={isFollowed(lead.company)}
               onToggle={() => onToggleFav(lead.company)}
               style={styles.starBig}
-              label="Ajouter aux favoris"
+              label={t.common.addToFavorites}
             />
           </View>
           <Text style={styles.deck}>{lead.deck}</Text>
@@ -166,7 +166,7 @@ export default function JournalScreen() {
         {milestone ? (
           <FadeInView index={2} replayKey={replayKey} style={styles.mileCard}>
             <View style={styles.mileBar}>
-              <Text style={styles.dealBarText}>L’avancée du jour</Text>
+              <Text style={styles.dealBarText}>{t.journal.milestoneBar}</Text>
             </View>
             <View style={styles.dealBody}>
               <View style={styles.brefMetaRow}>
@@ -195,20 +195,20 @@ export default function JournalScreen() {
                   <Text style={styles.mileTitle}>{milestone.title}</Text>
                 </PressableScale>
                 <ShareButton
-                  onPress={() => shareCard(milestoneCardData(milestone, edition.dateLong))}
+                  onPress={() => shareCard(milestoneCardData(milestone, edition.dateLong, t))}
                   disabled={sharing}
                 />
                 <FavoriteStar
                   followed={isFollowed(milestone.company)}
                   onToggle={() => onToggleFav(milestone.company)}
                   style={styles.starSmall}
-                  label="Ajouter aux favoris"
+                  label={t.common.addToFavorites}
                 />
               </View>
               <Text style={styles.dealThesis}>{milestone.summary}</Text>
               {milestone.why ? (
                 <View style={styles.mileWhy}>
-                  <Text style={styles.mileWhyLabel}>Pourquoi ça compte</Text>
+                  <Text style={styles.mileWhyLabel}>{t.journal.whyItMatters}</Text>
                   <Text style={styles.dealThesis}>{milestone.why}</Text>
                 </View>
               ) : null}
@@ -220,7 +220,7 @@ export default function JournalScreen() {
         {deal ? (
           <FadeInView index={3} replayKey={replayKey} style={styles.dealCard}>
             <View style={styles.dealBar}>
-              <Text style={styles.dealBarText}>Financement · le deal du jour</Text>
+              <Text style={styles.dealBarText}>{t.journal.dealBar}</Text>
             </View>
             <View style={styles.dealBody}>
               <View style={styles.dealHead}>
@@ -241,8 +241,8 @@ export default function JournalScreen() {
               <Text style={styles.dealThesis}>{deal.thesis}</Text>
               <View style={styles.dealShareRow}>
                 <ShareButton
-                  label="Partager"
-                  onPress={() => shareCard(dealCardData(deal, edition.dateLong))}
+                  label={t.common.share}
+                  onPress={() => shareCard(dealCardData(deal, edition.dateLong, t))}
                   disabled={sharing}
                 />
               </View>
@@ -262,7 +262,7 @@ export default function JournalScreen() {
                 style={[styles.sectionHead, g > 0 && { marginTop: 18 }]}
               >
                 <Text style={[styles.sectionLabel, { color: colors.claret }]}>
-                  Europe · {PILLAR_LABELS[pillar]}
+                  Europe · {t.pillars[pillar]}
                 </Text>
                 <View style={styles.ruleStrong} />
               </FadeInView>
@@ -277,7 +277,7 @@ export default function JournalScreen() {
                   followed={isFollowed(b.company)}
                   onFav={() => onToggleFav(b.company)}
                   onOpen={openArticle}
-                  onShare={() => shareCard(brefCardData(b, edition.dateLong))}
+                  onShare={() => shareCard(brefCardData(b, edition.dateLong, t))}
                   shareDisabled={sharing}
                 />
               ))}
@@ -292,7 +292,7 @@ export default function JournalScreen() {
             replayKey={replayKey}
             style={[styles.sectionHead, { marginTop: 18 }]}
           >
-            <Text style={[styles.sectionLabel, { color: colors.ink60 }]}>Hors Europe</Text>
+            <Text style={[styles.sectionLabel, { color: colors.ink60 }]}>{t.journal.outsideEurope}</Text>
             <View style={styles.ruleFaint} />
           </FadeInView>
         ) : null}
@@ -306,7 +306,7 @@ export default function JournalScreen() {
             followed={isFollowed(b.company)}
             onFav={() => onToggleFav(b.company)}
             onOpen={openArticle}
-            onShare={() => shareCard(brefCardData(b, edition.dateLong))}
+            onShare={() => shareCard(brefCardData(b, edition.dateLong, t))}
             shareDisabled={sharing}
           />
         ))}
@@ -316,9 +316,10 @@ export default function JournalScreen() {
 }
 
 function AiBadge() {
+  const { t } = useSettings();
   return (
-    <View style={styles.aiBadge} accessibilityLabel="Utilise l’IA">
-      <Text style={styles.aiText}>IA</Text>
+    <View style={styles.aiBadge} accessibilityLabel={t.common.aiLabel}>
+      <Text style={styles.aiText}>{t.common.ai}</Text>
     </View>
   );
 }

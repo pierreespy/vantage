@@ -9,11 +9,14 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   (`src/components/FloatingTabBar.tsx`) :
   - `Journal` (`app/(tabs)/index.tsx`), `Favoris` (`app/(tabs)/favoris.tsx`),
     `Mot du jour` (`app/(tabs)/mot-du-jour.tsx`), `Réglages` (`app/(tabs)/reglages.tsx`).
-- **Réglages & langue** : `SettingsProvider` (`src/state/settings.tsx`, AsyncStorage) porte
-  la langue d'interface (`fr`/`en`) et l'interrupteur haptique (`setHapticsEnabled` dans
-  `haptics.ts`). Chaînes traduites dans `src/i18n/strings.ts` via `useSettings().t` — seule
-  l'interface est traduite (onglets + Réglages pour l'instant), pas le contenu de l'`Edition`.
-  L'écran pilote aussi la notif du matin et le partage anonyme des favoris.
+- **Réglages, langue & thème** : `SettingsProvider` (`src/state/settings.tsx`, AsyncStorage)
+  porte la langue (`fr`/`en`), le **thème de veille** (`medtech`/`biotech`, sélecteur
+  `ThemeSwitch` en tête du Journal et dans Réglages) et l'interrupteur haptique.
+  **Toute chaîne visible** passe par `useSettings().t` (`src/i18n/strings.ts`) — ne jamais
+  remettre de texte en dur dans un écran. Le contenu est traduit à la source :
+  `src/content/localized.ts` charge `X.en.json` (frère de `X.json`) et retombe sur le FR si
+  absent (édition, `words`, `startup-news`). Éditions par thème : `config.editionUrls`
+  (`edition.json`, `edition-biotech.json`, + `.en.json`), cache par thème×langue.
 - **Ligne éditoriale = veille MedTech européenne**, pas une veille financière : la finance
   est un bras parmi d'autres. Le Journal range les brèves Europe par **rubrique**
   (`pillar` : `innovation` Tech & clinique, `marche` Réglementaire & marché, `naissances`
