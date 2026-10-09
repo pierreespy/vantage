@@ -197,6 +197,23 @@
         "place": "Austin",
         "use": "Implant haut débit (Connexus) pour restaurer la parole."
       }
+    ],
+    "sources": [
+      {
+        "publisher": "Nature",
+        "title": "Walking naturally after spinal cord injury using a brain–spine interface (Lorach et al., 2023)",
+        "url": "https://www.nature.com/articles/s41586-023-06094-5"
+      },
+      {
+        "publisher": "Inbrain Neuroelectronics",
+        "title": "Graphene-based brain-computer interface — first-in-human study",
+        "url": "https://www.inbrain-neuroelectronics.com"
+      },
+      {
+        "publisher": "Synchron",
+        "title": "Stentrode — endovascular brain-computer interface",
+        "url": "https://synchron.com"
+      }
     ]
   }
 }

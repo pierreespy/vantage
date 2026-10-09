@@ -9,7 +9,7 @@
  */
 import { useSettings } from '@/state/settings';
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, Pressable, StyleSheet, Text, View } from 'react-native';
 import { FadeInView } from '@/components/FadeInView';
 import type { Word } from '@/content/types';
 import { colors, border } from '@/theme';
@@ -116,6 +116,31 @@ export function WordView({ word }: { word: Word }) {
             ))}
           </View>
         </>
+      ) : null}
+
+      {/* SOURCES — de quoi l'explication est tirée, pour montrer que rien n'est inventé */}
+      {(word.sources ?? []).length > 0 ? (
+        <FadeInView index={7 + word.how.length + (word.startups ?? []).length} replayKey={word.term}>
+          <SectionHeader label={t.word.sources} color={colors.claret} rule="faint" />
+          <Text style={styles.sourcesNote}>{t.word.sourcesNote}</Text>
+          <View style={{ marginBottom: 18 }}>
+            {(word.sources ?? []).map((s, i) => (
+              <Pressable
+                key={s.url + i}
+                onPress={() => Linking.openURL(s.url).catch(() => {})}
+                accessibilityRole="link"
+                style={styles.source}
+              >
+                <Text style={styles.sourceN}>{i + 1}</Text>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.sourcePublisher}>{s.publisher}</Text>
+                  <Text style={styles.sourceTitle}>{s.title}</Text>
+                </View>
+                <Text style={styles.sourceArrow}>↗</Text>
+              </Pressable>
+            ))}
+          </View>
+        </FadeInView>
       ) : null}
     </>
   );
@@ -258,4 +283,31 @@ const styles = StyleSheet.create({
     color: colors.ink70,
     marginTop: 3,
   },
+
+  // sources
+  sourcesNote: {
+    fontFamily: fonts.serifItalic,
+    fontSize: 12,
+    lineHeight: 17,
+    color: colors.ink60,
+    marginBottom: 4,
+  },
+  source: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 9,
+    borderBottomWidth: 1,
+    borderBottomColor: border.light,
+  },
+  sourceN: { fontFamily: fonts.monoSemi, fontSize: 12, color: colors.accent, width: 14 },
+  sourcePublisher: {
+    fontFamily: fonts.mono,
+    fontSize: 9,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: colors.ink50,
+  },
+  sourceTitle: { fontFamily: fonts.serif, fontSize: 13, lineHeight: 18, color: colors.ink90 },
+  sourceArrow: { fontFamily: fonts.mono, fontSize: 13, color: colors.accent },
 });

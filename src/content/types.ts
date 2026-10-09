@@ -120,6 +120,16 @@ export type WordStartup = {
   place?: string;
 };
 
+/** One source backing the term's explanation (article, regulator page, paper…). */
+export type WordSource = {
+  /** Publisher / outlet, e.g. "FDA", "Nature Medicine", "Les Echos". */
+  publisher: string;
+  /** Title of the page or article. */
+  title: string;
+  /** Direct link to the page. */
+  url: string;
+};
+
 /** The "Mot du jour" term explainer. */
 export type Word = {
   term: string;
@@ -132,6 +142,8 @@ export type Word = {
   why: string;
   /** Real startups/companies currently using the term's tech or process. */
   startups: WordStartup[];
+  /** Sources the explanation is built on — shown so the reader can check nothing is invented. */
+  sources?: WordSource[];
 };
 
 /** One dated entry in the growing glossary: a past "mot du jour" with its full

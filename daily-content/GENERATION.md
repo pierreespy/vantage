@@ -103,6 +103,13 @@ mémo d'investissement). Règles, dans l'ordre :
    **Vérification obligatoire par recherche web, à chaque édition** : chaque startup existe,
    utilise vraiment la techno, et est **encore indépendante** (si rachetée par une pharma —
    Tubulis→Gilead, Mersana→Day One, Myricx→Novartis… — la remplacer). Le `use` = un fait vérifié.
+   **`sources` (obligatoire, 2 à 4)** : les pages **réellement consultées** pendant la
+   recherche web pour rédiger la définition, le mécanisme et le `why` — chacune
+   `{ "publisher", "title", "url" }` (URL directe et fonctionnelle : autorité — FDA, EMA,
+   HAS —, publication scientifique, média spécialisé, site de la société). **Aucune
+   affirmation sans source** : si un fait ne peut pas être sourcé, le retirer. Ne jamais
+   inventer une URL. L'app les affiche dans un bloc « Sources » cliquable en bas du Mot du
+   jour (et du Glossaire).
 4. **Générer le reste de l'édition** (`dateLong`, `ticker`, `lead`, `milestone`, `deal`
    optionnel, `brefsEurope`, `brefsIntl`) selon la **ligne éditoriale** ci-dessus — **règle
    éditoriale permanente : noms précis** (société, techno, indication, chiffres, autorité ;
