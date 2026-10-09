@@ -34,7 +34,8 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   terme **MedTech** (dispositifs, imagerie, réglementaire/accès marché…), **jamais un terme présent dans
   `recent-words.json`** (mémoire des ~30 derniers jours, mise à jour chaque matin).
   Le rendu de l'explication est factorisé dans `src/components/WordView.tsx`, partagé par
-  l'onglet Mot du jour et le détail du Glossaire.
+  l'onglet Mot du jour et le détail du Glossaire. Bloc **« Sources »** en bas (`word.sources`,
+  2-4 liens `{publisher,title,url}` réellement consultés, cliquables) : rien n'est affirmé sans source.
 - **Glossaire** : lexique cherchable de **tous** les mots du jour passés (avec explication
   complète), ouvert via un bouton dans l'en-tête de l'onglet Mot du jour
   (`GlossaireModal`). Les données viennent de `config.wordsUrl` (`words.json`) via
