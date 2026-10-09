@@ -101,7 +101,11 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   Côté app, seul le **contrat typé** existe (`src/content/leadTypes.ts`, `config.leadsUrl`) —
   **aucun écran ne consomme encore les leads** ; ils alimentent la routine éditoriale comme
   candidats-signaux. Deux `SignalType` ont été ajoutés pour ce pipeline : `grant_award` et
-  `company_incorporation`.
+  `company_incorporation`. Signal **« départ silencieux »** (`sources/departures.mjs`) : un
+  dirigeant quitte un grand groupe MedTech (`sources/data/incumbents.json`, UK via Companies
+  House, FR via diff de l'annuaire des entreprises) → `stealth_departure` (≥ 50) tant qu'aucun
+  nouveau mandat n'apparaît, `departure_newco` (≥ 80) dès qu'il dirige une société < 6 mois.
+  Registres seulement (mandataires) — LinkedIn reste exclu.
 
 ## Vérifier
 

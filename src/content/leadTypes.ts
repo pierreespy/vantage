@@ -10,13 +10,16 @@
  * Two priority rules define the score bands (see `backend/signals/score.mjs`):
  *   - **>= 80 (haute)**  chercheur/auteur + brevet déposé + société créée < 6 mois;
  *   - **>= 50 (moyenne)** nouvel essai ClinicalTrials sans structure commerciale.
+ * Plus two departure rules (`departures.mjs`): an officer leaving a MedTech
+ * incumbent who then directs a < 6-month-old company (>= 80, `departure_newco`),
+ * or who has taken no new mandate (>= 50, `stealth_departure`).
  *
- * The high band is EXCLUSIVE to the first pattern: a lead matching no rule is
+ * The high band is EXCLUSIVE to the two « new company » patterns: a lead matching no rule is
  * capped at 79 however many signals it carries. Without that ceiling a large
  * incumbent — which files patents, publishes and runs trials continuously —
  * reaches 80 by accumulation alone, which is the opposite of what the pipeline
  * is for. So `priority === 'high'` implies `rules` contains
- * `researcher_patent_newco`.
+ * `researcher_patent_newco` or `departure_newco`.
  *
  * The same objects are served by the pipeline's HTTP endpoint
  * (`GET /api/medtech/leads`), so a client can either fetch the whole published
@@ -33,14 +36,20 @@ import type { SignalType, SignalStrength } from './signalTypes';
 export type LeadPriority = 'high' | 'medium' | 'low';
 
 /** The named rules that guarantee a score floor. */
-export type LeadRule = 'researcher_patent_newco' | 'new_trial_no_company';
+export type LeadRule =
+  | 'researcher_patent_newco'
+  | 'new_trial_no_company'
+  /** Left a MedTech incumbent and directs a company incorporated < 6 months ago (>= 80). */
+  | 'departure_newco'
+  /** Left a MedTech incumbent < 1 year ago, no new mandate known — likely stealth (>= 50). */
+  | 'stealth_departure';
 
 /** One piece of evidence behind a lead's score — the auditable part. */
 export type LeadSignal = {
   signalType: SignalType;
   strength: SignalStrength;
   /** The kind of source record: publication, patent, trial, grant, incorporation. */
-  recordKind: 'publication' | 'patent' | 'trial' | 'grant' | 'company_creation';
+  recordKind: 'publication' | 'patent' | 'trial' | 'grant' | 'company_creation' | 'departure';
   /** Connector id: `pubmed`, `europepmc`, `epo`, `clinicaltrials`, `grants`, `inpi`
    *  (or `pappers`, the paid alternative to `inpi`, when it is enabled instead). */
   source: string;
