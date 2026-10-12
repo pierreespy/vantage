@@ -46,6 +46,10 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
 - **Design tokens** : toujours passer par `src/theme.ts` (couleurs/bordures) et
   `src/fonts.ts` (alias de polices `fonts.serifBold`, `fonts.mono`, …). Ne pas coder
   les couleurs/polices en dur dans les écrans.
+- **iPad** : l'app reste en colonne centrée (`layout.maxContentWidth` = 720 dans `theme.ts`,
+  appliqué dans `app/_layout.tsx` et `GlossaireModal`) ; cartes/feuilles modales plafonnées à
+  `layout.maxSheetWidth`. Ces largeurs dépassent tout iPhone → rendu iPhone inchangé.
+  Paysage autorisé sur iPad seulement (`UISupportedInterfaceOrientations~ipad`, `app.json`).
 - **Favoris** = état partagé et persisté via `src/state/favorites.tsx` (AsyncStorage) ;
   catalogue de startups dans `src/data/favoris.ts` (propre à l'utilisateur, hors édition).
   Le répertoire recherchable s'enrichit tout seul : toute société du Journal absente du

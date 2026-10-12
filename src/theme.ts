@@ -68,3 +68,12 @@ export const glass = {
   accentFill: 'rgba(11,79,108,0.08)',
   accentFillFaint: 'rgba(11,79,108,0.04)',
 } as const;
+
+/** Largeurs max (iPad) : au-delà, le contenu se centre sur fond papier. Toutes dépassent
+ *  la largeur d'un iPhone (≤ 440 pt), donc sans effet sur iPhone. */
+export const layout = {
+  /** Colonne de lecture des écrans (onglets, Glossaire) et barre d'onglets. */
+  maxContentWidth: 720,
+  /** Cartes et feuilles modales (consentement, notifs, Favoris). */
+  maxSheetWidth: 560,
+};

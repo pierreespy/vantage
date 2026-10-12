@@ -40,7 +40,7 @@ import { useEdition } from '@/content/EditionProvider';
 import { useStartupNews } from '@/content/NewsProvider';
 import { useAccess } from '@/content/AccessProvider';
 import { config } from '@/config';
-import { colors, border, glass } from '@/theme';
+import { colors, border, glass, layout } from '@/theme';
 import { fonts } from '@/fonts';
 import { hapticError, hapticSuccess, hapticTap, hapticMedium } from '@/lib/haptics';
 import { FadeInView } from '@/components/FadeInView';
@@ -1016,8 +1016,10 @@ const styles = StyleSheet.create({
   },
 
   // sheets (shared)
-  scrim: { flex: 1, backgroundColor: glass.scrim, justifyContent: 'flex-end' },
+  scrim: { flex: 1, backgroundColor: glass.scrim, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: {
+    width: '100%',
+    maxWidth: layout.maxSheetWidth,
     backgroundColor: colors.paper,
     borderTopLeftRadius: 22,
     borderTopRightRadius: 22,

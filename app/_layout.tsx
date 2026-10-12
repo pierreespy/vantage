@@ -7,7 +7,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { useAppFonts } from '@/fonts';
-import { colors } from '@/theme';
+import { colors, layout } from '@/theme';
 import { FavoritesProvider } from '@/state/favorites';
 import { FavoritesSyncProvider } from '@/state/favoritesSync';
 import { SettingsProvider } from '@/state/settings';
@@ -41,9 +41,14 @@ export default function RootLayout() {
                   <NotificationsProvider>
                     <ShareProvider>
                       <StatusBar style="dark" />
-                      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
-                        <Stack.Screen name="(tabs)" />
-                      </Stack>
+                      {/* iPad : colonne centrée à largeur max ; plein écran sur iPhone. */}
+                      <View style={{ flex: 1, backgroundColor: colors.paper }}>
+                        <View style={{ flex: 1, width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center' }}>
+                          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+                            <Stack.Screen name="(tabs)" />
+                          </Stack>
+                        </View>
+                      </View>
                       <FavSyncConsentModal />
                       <NotifPrimerModal />
                     </ShareProvider>

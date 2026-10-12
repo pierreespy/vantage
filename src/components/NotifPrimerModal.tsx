@@ -15,7 +15,7 @@ import { Modal, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNotifications } from '@/state/notifications';
 import { hapticSuccess } from '@/lib/haptics';
-import { colors, border, glass } from '@/theme';
+import { colors, border, glass, layout } from '@/theme';
 import { fonts } from '@/fonts';
 import { FadeInView } from '@/components/FadeInView';
 import { PressableScale } from '@/components/PressableScale';
@@ -78,9 +78,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: glass.scrim,
     justifyContent: 'flex-end',
+    alignItems: 'center',
     paddingHorizontal: 20,
   },
   card: {
+    width: '100%',
+    maxWidth: layout.maxSheetWidth,
     backgroundColor: colors.paper,
     borderRadius: 20,
     borderWidth: 1,

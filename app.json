@@ -16,7 +16,13 @@
         "LSApplicationQueriesSchemes": [
           "linkedin"
         ],
-        "CFBundleDisplayName": "Vantage"
+        "CFBundleDisplayName": "Vantage",
+        "UISupportedInterfaceOrientations~ipad": [
+          "UIInterfaceOrientationPortrait",
+          "UIInterfaceOrientationPortraitUpsideDown",
+          "UIInterfaceOrientationLandscapeLeft",
+          "UIInterfaceOrientationLandscapeRight"
+        ]
       }
     },
     "android": {

@@ -29,7 +29,7 @@ import { WordView } from './WordView';
 import { FadeInView } from './FadeInView';
 import { PressableScale } from './PressableScale';
 import { hapticTap } from '@/lib/haptics';
-import { colors, border, glass } from '@/theme';
+import { colors, border, glass, layout } from '@/theme';
 import { fonts } from '@/fonts';
 
 /** Lowercase + fold French accents so "reglementaire" matches "Réglementaire".
@@ -78,6 +78,7 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={selected ? () => setSelected(null) : close}>
+      <View style={styles.ground}>
       <View style={styles.root}>
         {/* HEADER */}
         <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
@@ -162,12 +163,14 @@ export function GlossaireModal({ visible, onClose }: { visible: boolean; onClose
           </>
         )}
       </View>
+      </View>
     </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.paper },
+  root: { flex: 1, width: '100%', maxWidth: layout.maxContentWidth, alignSelf: 'center' },
+  ground: { flex: 1, backgroundColor: colors.paper },
 
   header: {
     paddingHorizontal: 20,
