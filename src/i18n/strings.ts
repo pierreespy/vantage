@@ -9,11 +9,12 @@
 export type Language = 'fr' | 'en';
 
 /** Thème de veille : chaque thème a sa propre édition quotidienne. */
-export type Theme = 'medtech' | 'biotech';
+export type Theme = 'medtech' | 'biotech' | 'digitalhealth';
 
 export const THEMES: { code: Theme; label: string }[] = [
   { code: 'medtech', label: 'MedTech' },
   { code: 'biotech', label: 'Biotech' },
+  { code: 'digitalhealth', label: 'Digital Health' },
 ];
 
 export const LANGUAGES: { code: Language; label: string }[] = [

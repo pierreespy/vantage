@@ -40,6 +40,7 @@ import { PressableScale } from '@/components/PressableScale';
 import { SignalBadge } from '@/components/SignalBadge';
 import { ThemeSwitch } from '@/components/ThemeSwitch';
 import { useSettings } from '@/state/settings';
+import { THEMES } from '@/i18n/strings';
 import type { Bref } from '@/content/types';
 import { groupByPillar } from '@/content/pillars';
 import { Ticker, TICKER_KINDS } from '@/components/Ticker';
@@ -53,7 +54,7 @@ export default function JournalScreen() {
   const insets = useSafeAreaInsets();
   const { edition, source, contentLanguage, loading, refresh, usesAI } = useEdition();
   const { theme, language, t } = useSettings();
-  const themeLabel = theme === 'biotech' ? 'Biotech' : 'MedTech';
+  const themeLabel = THEMES.find((th) => th.code === theme)?.label ?? 'MedTech';
   const { isFollowed, toggle } = useFavorites();
   const { noteRead } = useNotifications();
   const { shareCard, sharing } = useShareCard();

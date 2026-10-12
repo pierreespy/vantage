@@ -2,7 +2,7 @@
  * Daily content provider.
  *
  * On launch (and on pull-to-refresh) it fetches the day's edition JSON from
- * config.editionUrls[theme] (theme = Réglages, MedTech ou Biotech). Resolution order, so the app ALWAYS shows something:
+ * config.editionUrls[theme] (theme = Réglages, MedTech, Biotech ou Digital Health). Resolution order, so the app ALWAYS shows something:
  *   1. live   — freshly fetched from the URL (also cached for next time)
  *   2. cache  — last successfully fetched edition (works offline)
  *   3. sample — the edition bundled inside the app

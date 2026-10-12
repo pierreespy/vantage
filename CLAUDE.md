@@ -10,13 +10,13 @@ maquettes Claude Design « Vantage App iOS ». Voir **`README.md`** pour le dét
   - `Journal` (`app/(tabs)/index.tsx`), `Favoris` (`app/(tabs)/favoris.tsx`),
     `Mot du jour` (`app/(tabs)/mot-du-jour.tsx`), `Réglages` (`app/(tabs)/reglages.tsx`).
 - **Réglages, langue & thème** : `SettingsProvider` (`src/state/settings.tsx`, AsyncStorage)
-  porte la langue (`fr`/`en`), le **thème de veille** (`medtech`/`biotech`, sélecteur
+  porte la langue (`fr`/`en`), le **thème de veille** (`medtech`/`biotech`/`digitalhealth`, sélecteur
   `ThemeSwitch` en tête du Journal et dans Réglages) et l'interrupteur haptique.
   **Toute chaîne visible** passe par `useSettings().t` (`src/i18n/strings.ts`) — ne jamais
   remettre de texte en dur dans un écran. Le contenu est traduit à la source :
   `src/content/localized.ts` charge `X.en.json` (frère de `X.json`) et retombe sur le FR si
   absent (édition, `words`, `startup-news`). Éditions par thème : `config.editionUrls`
-  (`edition.json`, `edition-biotech.json`, + `.en.json`), cache par thème×langue.
+  (`edition.json`, `edition-biotech.json`, `edition-digitalhealth.json`, + `.en.json`), cache par thème×langue.
 - **Ligne éditoriale = veille MedTech européenne**, pas une veille financière : la finance
   est un bras parmi d'autres. Le Journal range les brèves Europe par **rubrique**
   (`pillar` : `innovation` Tech & clinique, `marche` Réglementaire & marché, `naissances`

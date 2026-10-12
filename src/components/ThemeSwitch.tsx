@@ -1,5 +1,5 @@
 /**
- * Sélecteur MedTech / Biotech — pilule segmentée compacte (en-tête du Journal,
+ * Sélecteur MedTech / Biotech / Digital Health — pilule segmentée compacte (en-tête du Journal,
  * Réglages). Change le thème de veille, donc l'édition chargée par EditionProvider.
  */
 import React from 'react';
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     backgroundColor: glass.accentFillFaint,
   },
   stretch: { alignSelf: 'stretch' },
-  item: { paddingHorizontal: 14, paddingVertical: 5, borderRadius: 100, alignItems: 'center' },
+  item: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 100, alignItems: 'center' },
   itemActive: { backgroundColor: colors.accent },
   text: {
     fontFamily: fonts.archivoBold,
