@@ -72,8 +72,8 @@ export const glass = {
 /** Largeurs max (iPad) : au-delà, le contenu se centre sur fond papier. Toutes dépassent
  *  la largeur d'un iPhone (≤ 440 pt), donc sans effet sur iPhone. */
 export const layout = {
-  /** Colonne de lecture des écrans (onglets, Glossaire) et barre d'onglets. */
-  maxContentWidth: 720,
+  /** Colonne des écrans (onglets, Glossaire) et barre d'onglets : remplit l'iPad 13" en portrait (1032 pt), plafonnée en paysage. */
+  maxContentWidth: 1100,
   /** Cartes et feuilles modales (consentement, notifs, Favoris). */
   maxSheetWidth: 560,
 };
